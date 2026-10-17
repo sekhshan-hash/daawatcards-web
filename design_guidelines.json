@@ -1,0 +1,224 @@
+{
+  "brand_identity": {
+    "brand_name": "Daawat",
+    "tagline": "Cinematic Invitations for Life's Greatest Celebrations",
+    "archetype": "Hybrid: Luxury Ceremonial (Guest Card) & Warm Editorial SaaS (Host Studio)",
+    "target_platform": "Mobile-First Web App (Optimized for Android Chrome & iOS Safari)"
+  },
+  "theme_system": {
+    "host_app_theme": {
+      "mode": "dark",
+      "colors": {
+        "background": "#0F0B15",
+        "surface": "#1A1425",
+        "surface_hover": "#251D35",
+        "border": "#2E2440",
+        "primary": "#E6B756",
+        "primary_hover": "#F0C76E",
+        "primary_foreground": "#0F0B15",
+        "secondary": "#2A203B",
+        "text_primary": "#F7F5FA",
+        "text_muted": "#A199B8",
+        "accent_rose": "#E05375",
+        "accent_emerald": "#2DD4BF"
+      },
+      "typography": {
+        "heading_font": "Cinzel Decorative, serif",
+        "body_font": "Plus Jakarta Sans, sans-serif",
+        "mono_font": "JetBrains Mono, monospace"
+      }
+    },
+    "templates": {
+      "wedding_royal": {
+        "id": "wedding-royal",
+        "name": "Royal Velvet & Gold",
+        "category": "Wedding",
+        "colors": {
+          "primary_bg": "#2B070C",
+          "secondary_bg": "#4A0E17",
+          "card_surface": "#380911",
+          "accent_gold": "#D4AF37",
+          "gold_light": "#F3E5AB",
+          "ivory": "#FDFBF7",
+          "text_dark": "#1F0508",
+          "text_gold": "#E5C158",
+          "text_ivory": "#F7F3E9",
+          "curtain_color": "#3B0A11",
+          "border_gold": "rgba(212, 175, 55, 0.4)",
+          "overlay_scrim": "rgba(43, 7, 12, 0.85)"
+        },
+        "fonts": {
+          "display": "Rozha One, serif",
+          "title": "Cinzel Decorative, serif",
+          "script": "Great Vibes, cursive",
+          "body": "Cormorant Garamond, serif"
+        },
+        "effects": {
+          "intro_type": "curtain_parting",
+          "particles": "falling_petals",
+          "ornaments": "mandala_svg_borders",
+          "glow": "drop-shadow(0 0 12px rgba(212,175,55,0.35))"
+        }
+      },
+      "birthday_playful": {
+        "id": "birthday-playful",
+        "name": "Confetti & Party Pop",
+        "category": "Birthday",
+        "colors": {
+          "primary_bg": "#0D1B2A",
+          "secondary_bg": "#1B263B",
+          "card_surface": "#162436",
+          "accent_coral": "#FF6B6B",
+          "accent_amber": "#FFD166",
+          "accent_teal": "#4ECDC4",
+          "accent_purple": "#9D4EDD",
+          "ivory": "#FAFAFA",
+          "text_dark": "#0D1B2A",
+          "text_light": "#FFFFFF",
+          "text_muted": "#B0C4DE",
+          "border_glow": "rgba(78, 205, 196, 0.4)"
+        },
+        "fonts": {
+          "display": "Fredoka, cursive",
+          "title": "Outfit, sans-serif",
+          "body": "Plus Jakarta Sans, sans-serif"
+        },
+        "effects": {
+          "intro_type": "balloon_pop",
+          "particles": "confetti_burst",
+          "ornaments": "playful_svg_dots",
+          "glow": "drop-shadow(0 0 16px rgba(255,209,102,0.4))"
+        }
+      }
+    }
+  },
+  "guest_experience_flow": {
+    "step_1_intro": {
+      "name": "Intro Screen",
+      "elements": ["Guest personalized greeting badge 'To: Guest Name'", "Animated envelope or curtain centerpiece", "Primary Action: 'Tap to Open'", "Secondary Action: 'Skip Intro' link"],
+      "rule": "Must show personalized query param 'to' or fall back to 'Special Guest'"
+    },
+    "step_2_reveal": {
+      "name": "Template Reveal Animation",
+      "royal": "Velvet curtains split smoothly left and right with gold fringe SVGs + red flower petals drifting down",
+      "birthday": "Interactive balloons drift upward; tapping pops them with particle fragments and triggers confetti explosion"
+    },
+    "step_3_title": {
+      "name": "Title & Couple/Host Banner",
+      "elements": ["Host or Bride & Groom Names in grand display typography", "Event main headline (e.g. 'The Royal Nikah & Walima')", "Blessing or quote snippet", "Background ambient music play/mute floating toggle"]
+    },
+    "step_4_details_countdown": {
+      "name": "Scrolling Details & Countdown",
+      "elements": ["Formal invitation body copy", "Blessing text / family compliments", "Real-time Live Countdown timer (Days, Hours, Minutes, Seconds) with ticking animation", "Event Switcher Tabs if multiple events (e.g., Mehndi / Nikah / Walima)"]
+    },
+    "step_5_venue_directions_calendar": {
+      "name": "Venue & Action Suite",
+      "elements": ["Venue Name & Address card with custom SVG map pin", "CTA 1: 'Get Directions' (opens Google Maps / Apple Maps link)", "CTA 2: 'Add to Calendar' (generates both .ics file download and Google Calendar web URL)"]
+    },
+    "step_6_rsvp": {
+      "name": "Interactive RSVP",
+      "elements": ["Status Choice: Yes / Maybe / Regretfully No", "Guest Count selector (+1, +2, etc.)", "Custom Dietary / Message input", "CTA 1: 'Submit In-App RSVP'", "CTA 2: 'Confirm on WhatsApp' (pre-fills WhatsApp message to host phone)"]
+    },
+    "step_7_footer": {
+      "name": "Footer & Replay",
+      "elements": ["With compliments from {host_family_name}", "Replay Intro Button (re-triggers opening reveal animation)", "Brand signature: Powered by Daawat"]
+    }
+  },
+  "host_app_architecture": {
+    "auth": {
+      "methods": ["Google Auth (Mocked single-click)", "Phone OTP (Mocked WhatsApp code verification flow)"],
+      "default_phone_code": "123456"
+    },
+    "dashboard": {
+      "route": "/dashboard",
+      "features": ["Stat cards (Total Cards, RSVPs Received, Total Guests)", "Cards List with template badges & status pills", "Action: 'Create New Card'", "Action: 'Manage RSVPs'", "Action: 'Generate Personal Links'"]
+    },
+    "create_wizard": {
+      "route": "/create",
+      "steps": [
+        "1. Event Type Selection (Wedding, Birthday, Anniversary, Party)",
+        "2. Template Picker (Royal Velvet & Gold, Confetti & Party Pop)",
+        "3. Host & Couple Details (Bride, Groom, Host Family, Custom Blessing)",
+        "4. Event Schedule (Multi-event setup: Date, Time, Venue, Map Link, Dress Code)",
+        "5. Soundtrack & Audio (Select built-in royalty-free audio track)",
+        "6. Live Mobile Frame Preview & Publish"
+      ]
+    },
+    "personal_link_maker": {
+      "modal_id": "personal-link-maker",
+      "features": ["Guest Name Input", "Event Selector", "Instant URL generator `/i/{card-slug}/{event-id}?to=Guest+Name`", "One-tap 'Copy Link'", "Direct 'Send via WhatsApp' button with pre-written polite invitation text"]
+    }
+  },
+  "audio_tracks": [
+    {
+      "id": "sitar-royal",
+      "title": "Royal Shehnai & Sitar Ambient",
+      "genre": "Traditional Luxury",
+      "src_type": "web_audio_synth_fallback_or_royalty_free"
+    },
+    {
+      "id": "festive-beats",
+      "title": "Celebration Dhol & Flute",
+      "genre": "Festive",
+      "src_type": "web_audio_synth_fallback_or_royalty_free"
+    },
+    {
+      "id": "acoustic-birthday",
+      "title": "Playful Acoustic Birthday Ukulele",
+      "genre": "Upbeat Playful",
+      "src_type": "web_audio_synth_fallback_or_royalty_free"
+    }
+  ],
+  "accessibility_and_motion": {
+    "prefers_reduced_motion": {
+      "rule": "Check window.matchMedia('(prefers-reduced-motion: reduce)').matches",
+      "fallback": "Skip auto curtain parting and confetti particle loops; instantly display final card layout upon tap."
+    },
+    "contrast_rules": "All gold text over maroon must have at least 4.5:1 ratio (use #FDFBF7 or #E5C158 over #2B070C). Never place unshielded text on bright images.",
+    "touch_targets": "Minimum 48px x 48px for mobile tap targets."
+  },
+  "testing_attributes": {
+    "rule": "Every button, link, tab, input, modal, and key text element MUST include data-testid",
+    "examples": {
+      "intro_open_btn": "data-testid=\"intro-open-button\"",
+      "intro_skip_btn": "data-testid=\"intro-skip-button\"",
+      "audio_toggle": "data-testid=\"audio-toggle-button\"",
+      "event_switch_tab": "data-testid=\"event-switch-tab-{event_id}\"",
+      "get_directions_btn": "data-testid=\"get-directions-button\"",
+      "add_calendar_btn": "data-testid=\"add-calendar-button\"",
+      "rsvp_yes_btn": "data-testid=\"rsvp-yes-button\"",
+      "rsvp_whatsapp_btn": "data-testid=\"rsvp-whatsapp-button\"",
+      "wizard_next_btn": "data-testid=\"wizard-next-step-button\"",
+      "link_maker_copy_btn": "data-testid=\"link-maker-copy-button\""
+    }
+  },
+  "image_urls": [
+    {
+      "url": "https://images.unsplash.com/photo-1722952934708-749c22eb2e58?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHw3fHxpbmRpYW4lMjB3ZWRkaW5nJTIwY291cGxlJTIwY2VsZWJyYXRpb24lMjBmZXN0aXZlfGVufDB8fHx8MTc5MjIxNzE4Mnww&ixlib=rb-4.1.0&q=85",
+      "description": "Royal Indian wedding couple in traditional red & gold attire",
+      "usage": "Seeded Wedding Royal Card Header / Hero Photo"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1621801306185-8c0ccf9c8eb8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB3ZWRkaW5nJTIwY291cGxlJTIwY2VsZWJyYXRpb24lMjBmZXN0aXZlfGVufDB8fHx8MTc5MjIxNzE4Mnww&ixlib=rb-4.1.0&q=85",
+      "description": "Intricate Henna patterned hands holding each other",
+      "usage": "Mehndi & Ceremony Detail Section Card"
+    },
+    {
+      "url": "https://images.pexels.com/photos/30682919/pexels-photo-30682919.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Vibrant birthday party with balloons & festive decorations",
+      "usage": "Seeded Birthday Card Header / Hero Photo"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1513151233558-d860c5398176?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwxfHxiaXJ0aGRheSUyMHBhcnR5JTIwY2FrZSUyMGNlbGVicmF0aW9uJTIwY29uZmV0dGl8ZW58MHx8fHwxNzkyMjE3MTgyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Colorful celebratory confetti background",
+      "usage": "Birthday Card Confetti Section / Background texture"
+    }
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Do not center-align the app container globally. Keep natural visual layout.",
+    "Mobile-First execution: test all screens within max 430px mobile viewport simulation.",
+    "No horizontal overflow or scrolling on mobile screens.",
+    "Ensure all audio elements start muted or require explicit tap to play to comply with browser autoplay policies.",
+    "Ensure brand name 'Daawat' is configurable via single global constant in `src/config/brand.js`."
+  ]
+}

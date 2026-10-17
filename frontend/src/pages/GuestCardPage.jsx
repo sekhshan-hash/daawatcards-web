@@ -1,0 +1,47 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { api } from "@/lib/api";
+import { guestPath } from "@/lib/links";
+import { namesLine } from "@/lib/eventTime";
+import { t } from "@/i18n";
+import { BRAND } from "@/config/brand";
+import { GuestCard } from "@/card/GuestCard";
+
+export default function GuestCardPage() {
+  const { slug, eventId } = useParams();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const guestName = params.get("to") || "";
+  const [card, setCard] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    api.get(`/public/cards/${slug}`).then((r) => setCard(r.data)).catch(() => setError(true));
+  }, [slug]);
+
+  useEffect(() => {
+    if (card) document.title = `${namesLine(card)} · ${card.title || BRAND.name}`;
+  }, [card]);
+
+  if (error) {
+    return (
+      <div className="guest-page grid place-items-center px-6 text-center" data-testid="guest-card-not-found">
+        <div>
+          <p className="font-display text-2xl text-gold">{t("guest.notFound")}</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("guest.notFoundHint")}</p>
+          <a href="/" className="mt-6 inline-block text-gold underline">{BRAND.name}</a>
+        </div>
+      </div>
+    );
+  }
+  if (!card) return <div className="guest-page grid place-items-center" data-testid="guest-card-loading"><div className="loader-ring" /></div>;
+
+  const event = card.events.find((e) => e.event_id === eventId) || card.events[0];
+  const select = (id) => navigate(guestPath(slug, id, guestName), { replace: true });
+
+  return (
+    <div className="guest-page">
+      <GuestCard card={card} eventId={event.event_id} guestName={guestName} onSelectEvent={select} />
+    </div>
+  );
+}

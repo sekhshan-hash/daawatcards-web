@@ -1,0 +1,144 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { api, errMsg } from "@/lib/api";
+import { useMediaQuery } from "@/hooks/useMedia";
+import { HostShell, FullLoader, PhoneFrame } from "@/components/host/HostShell";
+import { GuestCard } from "@/card/GuestCard";
+import { TEMPLATES } from "@/templates/registry";
+import { StepDetails, StepEventType, StepMusic, StepTemplate, StepTitle } from "./wizard/Steps";
+import { StepEvents, blankEvent } from "./wizard/StepEvents";
+import { t } from "@/i18n";
+
+const defaultCard = (type) => {
+  const d = t(`defaults.${type}`);
+  const template = type === "birthday" ? "birthday-playful" : "wedding-royal";
+  return {
+    event_type: type, template, language: "en", primary_name: "", secondary_name: "", host_family: "",
+    title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
+    music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
+    events: d.events.map((name, i) => blankEvent(name, `e${i + 1}`)),
+  };
+};
+
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events"];
+
+const validate = (card, step) => {
+  if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
+  if (step >= 3 && card.events.some((e) => !e.name.trim() || !e.date || !e.time)) return t("wizard.errors.events");
+  return "";
+};
+
+const Preview = ({ card, eventId, setEventId }) => {
+  const [key, setKey] = useState(0);
+  return (
+    <div>
+      <PhoneFrame><GuestCard key={key} card={card} eventId={eventId} preview onSelectEvent={setEventId} /></PhoneFrame>
+      <div className="mt-4 flex items-center justify-center gap-3">
+        {card.events.length > 1 && (
+          <select value={eventId} onChange={(e) => setEventId(e.target.value)} className="field-select h-10 w-auto" aria-label={t("wizard.previewEvent")} data-testid="wizard-preview-event-select">
+            {card.events.map((e) => <option key={e.event_id} value={e.event_id}>{e.name || e.event_id}</option>)}
+          </select>
+        )}
+        <button type="button" onClick={() => setKey((k) => k + 1)} className="btn-chip" data-testid="wizard-preview-replay-button"><RotateCcw size={14} /> {t("wizard.replayPreview")}</button>
+      </div>
+    </div>
+  );
+};
+
+export default function Wizard() {
+  const { cardId } = useParams();
+  const navigate = useNavigate();
+  const desktop = useMediaQuery("(min-width: 1024px)");
+  const [card, setCard] = useState(cardId ? null : defaultCard("wedding"));
+  const [step, setStep] = useState(0);
+  const [eventId, setEventId] = useState("e1");
+  const [busy, setBusy] = useState(false);
+  const steps = t("wizard.steps");
+
+  useEffect(() => {
+    if (!cardId) return;
+    api.get(`/cards/${cardId}`).then((r) => setCard(r.data)).catch(() => navigate("/dashboard"));
+  }, [cardId, navigate]);
+
+  if (!card) return <FullLoader />;
+  const update = (patch) => setCard((c) => ({ ...c, ...patch }));
+  const onType = (type) => {
+    if (type === card.event_type) return;
+    if (card.card_id) return update({ event_type: type, blessing_key: t(`defaults.${type}`).blessing });
+    setCard({ ...defaultCard(type), primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp });
+    setEventId("e1");
+  };
+  const onTemplate = (id) => update({ template: id, music_track: card.music_track === TEMPLATES[card.template].defaultMusic ? TEMPLATES[id].defaultMusic : card.music_track });
+  const previewEventId = card.events.some((e) => e.event_id === eventId) ? eventId : card.events[0].event_id;
+
+  const goTo = (target) => {
+    const err = target > step ? validate(card, target - 1) : "";
+    if (err) return toast.error(err);
+    setStep(target);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const save = async (status) => {
+    const err = validate(card, 5);
+    if (err) return toast.error(err);
+    setBusy(true);
+    const payload = Object.fromEntries(FIELDS.map((k) => [k, card[k]]));
+    payload.status = status;
+    try {
+      const { data } = card.card_id ? await api.put(`/cards/${card.card_id}`, payload) : await api.post("/cards", payload);
+      toast.success(status === "published" ? t("wizard.publishedToast") : t("wizard.saved"));
+      navigate(`/cards/${data.card_id}`);
+    } catch (e) {
+      toast.error(errMsg(e));
+      setBusy(false);
+    }
+  };
+
+  const body = [
+    <StepEventType card={card} onType={onType} />,
+    <StepTemplate card={card} onTemplate={onTemplate} />,
+    <StepDetails card={card} update={update} />,
+    <StepEvents card={card} update={update} />,
+    <StepMusic card={card} update={update} />,
+    <>
+      <StepTitle hint={t("wizard.previewHint")}>{t("wizard.previewTitle")}</StepTitle>
+      {!desktop && <Preview card={card} eventId={previewEventId} setEventId={setEventId} />}
+      <div className="mt-8 flex flex-wrap gap-3">
+        {card.status !== "published" && <button type="button" disabled={busy} onClick={() => save("draft")} className="btn-outline" data-testid="wizard-save-draft-button">{t("wizard.saveDraft")}</button>}
+        <button type="button" disabled={busy} onClick={() => save("published")} className="btn-gold" data-testid="wizard-publish-button">
+          {card.status === "published" ? t("wizard.saveChanges") : t("wizard.publish")}
+        </button>
+      </div>
+    </>,
+  ][step];
+
+  return (
+    <HostShell>
+      <Link to={card.card_id ? `/cards/${card.card_id}` : "/dashboard"} className="text-sm text-muted-foreground hover:text-foreground">← {t("dashboard.title")}</Link>
+      <h1 className="mt-3 font-display text-3xl text-foreground sm:text-4xl">{card.card_id ? t("wizard.editTitle") : t("wizard.newTitle")}</h1>
+      <ol className="mt-8 flex gap-2 overflow-x-auto pb-2" data-testid="wizard-progress">
+        {steps.map((s, i) => (
+          <li key={s}>
+            <button type="button" onClick={() => goTo(i)} data-testid={`wizard-step-tab-${i}`}
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-colors ${i === step ? "bg-gold text-background" : i < step ? "bg-secondary text-foreground" : "border border-border text-muted-foreground"}`}>
+              {i + 1}. {s}
+            </button>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-8 gap-12 lg:grid lg:grid-cols-[1fr_380px]">
+        <div className="min-w-0 pb-28 fade-up" key={step}>
+          {body}
+          <div className="wizard-nav">
+            <button type="button" onClick={() => goTo(step - 1)} disabled={step === 0} className="btn-outline" data-testid="wizard-back-button"><ArrowLeft size={16} /> {t("common.back")}</button>
+            {step < 5 && <button type="button" onClick={() => goTo(step + 1)} className="btn-gold" data-testid="wizard-next-step-button">{t("common.next")} <ArrowRight size={16} /></button>}
+          </div>
+        </div>
+        {desktop && <aside className="sticky top-24 self-start"><Preview card={card} eventId={previewEventId} setEventId={setEventId} /></aside>}
+      </div>
+    </HostShell>
+  );
+}
