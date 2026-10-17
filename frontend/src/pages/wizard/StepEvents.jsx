@@ -2,7 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, StepTitle } from "./Steps";
-import { t } from "@/i18n";
+import { t, makeT } from "@/i18n";
 
 export const blankEvent = (name, id) => ({
   event_id: id, name, date: "", time: "18:00", end_time: "", venue_name: "", venue_address: "", map_link: "", dress_code: "", custom_text: "", photo: "",
@@ -10,9 +10,9 @@ export const blankEvent = (name, id) => ({
 
 const nextId = (events) => `e${Math.max(0, ...events.map((e) => parseInt(e.event_id.slice(1), 10) || 0)) + 1}`;
 
-const EventEditor = ({ ev, index, eventType, onChange, onRemove, canRemove }) => {
+const EventEditor = ({ ev, index, eventType, lang, onChange, onRemove, canRemove }) => {
   const L = t("wizard.labels");
-  const bind = (key, type = "text") => ({ type, value: ev[key] || "", onChange: (e) => onChange({ [key]: e.target.value }), "data-testid": `wizard-event-${index}-${key.replace(/_/g, "-")}-input` });
+  const bind = (key, type = "text") => ({ type, value: ev[key] || "", onChange: (e) => onChange({ [key]: e.target.value }), "data-testid": `wizard-event-${index}-${key.replace(/_/g, "-")}-input`, dir: "auto" });
   return (
     <div className="rounded-2xl border border-border bg-card p-5" data-testid={`wizard-event-${index}`}>
       <div className="mb-4 flex items-center justify-between">
@@ -23,7 +23,7 @@ const EventEditor = ({ ev, index, eventType, onChange, onRemove, canRemove }) =>
         <Field label={L.eventName}>
           <Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("name")} />
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {t(`eventSuggestions.${eventType}`).map((s) => (
+            {makeT(lang)(`eventSuggestions.${eventType}`).map((s) => (
               <button key={s} type="button" onClick={() => onChange({ name: s })} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-gold/50 hover:text-foreground">{s}</button>
             ))}
           </div>
@@ -54,7 +54,7 @@ export const StepEvents = ({ card, update }) => {
       <StepTitle hint={t("wizard.eventsHint")}>{t("wizard.eventsTitle")}</StepTitle>
       <div className="space-y-4">
         {card.events.map((ev, i) => (
-          <EventEditor key={ev.event_id} ev={ev} index={i} eventType={card.event_type} canRemove={card.events.length > 1}
+          <EventEditor key={ev.event_id} ev={ev} index={i} eventType={card.event_type} lang={card.language} canRemove={card.events.length > 1}
             onChange={(p) => setEvent(i, p)} onRemove={() => remove(i)} />
         ))}
       </div>

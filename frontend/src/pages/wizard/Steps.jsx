@@ -73,7 +73,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
   const L = t("wizard.labels");
   const typeL = L[card.event_type];
   const ct = makeT(card.language);
-  const bind = (key) => ({ value: card[key] || "", onChange: (e) => update({ [key]: e.target.value }), "data-testid": `wizard-${key.replace(/_/g, "-")}-input` });
+  const bind = (key) => ({ value: card[key] || "", onChange: (e) => update({ [key]: e.target.value }), "data-testid": `wizard-${key.replace(/_/g, "-")}-input`, dir: "auto" });
   return (
     <>
       <StepTitle>{t("wizard.detailsTitle")}</StepTitle>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { BookUser, FileUp, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,10 +17,12 @@ const ReviewList = ({ rows, setRows, onAdd, busy }) => {
       <p className="text-sm text-muted-foreground">{t("guests.review")}</p>
       <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {rows.map((r, i) => (
-          <div key={i} className="flex gap-2" data-testid={`review-row-${i}`}>
-            <Input value={r.name} onChange={(e) => set(i, { name: e.target.value })} className="h-11 flex-1 rounded-xl" aria-label={t("guests.name")} data-testid={`review-row-${i}-name`} />
-            <Input value={r.phone} onChange={(e) => set(i, { phone: e.target.value })} className="h-11 w-36 rounded-xl" inputMode="tel" aria-label={t("guests.phone")} data-testid={`review-row-${i}-phone`} />
-            <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground hover:text-rose" aria-label="Remove" data-testid={`review-row-${i}-remove`}><X size={15} /></button>
+          <div key={i} className="flex flex-col gap-2 rounded-xl border border-border/60 p-2 sm:flex-row sm:border-0 sm:p-0" data-testid={`review-row-${i}`}>
+            <Input value={r.name} onChange={(e) => set(i, { name: e.target.value })} dir="auto" className="h-11 flex-1 rounded-xl" aria-label={t("guests.name")} data-testid={`review-row-${i}-name`} />
+            <div className="flex gap-2">
+              <Input value={r.phone} onChange={(e) => set(i, { phone: e.target.value })} className="h-11 flex-1 rounded-xl sm:w-36" inputMode="tel" aria-label={t("guests.phone")} data-testid={`review-row-${i}-phone`} />
+              <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground hover:text-rose" aria-label="Remove" data-testid={`review-row-${i}-remove`}><X size={15} /></button>
+            </div>
           </div>
         ))}
       </div>
@@ -37,6 +39,9 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, onAdded }) => {
   const [one, setOne] = useState({ name: "", phone: "" });
   const [paste, setPaste] = useState("");
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (open) setEventIds(card.events.map((e) => e.event_id));
+  }, [open, card.events]);
 
   const submit = async (list) => {
     setBusy(true);
@@ -90,7 +95,7 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, onAdded }) => {
           </TabsList>
           <TabsContent value="one">
             <form onSubmit={addOne} className="mt-3 space-y-3">
-              <Input placeholder={t("guests.name")} value={one.name} onChange={(e) => setOne({ ...one, name: e.target.value })} className="h-12 rounded-xl text-base" maxLength={80} data-testid="add-guest-name-input" />
+              <Input placeholder={t("guests.name")} value={one.name} onChange={(e) => setOne({ ...one, name: e.target.value })} dir="auto" className="h-12 rounded-xl text-base" maxLength={80} data-testid="add-guest-name-input" />
               <Input placeholder={t("guests.phone")} value={one.phone} onChange={(e) => setOne({ ...one, phone: e.target.value })} className="h-12 rounded-xl text-base" inputMode="tel" data-testid="add-guest-phone-input" />
               <button type="submit" disabled={busy || !one.name.trim()} className="btn-gold w-full" data-testid="add-guest-submit-button">{t("guests.addOne")}</button>
             </form>

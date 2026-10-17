@@ -5,7 +5,7 @@ import ur from "./ur";
 // Guest-facing strings are translated; the host app uses English. Missing keys fall back to English.
 const DICTS = { en, hi, ur };
 const RTL = new Set(["ur"]);
-export const LOCALES = { en: "en-IN", hi: "hi-IN", ur: "ur-IN" };
+export const LOCALES = { en: "en-IN", hi: "hi-IN", ur: "ur-IN-u-nu-latn" };
 export const LANGUAGES = [{ code: "en", label: "English" }, { code: "hi", label: "हिन्दी" }, { code: "ur", label: "اردو" }];
 
 const get = (obj, path) => path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), obj);

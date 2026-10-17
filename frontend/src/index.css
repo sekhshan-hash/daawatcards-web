@@ -4,11 +4,13 @@
 
 body {
     margin: 0;
-    font-family: "Plus Jakarta Sans", sans-serif;
+    font-family: "Plus Jakarta Sans", "Noto Naskh Arabic", "Noto Sans Devanagari", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
 }
+
+input, textarea, select { font-family: inherit; }
 
 ::selection { background: rgba(230, 183, 86, 0.35); }
 

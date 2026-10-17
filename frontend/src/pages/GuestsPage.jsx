@@ -21,7 +21,7 @@ const exportCsv = (card, guests) => {
   a.href = URL.createObjectURL(blob);
   a.download = `${card.slug}-guests.csv`;
   a.click();
-  URL.revokeObjectURL(a.href);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 
 const Stat = ({ label, testId }) => <span className="rounded-full border border-border px-4 py-2 text-sm text-foreground" data-testid={testId}>{label}</span>;

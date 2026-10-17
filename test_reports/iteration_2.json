@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 2 tested end to end: photo uploads (Emergent object storage), guest list (one-by-one, paste with review/edit/remove, CSV, VCF, contacts fallback, event chips, WhatsApp hrefs with g=, copy, inline edit, delete confirm, search, CSV export, send-to-all queue through to the done state), opened tracking with event-switcher filtering, Send your wishes (validation, suggestions, wa.me href, success message, host wishes-list), en/hi/ur languages (wizard title and event swap, RTL preview, Hindi intro text, Urdu public card with photos, OG for Urdu), the 7-step wizard publish/edit with photos, and regressions (Royal and Birthday intros, countdown, directions, calendar, switcher, replay, OTP login, link maker, no horizontal scroll at 390px). Backend: 27/27 pytest passed. Frontend: all requested flows passed. Only minor issues found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/cards/{id}/guests/{gid}/sent, DELETE /api/cards/{id}/guests/{gid}", "issue": "An unknown guest_id returns 200 (sent returns null, delete returns ok) instead of 404."},
+      {"endpoint": "PUT /api/cards/{id}/guests/{gid}", "issue": "An invalid phone (e.g. '123') is silently stored as '' with no 422. The edit also skips the dedupe check, so it can create a duplicate phone."},
+      {"endpoint": "POST /api/uploads", "issue": "It trusts the client's content-type and doesn't check the file's magic bytes. check_photos only checks the path prefix, not that the file exists in db.files."},
+      {"endpoint": "POST /api/public/cards/{slug}/wishes", "issue": "No rate limit or dedupe. Every click on the WhatsApp button saves a new wish, so double taps create duplicates."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Dashboard card action", "issue": "The button label is still 'Share & RSVPs' (en.js common.manage) even though RSVP was removed. en.js also still has dead RSVP keys (guest.rsvpTitle, rsvpYes, submitRsvp, whatsappRsvp, rsvp:{...}).", "selector": "[data-testid^='dashboard-manage-']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Wizard (host UI) with an Urdu card", "issues": ["Urdu event names in host-UI labels ('Photo for مہندی', the preview event select, the event name input) render with letters split apart. Likely letter-spacing/tracking or a Latin font breaking Arabic-script joining. Use dir=auto and letter-spacing:0 for user text.", "The event-name suggestion chips (Mehndi, Haldi, Nikah...) stay in English on hi/ur cards, so tapping one puts an English name on an Urdu or Hindi card."]},
+      {"screen": "Wizard language switch", "issues": ["Switching ur to hi turns the events Mehndi/Nikah/Walima into मेहंदी/विवाह/रिसेप्शन (Nikah becomes Vivah, Walima becomes Reception), which changes their meaning, not just the language. Check that this is intended."]},
+      {"screen": "Add guests dialog at 390px", "issues": ["Review rows use a fixed w-36 phone input, so the name input is very narrow and long names get cut off. Consider stacking name and phone on mobile."]},
+      {"screen": "Add guests dialog", "issues": ["The 'Invited to' chip selection stays the same after the dialog is closed and reopened, so a later CSV import quietly uses the earlier, narrower event selection. Consider resetting it on open or showing it clearly."]},
+      {"screen": "Guest list delete", "issues": ["It uses window.confirm (a native browser dialog) instead of the shadcn AlertDialog, so it doesn't match the app design."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_guests_wishes_uploads.py", "/app/backend/tests/test_daawat_api.py", "/app/test_reports/pytest/pytest_results_iter2.xml"],
+  "action_items": [
+    "Rename 'Share & RSVPs' (en.js common.manage) to something like 'Share & guests', and remove the dead RSVP i18n keys",
+    "Fix how Urdu/Arabic text looks in host-UI inputs, labels and selects (dir=auto, letter-spacing 0, Nastaliq font fallback)",
+    "Optional: return 404 for an unknown guest on /sent and DELETE; return 422 for an invalid phone on guest PUT; debounce or dedupe wish saves",
+    "Optional: translate the event-name suggestion chips per card language; reset the event chips when the add-guests dialog opens; stack the review rows on mobile; replace window.confirm with AlertDialog"
+  ],
+  "critical_code_review_comments": [
+    "WishesSection saves the wish fire-and-forget (.catch(() => {})). The guest always sees the success message even if the save failed.",
+    "GuestCardPage fires POST /opened on every mount. React StrictMode in dev or a page refresh increases open_count (expected, but open_count counts views, not unique opens).",
+    "exportCsv calls URL.revokeObjectURL right after a.click(). This works in Chrome but can cancel the download in Safari/Firefox. Revoke it in a setTimeout instead.",
+    "Upload validation relies on the client MIME type. Add a check of the image's magic bytes."
+  ],
+  "updated_files": ["/app/backend/tests/test_daawat_api.py (removed obsolete RSVP test; stats assertion; draft wishes 404)", "/app/backend/tests/test_guests_wishes_uploads.py (new)"],
+  "success_rate": {"backend": "100% (27/27)", "frontend": "100% of requested flows; minor copy/design issues only"},
+  "test_credentials": "Phone OTP mocked: any phone, code 123456. UI test host used phone 9555500001.",
+  "seed_data_creation": "Host 9555500001 owns: card_19a31d995b40 (slug uitest-guest, 6 TEST guests, 1 wish, guest aa04244c70 opened, invited to e2/e3), card_c8faa8b69d90 (slug uruser-partner, Urdu, hero/event/wishes photos), Hindi cards hinditestbi and hinditestwe-x. Pytest cleans up its own cards.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest from /app/backend/tests (pytest.ini uses xdist loadscope). The browser login shortcut is page.request.post /api/auth/otp/request, then /verify with code 123456; the cookie is shared with the page. Use force=True on intro buttons. The wizard publish button only appears on step 7 (wizard-step-tab-6). Guest delete uses window.confirm, so register an async page.on('dialog') handler. The event name input selector is wizard-event-{i}-name-input (the prefix pattern also matches venue-name)."
+}

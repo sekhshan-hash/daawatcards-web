@@ -96,7 +96,7 @@ class TestCards:
         assert g.status_code == 200 and g.json()["primary_name"] == "Sara"
         lst = s.get(f"{API}/cards").json()
         assert any(c["card_id"] == c1["card_id"] for c in lst)
-        assert all("rsvp" in c for c in lst)
+        assert all("stats" in c for c in lst)
 
     def test_validation(self, host):
         s, _, _ = host
@@ -133,26 +133,9 @@ class TestCards:
         s, _, _ = host
         c = s.post(f"{API}/cards", json=_card_payload(status="draft")).json()
         assert requests.get(f"{API}/public/cards/{c['slug']}").status_code == 404
-        assert requests.post(f"{API}/public/cards/{c['slug']}/events/e1/rsvp", json={"guest_name": "X", "status": "yes"}).status_code == 404
+        assert requests.post(f"{API}/public/cards/{c['slug']}/wishes", json={"guest_name": "X", "message": "hi"}).status_code == 404
         assert s.delete(f"{API}/cards/{c['card_id']}").status_code == 200
         assert s.get(f"{API}/cards/{c['card_id']}").status_code == 404
-
-    def test_rsvp_upsert_and_counts(self, host):
-        s, _, created = host
-        c = s.post(f"{API}/cards", json=_card_payload()).json(); created.append(c["card_id"])
-        url = f"{API}/public/cards/{c['slug']}/events/e1/rsvp"
-        r = requests.post(url, json={"guest_name": "TEST Ali", "status": "yes", "guests": 3})
-        assert r.status_code == 200 and r.json()["guests"] == 3
-        r2 = requests.post(url, json={"guest_name": "  test   ali ", "status": "maybe", "guests": 2})
-        assert r2.status_code == 200 and r2.json()["rsvp_id"] == r.json()["rsvp_id"]
-        requests.post(url, json={"guest_name": "TEST Bob", "status": "no", "guests": 5})
-        requests.post(f"{API}/public/cards/{c['slug']}/events/e2/rsvp", json={"guest_name": "TEST Ali", "status": "yes", "guests": 4})
-        assert requests.post(f"{API}/public/cards/{c['slug']}/events/e9/rsvp", json={"guest_name": "X", "status": "yes"}).status_code == 404
-        d = s.get(f"{API}/cards/{c['card_id']}/rsvps").json()
-        ev = {e["event_id"]: e for e in d["events"]}
-        assert ev["e1"] == {**ev["e1"], "yes": 0, "maybe": 1, "no": 1, "attending": 0}
-        assert ev["e2"]["yes"] == 1 and ev["e2"]["attending"] == 4
-        assert len(d["responses"]) == 3
 
 
 # ---- Public demo / share ----

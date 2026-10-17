@@ -22,6 +22,13 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - OG previews with a generated image
 - Tested: backend 16/16 passing; frontend flows pass (iteration_1). Layout issues fixed afterwards.
 
+## Implemented (Iteration 2)
+- Photos (Emergent Object Storage, resized in the browser): 2 per card (title arch/circle + feature), 1 per event, 1 for the wishes section
+- RSVP removed per the user and replaced by "Send your wishes" (WhatsApp to the host, also saved and listed for the host)
+- Guest list /cards/:id/guests: one by one, paste (Excel/Sheets), CSV, .vcf, phone contact picker (Android Chrome), review/edit before adding, per-guest invited events, unique links (?g=), per-guest WhatsApp, a "Send to all" queue (one tap per guest; WhatsApp does not allow true bulk sending), Not sent/Sent/Opened status, search, CSV export
+- Card language en/hi/ur (guest card only; Urdu is RTL with Nastaliq). OG images support Devanagari/Nastaliq
+- Tested: iteration_2, backend 27/27; frontend flows pass
+
 ## Backlog
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider

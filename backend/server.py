@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import html
+import io
 import logging
 import os
 import re
@@ -15,6 +16,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import HTMLResponse
 from motor.motor_asyncio import AsyncIOMotorClient
+from PIL import Image
 from pydantic import BaseModel, Field, field_validator
 from starlette.middleware.cors import CORSMiddleware
 
@@ -452,8 +454,13 @@ async def add_guests(card_id: str, body: GuestBulkIn, user: dict = Depends(curre
 @api.put("/cards/{card_id}/guests/{guest_id}")
 async def update_guest(card_id: str, guest_id: str, body: GuestIn, user: dict = Depends(current_user)):
     card = await owned_card(card_id, user)
+    phone = clean_phone(body.phone)
+    if body.phone.strip() and not phone:
+        raise HTTPException(422, "Enter a valid phone number")
+    if phone and await db.guests.find_one({"card_id": card_id, "phone": phone, "guest_id": {"$ne": guest_id}}, {"_id": 1}):
+        raise HTTPException(409, "Another guest already has this number")
     res = await db.guests.update_one({"card_id": card_id, "guest_id": guest_id}, {"$set": {
-        "name": re.sub(r"\s+", " ", body.name.strip()), "phone": clean_phone(body.phone),
+        "name": re.sub(r"\s+", " ", body.name.strip()), "phone": phone,
         "event_ids": guest_events(card, body.event_ids)}})
     if not res.matched_count:
         raise HTTPException(404, "Guest not found")
@@ -463,14 +470,18 @@ async def update_guest(card_id: str, guest_id: str, body: GuestIn, user: dict = 
 @api.delete("/cards/{card_id}/guests/{guest_id}")
 async def delete_guest(card_id: str, guest_id: str, user: dict = Depends(current_user)):
     await owned_card(card_id, user)
-    await db.guests.delete_one({"card_id": card_id, "guest_id": guest_id})
+    res = await db.guests.delete_one({"card_id": card_id, "guest_id": guest_id})
+    if not res.deleted_count:
+        raise HTTPException(404, "Guest not found")
     return {"ok": True}
 
 
 @api.post("/cards/{card_id}/guests/{guest_id}/sent")
 async def mark_sent(card_id: str, guest_id: str, user: dict = Depends(current_user)):
     await owned_card(card_id, user)
-    await db.guests.update_one({"card_id": card_id, "guest_id": guest_id}, {"$set": {"sent_at": now().isoformat()}})
+    res = await db.guests.update_one({"card_id": card_id, "guest_id": guest_id}, {"$set": {"sent_at": now().isoformat()}})
+    if not res.matched_count:
+        raise HTTPException(404, "Guest not found")
     return await db.guests.find_one({"guest_id": guest_id}, {"_id": 0})
 
 
@@ -483,6 +494,14 @@ async def upload_image(file: UploadFile = File(...), user: dict = Depends(curren
     data = await file.read()
     if len(data) > MAX_UPLOAD:
         raise HTTPException(413, "Image is too large (max 8 MB)")
+    try:
+        with Image.open(io.BytesIO(data)) as img:
+            fmt = img.format
+            img.verify()
+    except Exception:  # noqa: BLE001
+        raise HTTPException(415, "Please upload a JPG, PNG or WebP image")
+    if fmt not in {"JPEG", "PNG", "WEBP"}:
+        raise HTTPException(415, "Please upload a JPG, PNG or WebP image")
     path = f"{STORAGE_PREFIX}/uploads/{user['user_id']}/{uuid.uuid4().hex}.{ext}"
     result = await asyncio.to_thread(put_object, path, data, file.content_type)
     await db.files.insert_one({"file_id": uuid.uuid4().hex, "storage_path": result["path"], "owner_id": user["user_id"],
@@ -534,6 +553,11 @@ async def send_wish(slug: str, body: WishIn):
     if not name or not message:
         raise HTTPException(422, "Name and message are required")
     ev = find_event(card, body.event_id)
+    recent = (now() - timedelta(minutes=2)).isoformat()
+    dup = await db.wishes.find_one({"card_id": card["card_id"], "guest_name": name, "message": message,
+                                    "created_at": {"$gte": recent}}, {"_id": 0})
+    if dup:
+        return dup
     doc = {"wish_id": uuid.uuid4().hex[:12], "card_id": card["card_id"], "event_id": ev["event_id"],
            "event_name": ev["name"], "guest_name": name, "guest_id": body.guest_id, "message": message,
            "created_at": now().isoformat()}
