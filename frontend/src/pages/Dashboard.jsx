@@ -26,7 +26,7 @@ const CardRow = ({ card }) => {
           <StatusPill status={card.status} />
         </div>
         <p className="mt-1 truncate text-sm text-muted-foreground">{t(`eventTypes.${card.event_type}`)} · {t(`templates.${card.template}.name`)} · {card.events.length === 1 ? t("dashboard.event") : t("dashboard.events", { count: card.events.length })}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{card.rsvp.responses === 1 ? t("dashboard.response") : t("dashboard.responses", { count: card.rsvp.responses })} · {t("dashboard.attending", { count: card.rsvp.attending })}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t("dashboard.stats", card.stats)}</p>
       </div>
       <div className="flex flex-wrap gap-2">
         <Link to={`/cards/${card.card_id}`} className="btn-chip" data-testid={`dashboard-manage-${card.card_id}`}><Share2 size={14} /> {t("common.manage")}</Link>

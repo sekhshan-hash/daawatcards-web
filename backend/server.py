@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 import requests
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import HTMLResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, field_validator
@@ -24,6 +24,7 @@ load_dotenv(ROOT_DIR / ".env")
 from og_image import render_og  # noqa: E402
 from otp_providers import get_otp_provider  # noqa: E402
 from seed import DEMO_CARDS  # noqa: E402
+from storage import STORAGE_PREFIX, get_object, init_storage, put_object  # noqa: E402
 
 client = AsyncIOMotorClient(os.environ["MONGO_URL"])
 db = client[os.environ["DB_NAME"]]
@@ -39,7 +40,14 @@ SESSION_DAYS = 7
 EVENT_TYPES = {"wedding", "birthday"}
 TEMPLATES = {"wedding-royal", "birthday-playful"}
 MUSIC = {"none", "royal-raag", "party-pop", "music-box"}
-EYEBROWS = {"wedding": "You are invited to the wedding of", "birthday": "You're invited to celebrate"}
+EYEBROWS = {
+    "en": {"wedding": "You are invited to the wedding of", "birthday": "You're invited to celebrate"},
+    "hi": {"wedding": "आप विवाह समारोह में आमंत्रित हैं", "birthday": "जन्मदिन के जश्न में आपका स्वागत है"},
+    "ur": {"wedding": "آپ شادی کی تقریب میں مدعو ہیں", "birthday": "سالگرہ کے جشن میں آپ مدعو ہیں"},
+}
+INVITED = {"en": "{to}, you're invited!", "hi": "{to}, आप आमंत्रित हैं!", "ur": "{to}، آپ مدعو ہیں!"}
+ALLOWED_IMG = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+MAX_UPLOAD = 8 * 1024 * 1024
 
 
 def now():
@@ -58,12 +66,13 @@ class EventItem(BaseModel):
     map_link: str = Field(default="", max_length=500)
     dress_code: str = Field(default="", max_length=120)
     custom_text: str = Field(default="", max_length=1000)
+    photo: str = Field(default="", max_length=300)
 
 
 class CardIn(BaseModel):
     event_type: str
     template: str
-    language: Literal["en"] = "en"
+    language: Literal["en", "hi", "ur"] = "en"
     primary_name: str = Field(min_length=1, max_length=60)
     secondary_name: str = Field(default="", max_length=60)
     host_family: str = Field(default="", max_length=120)
@@ -76,6 +85,8 @@ class CardIn(BaseModel):
     timezone: str = Field(default="+05:30", pattern=r"^[+-]\d{2}:\d{2}$")
     status: Literal["draft", "published"] = "draft"
     events: List[EventItem] = Field(min_length=1, max_length=10)
+    photos: List[str] = Field(default_factory=list, max_length=2)
+    wishes_photo: str = Field(default="", max_length=300)
 
     @field_validator("event_type")
     @classmethod
@@ -99,11 +110,25 @@ class CardIn(BaseModel):
         return v
 
 
-class RsvpIn(BaseModel):
+class WishIn(BaseModel):
     guest_name: str = Field(min_length=1, max_length=80)
-    status: Literal["yes", "no", "maybe"]
-    guests: int = Field(default=1, ge=0, le=20)
-    message: str = Field(default="", max_length=500)
+    message: str = Field(min_length=1, max_length=1000)
+    event_id: str = Field(default="", max_length=10)
+    guest_id: str = Field(default="", max_length=20)
+
+
+class GuestIn(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    phone: str = Field(default="", max_length=25)
+    event_ids: List[str] = Field(default_factory=list, max_length=10)
+
+
+class GuestBulkIn(BaseModel):
+    guests: List[GuestIn] = Field(min_length=1, max_length=1000)
+
+
+class OpenIn(BaseModel):
+    guest_id: str = Field(min_length=1, max_length=20)
 
 
 class GoogleSessionIn(BaseModel):
@@ -152,6 +177,23 @@ def names_line(card):
     if card["event_type"] == "wedding" and card.get("secondary_name"):
         return f"{card['primary_name']} & {card['secondary_name']}"
     return card["primary_name"]
+
+
+def check_photos(body: CardIn, user):
+    prefix = f"{STORAGE_PREFIX}/uploads/{user['user_id']}/"
+    paths = [*body.photos, body.wishes_photo, *[e.photo for e in body.events]]
+    if any(p and not p.startswith(prefix) for p in paths):
+        raise HTTPException(422, "Invalid photo")
+
+
+def clean_phone(raw):
+    plus = raw.strip().startswith("+")
+    d = re.sub(r"\D", "", raw)
+    if not plus and len(d) == 11 and d.startswith("0"):
+        d = d[1:]
+    if not plus and len(d) == 10:
+        d = "91" + d
+    return f"+{d}" if 8 <= len(d) <= 15 else ""
 
 
 def event_utc(ev, tz):
@@ -316,21 +358,23 @@ async def owned_card(card_id, user):
 @api.get("/cards")
 async def list_cards(user: dict = Depends(current_user)):
     cards = await db.cards.find({"owner_id": user["user_id"]}, {"_id": 0}).sort("updated_at", -1).to_list(200)
-    counts = {}
-    pipeline = [
-        {"$match": {"card_id": {"$in": [c["card_id"] for c in cards]}}},
-        {"$group": {"_id": "$card_id", "responses": {"$sum": 1},
-                    "attending": {"$sum": {"$cond": [{"$eq": ["$status", "yes"]}, "$guests", 0]}}}},
-    ]
-    async for row in db.rsvps.aggregate(pipeline):
-        counts[row["_id"]] = {"responses": row["responses"], "attending": row["attending"]}
+    match = {"$match": {"card_id": {"$in": [c["card_id"] for c in cards]}}}
+    guests, wishes = {}, {}
+    async for row in db.guests.aggregate([match, {"$group": {
+            "_id": "$card_id", "guests": {"$sum": 1},
+            "opened": {"$sum": {"$cond": [{"$ifNull": ["$opened_at", False]}, 1, 0]}}}}]):
+        guests[row["_id"]] = row
+    async for row in db.wishes.aggregate([match, {"$group": {"_id": "$card_id", "n": {"$sum": 1}}}]):
+        wishes[row["_id"]] = row["n"]
     for c in cards:
-        c["rsvp"] = counts.get(c["card_id"], {"responses": 0, "attending": 0})
+        g = guests.get(c["card_id"], {})
+        c["stats"] = {"guests": g.get("guests", 0), "opened": g.get("opened", 0), "wishes": wishes.get(c["card_id"], 0)}
     return cards
 
 
 @api.post("/cards")
 async def create_card(body: CardIn, user: dict = Depends(current_user)):
+    check_photos(body, user)
     ts = now().isoformat()
     base = slugify("-".join(filter(None, [body.primary_name, body.secondary_name if body.event_type == "wedding" else ""])))
     doc = {**body.model_dump(), "events": assign_event_ids(body.events),
@@ -349,6 +393,7 @@ async def get_card(card_id: str, user: dict = Depends(current_user)):
 @api.put("/cards/{card_id}")
 async def update_card(card_id: str, body: CardIn, user: dict = Depends(current_user)):
     await owned_card(card_id, user)
+    check_photos(body, user)
     update = {**body.model_dump(), "events": assign_event_ids(body.events), "updated_at": now().isoformat()}
     await db.cards.update_one({"card_id": card_id}, {"$set": update})
     return await owned_card(card_id, user)
@@ -358,25 +403,101 @@ async def update_card(card_id: str, body: CardIn, user: dict = Depends(current_u
 async def delete_card(card_id: str, user: dict = Depends(current_user)):
     await owned_card(card_id, user)
     await db.cards.delete_one({"card_id": card_id})
-    await db.rsvps.delete_many({"card_id": card_id})
+    await db.guests.delete_many({"card_id": card_id})
+    await db.wishes.delete_many({"card_id": card_id})
     return {"ok": True}
 
 
-@api.get("/cards/{card_id}/rsvps")
-async def card_rsvps(card_id: str, user: dict = Depends(current_user)):
+@api.get("/cards/{card_id}/wishes")
+async def card_wishes(card_id: str, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    return await db.wishes.find({"card_id": card_id}, {"_id": 0}).sort("created_at", -1).to_list(500)
+
+
+# ---------- Guest list ----------
+def guest_events(card, ids):
+    valid = [e["event_id"] for e in card["events"]]
+    picked = [i for i in valid if i in set(ids)]
+    return picked or valid
+
+
+@api.get("/cards/{card_id}/guests")
+async def list_guests(card_id: str, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    return await db.guests.find({"card_id": card_id}, {"_id": 0}).sort("created_at", 1).to_list(5000)
+
+
+@api.post("/cards/{card_id}/guests/bulk")
+async def add_guests(card_id: str, body: GuestBulkIn, user: dict = Depends(current_user)):
     card = await owned_card(card_id, user)
-    rsvps = await db.rsvps.find({"card_id": card_id}, {"_id": 0}).sort("updated_at", -1).to_list(1000)
-    summary = []
-    for ev in card["events"]:
-        rows = [r for r in rsvps if r["event_id"] == ev["event_id"]]
-        summary.append({
-            "event_id": ev["event_id"], "name": ev["name"],
-            "yes": sum(r["status"] == "yes" for r in rows),
-            "maybe": sum(r["status"] == "maybe" for r in rows),
-            "no": sum(r["status"] == "no" for r in rows),
-            "attending": sum(r["guests"] for r in rows if r["status"] == "yes"),
-        })
-    return {"events": summary, "responses": rsvps[:50]}
+    existing = await db.guests.find({"card_id": card_id}, {"_id": 0, "name": 1, "phone": 1}).to_list(5000)
+    seen = {g["phone"] or g["name"].lower() for g in existing}
+    docs, skipped = [], 0
+    for g in body.guests:
+        name = re.sub(r"\s+", " ", g.name.strip())
+        phone = clean_phone(g.phone)
+        key = phone or name.lower()
+        if not name or key in seen:
+            skipped += 1
+            continue
+        seen.add(key)
+        docs.append({"guest_id": uuid.uuid4().hex[:10], "card_id": card_id, "name": name, "phone": phone,
+                     "event_ids": guest_events(card, g.event_ids), "sent_at": None, "opened_at": None,
+                     "open_count": 0, "created_at": now().isoformat()})
+    if docs:
+        await db.guests.insert_many([dict(d) for d in docs])
+    return {"added": len(docs), "skipped": skipped, "guests": docs}
+
+
+@api.put("/cards/{card_id}/guests/{guest_id}")
+async def update_guest(card_id: str, guest_id: str, body: GuestIn, user: dict = Depends(current_user)):
+    card = await owned_card(card_id, user)
+    res = await db.guests.update_one({"card_id": card_id, "guest_id": guest_id}, {"$set": {
+        "name": re.sub(r"\s+", " ", body.name.strip()), "phone": clean_phone(body.phone),
+        "event_ids": guest_events(card, body.event_ids)}})
+    if not res.matched_count:
+        raise HTTPException(404, "Guest not found")
+    return await db.guests.find_one({"guest_id": guest_id}, {"_id": 0})
+
+
+@api.delete("/cards/{card_id}/guests/{guest_id}")
+async def delete_guest(card_id: str, guest_id: str, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    await db.guests.delete_one({"card_id": card_id, "guest_id": guest_id})
+    return {"ok": True}
+
+
+@api.post("/cards/{card_id}/guests/{guest_id}/sent")
+async def mark_sent(card_id: str, guest_id: str, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    await db.guests.update_one({"card_id": card_id, "guest_id": guest_id}, {"$set": {"sent_at": now().isoformat()}})
+    return await db.guests.find_one({"guest_id": guest_id}, {"_id": 0})
+
+
+# ---------- Uploads ----------
+@api.post("/uploads")
+async def upload_image(file: UploadFile = File(...), user: dict = Depends(current_user)):
+    ext = ALLOWED_IMG.get(file.content_type)
+    if not ext:
+        raise HTTPException(415, "Please upload a JPG, PNG or WebP image")
+    data = await file.read()
+    if len(data) > MAX_UPLOAD:
+        raise HTTPException(413, "Image is too large (max 8 MB)")
+    path = f"{STORAGE_PREFIX}/uploads/{user['user_id']}/{uuid.uuid4().hex}.{ext}"
+    result = await asyncio.to_thread(put_object, path, data, file.content_type)
+    await db.files.insert_one({"file_id": uuid.uuid4().hex, "storage_path": result["path"], "owner_id": user["user_id"],
+                               "content_type": file.content_type, "size": len(data), "is_deleted": False,
+                               "created_at": now().isoformat()})
+    return {"path": result["path"]}
+
+
+@api.get("/files/{path:path}")
+async def get_file(path: str):
+    rec = await db.files.find_one({"storage_path": path, "is_deleted": False}, {"_id": 0})
+    if not rec:
+        raise HTTPException(404, "File not found")
+    data, _ = await asyncio.to_thread(get_object, path)
+    return Response(data, media_type=rec["content_type"], headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 # ---------- Public (guests) ----------
@@ -392,23 +513,32 @@ async def get_public_card(slug: str):
     return await public_card(slug)
 
 
-@api.post("/public/cards/{slug}/events/{event_id}/rsvp")
-async def submit_rsvp(slug: str, event_id: str, body: RsvpIn):
+@api.post("/public/cards/{slug}/opened")
+async def mark_opened(slug: str, body: OpenIn):
     card = await public_card(slug)
-    if not any(e["event_id"] == event_id for e in card["events"]):
-        raise HTTPException(404, "Event not found")
-    name = re.sub(r"\s+", " ", body.guest_name.strip())
-    if not name:
-        raise HTTPException(422, "Name is required")
-    guests = 0 if body.status == "no" else max(1, body.guests)
-    key = {"card_id": card["card_id"], "event_id": event_id, "guest_key": name.lower()}
+    q = {"card_id": card["card_id"], "guest_id": body.guest_id}
+    guest = await db.guests.find_one(q, {"_id": 0})
+    if not guest:
+        raise HTTPException(404, "Guest not found")
     ts = now().isoformat()
-    await db.rsvps.update_one(key, {
-        "$set": {"guest_name": name, "status": body.status, "guests": guests,
-                 "message": body.message.strip(), "updated_at": ts},
-        "$setOnInsert": {"rsvp_id": f"rsvp_{uuid.uuid4().hex[:12]}", "created_at": ts},
-    }, upsert=True)
-    return await db.rsvps.find_one(key, {"_id": 0})
+    await db.guests.update_one(q, {"$inc": {"open_count": 1}, "$set": {"last_opened_at": ts,
+                                                                       "opened_at": guest.get("opened_at") or ts}})
+    return {"name": guest["name"], "event_ids": guest["event_ids"]}
+
+
+@api.post("/public/cards/{slug}/wishes")
+async def send_wish(slug: str, body: WishIn):
+    card = await public_card(slug)
+    name = re.sub(r"\s+", " ", body.guest_name.strip())
+    message = body.message.strip()
+    if not name or not message:
+        raise HTTPException(422, "Name and message are required")
+    ev = find_event(card, body.event_id)
+    doc = {"wish_id": uuid.uuid4().hex[:12], "card_id": card["card_id"], "event_id": ev["event_id"],
+           "event_name": ev["name"], "guest_name": name, "guest_id": body.guest_id, "message": message,
+           "created_at": now().isoformat()}
+    await db.wishes.insert_one(dict(doc))
+    return doc
 
 
 def ics_escape(s):
@@ -440,7 +570,7 @@ async def og_image(slug: str, event_id: str):
     ev = find_event(card, event_id)
     date_s, time_s = display_date(ev)
     png = await asyncio.to_thread(
-        render_og, card["template"], EYEBROWS.get(card["event_type"], "You're invited"), names_line(card),
+        render_og, card["template"], EYEBROWS.get(card.get("language", "en"), EYEBROWS["en"])[card["event_type"]], names_line(card),
         ev["name"], f"{date_s}  ·  {time_s}", ", ".join(filter(None, [ev["venue_name"], ev["venue_address"]]))[:80],
         BRAND_NAME,
     )
@@ -448,16 +578,17 @@ async def og_image(slug: str, event_id: str):
 
 
 @api.get("/s/{slug}/{event_id}", response_class=HTMLResponse)
-async def share_page(slug: str, event_id: str, request: Request, to: str = ""):
+async def share_page(slug: str, event_id: str, request: Request, to: str = "", g: str = ""):
     card = await public_card(slug)
     ev = find_event(card, event_id)
     base = public_base(request)
     to = to.strip()[:80]
-    target = f"{base}/i/{slug}/{ev['event_id']}" + (f"?{urlencode({'to': to})}" if to else "")
+    params = {k: v for k, v in {"to": to, "g": g.strip()[:20]}.items() if v}
+    target = f"{base}/i/{slug}/{ev['event_id']}" + (f"?{urlencode(params)}" if params else "")
     date_s, time_s = display_date(ev)
     title = f"{names_line(card)} · {ev['name']}"
     if to:
-        title = f"{to}, you're invited! {title}"
+        title = f"{INVITED.get(card.get('language', 'en'), INVITED['en']).format(to=to)} {title}"
     desc = f"{date_s} at {time_s}" + (f" · {ev['venue_name']}" if ev["venue_name"] else "")
     version = hashlib.md5(card["updated_at"].encode()).hexdigest()[:8]
     image = f"{base}/api/og/{slug}/{ev['event_id']}.png?v={version}"
@@ -501,7 +632,13 @@ async def startup():
     await db.cards.create_index("slug", unique=True)
     await db.cards.create_index("card_id", unique=True)
     await db.cards.create_index("owner_id")
-    await db.rsvps.create_index([("card_id", 1), ("event_id", 1), ("guest_key", 1)], unique=True)
+    await db.guests.create_index([("card_id", 1), ("guest_id", 1)], unique=True)
+    await db.wishes.create_index([("card_id", 1), ("created_at", -1)])
+    await db.files.create_index("storage_path")
+    try:
+        await asyncio.to_thread(init_storage)
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Storage init failed: {e}")
     await db.users.create_index("user_id", unique=True)
     await db.user_sessions.create_index("session_token", unique=True)
     for card in DEMO_CARDS:

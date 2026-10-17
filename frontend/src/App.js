@@ -9,6 +9,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
 import Wizard from "@/pages/Wizard";
 import CardDetail from "@/pages/CardDetail";
+import GuestsPage from "@/pages/GuestsPage";
 import GuestCardPage from "@/pages/GuestCardPage";
 import { BRAND } from "@/config/brand";
 
@@ -39,6 +40,7 @@ function App() {
           <Route path="/dashboard" element={guard(<Dashboard />)} />
           <Route path="/create" element={guard(<Wizard />)} />
           <Route path="/cards/:cardId" element={guard(<CardDetail />)} />
+          <Route path="/cards/:cardId/guests" element={guard(<GuestsPage />)} />
           <Route path="/cards/:cardId/edit" element={guard(<Wizard />)} />
           <Route path="*" element={<Landing />} />
         </Route>

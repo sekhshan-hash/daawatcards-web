@@ -4,6 +4,7 @@ import { BRAND } from "@/config/brand";
 import { useInView } from "@/hooks/useMedia";
 import { directionsUrl, eventStartMs, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
 import { icsUrl } from "@/lib/links";
+import { CardPhoto } from "./CardPhoto";
 
 export const Reveal = ({ children, className = "" }) => {
   const [ref, inView] = useInView();
@@ -26,8 +27,9 @@ export const TitleSection = ({ card, event, t, tpl, single }) => {
   const Frame = tpl.Frame;
   const Divider = tpl.Divider;
   return (
-    <section className={`gc-title-screen ${single ? "is-single" : ""}`} data-testid="card-title-section">
+    <section className={`gc-title-screen ${single ? "is-single" : ""} ${card.photos?.[0] ? "has-photo" : ""}`} data-testid="card-title-section">
       <Frame />
+      <CardPhoto path={card.photos?.[0]} variant="hero" testId="card-hero-photo" />
       <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>
       {couple ? (
         <h1 className="gc-names" data-testid="card-names">
@@ -64,9 +66,11 @@ export const DetailsSection = ({ card, event, t }) => {
   return (
     <section className="gc-section" data-testid="card-details-section">
       {card.invitation_text && <Reveal><p className="gc-invite" data-testid="card-invitation-text">{card.invitation_text}</p></Reveal>}
+      {card.photos?.[1] && <Reveal><CardPhoto path={card.photos[1]} variant="feature" testId="card-feature-photo" /></Reveal>}
       {blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
       <Reveal>
         <div className="gc-panel">
+          <CardPhoto path={event.photo} variant="event" testId="card-event-photo" />
           <p className="gc-eyebrow">{t("guest.eventLabel")}</p>
           <h2 className="gc-heading" data-testid="card-event-name">{event.name}</h2>
           <div className="gc-rows">

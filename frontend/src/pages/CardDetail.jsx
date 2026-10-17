@@ -1,25 +1,26 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Copy, ExternalLink, MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { Copy, ExternalLink, MessageCircle, Pencil, Trash2, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { api, errMsg } from "@/lib/api";
 import { copyText, guestPath, shareUrl, waLink } from "@/lib/links";
 import { formatLongDate, formatTime, namesLine } from "@/lib/eventTime";
 import { HostShell, FullLoader } from "@/components/host/HostShell";
-import { t } from "@/i18n";
+import { t, makeT } from "@/i18n";
 
 const LinkMaker = ({ card }) => {
   const [name, setName] = useState("");
   const [eventId, setEventId] = useState(card.events[0].event_id);
   const ev = card.events.find((e) => e.event_id === eventId);
   const link = shareUrl(card.slug, eventId, name);
-  const message = t("whatsapp.invite", { guest: name.trim() || t("guest.specialGuest"), event: ev.name, names: namesLine(card), date: formatLongDate(ev.date), link });
+  const ct = makeT(card.language);
+  const message = ct("whatsapp.invite", { guest: name.trim() || ct("guest.specialGuest"), event: ev.name, names: namesLine(card), date: formatLongDate(ev.date, card.language), link });
   const copy = async () => { await copyText(link); toast.success(t("common.copied")); };
 
   return (
     <section className="rounded-3xl border border-border bg-card p-6 sm:p-8" data-testid="link-maker">
-      <h2 className="font-display text-2xl text-foreground">{t("detail.linkMaker")}</h2>
+      <h2 className="font-display text-2xl text-foreground">{t("detail.quickLink")}</h2>
       <p className="mt-2 text-sm text-muted-foreground">{t("detail.linkMakerHint")}</p>
       {card.status !== "published" && <p className="mt-4 rounded-xl bg-rose/10 px-4 py-3 text-sm text-rose" data-testid="link-maker-draft-warning">{t("detail.draftWarning")}</p>}
       <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_200px]">
@@ -43,29 +44,16 @@ const LinkMaker = ({ card }) => {
   );
 };
 
-const RsvpSummary = ({ data }) => (
-  <section className="rounded-3xl border border-border bg-card p-6 sm:p-8" data-testid="rsvp-summary">
-    <h2 className="font-display text-2xl text-foreground">{t("detail.rsvps")}</h2>
-    <p className="mt-2 text-sm text-muted-foreground">{t("detail.rsvpHint")}</p>
-    <div className="mt-6 overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead><tr className="text-left text-xs uppercase tracking-wider text-muted-foreground"><th className="py-2 pr-3">{t("detail.event")}</th><th className="px-2">{t("detail.yes")}</th><th className="px-2">{t("detail.maybe")}</th><th className="px-2">{t("detail.no")}</th><th className="px-2">{t("detail.attending")}</th></tr></thead>
-        <tbody>
-          {data.events.map((e) => (
-            <tr key={e.event_id} className="border-t border-border" data-testid={`rsvp-summary-row-${e.event_id}`}>
-              <td className="py-3 pr-3 text-foreground">{e.name}</td><td className="px-2">{e.yes}</td><td className="px-2">{e.maybe}</td><td className="px-2">{e.no}</td><td className="px-2 font-semibold text-gold">{e.attending}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    <h3 className="mt-8 text-xs uppercase tracking-widest text-muted-foreground">{t("detail.recent")}</h3>
-    {data.responses.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">{t("detail.none")}</p> : (
-      <ul className="mt-3 divide-y divide-border">
-        {data.responses.slice(0, 10).map((r) => (
-          <li key={r.rsvp_id} className="flex justify-between gap-3 py-3 text-sm" data-testid={`rsvp-response-${r.rsvp_id}`}>
-            <span className="text-foreground">{r.guest_name}</span>
-            <span className="text-muted-foreground">{t(`detail.${r.status}`)}{r.status !== "no" ? ` · ${r.guests}` : ""}</span>
+const WishesList = ({ wishes }) => (
+  <section className="rounded-3xl border border-border bg-card p-6 sm:p-8" data-testid="wishes-list">
+    <h2 className="font-display text-2xl text-foreground">{t("detail.wishes")}</h2>
+    <p className="mt-2 text-sm text-muted-foreground">{t("detail.wishesHint")}</p>
+    {wishes.length === 0 ? <p className="mt-6 text-sm text-muted-foreground">{t("detail.noWishes")}</p> : (
+      <ul className="mt-6 grid gap-3 md:grid-cols-2">
+        {wishes.map((w) => (
+          <li key={w.wish_id} className="rounded-2xl border border-border bg-background p-4" data-testid={`wish-item-${w.wish_id}`}>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-foreground" dir="auto">{w.message}</p>
+            <p className="mt-3 text-xs text-muted-foreground"><span className="font-semibold text-gold">{w.guest_name}</span> · {w.event_name} · {new Date(w.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
           </li>
         ))}
       </ul>
@@ -77,11 +65,11 @@ export default function CardDetail() {
   const { cardId } = useParams();
   const navigate = useNavigate();
   const [card, setCard] = useState(null);
-  const [rsvps, setRsvps] = useState(null);
+  const [wishes, setWishes] = useState(null);
 
   useEffect(() => {
     api.get(`/cards/${cardId}`).then((r) => setCard(r.data)).catch(() => navigate("/dashboard"));
-    api.get(`/cards/${cardId}/rsvps`).then((r) => setRsvps(r.data)).catch(() => {});
+    api.get(`/cards/${cardId}/wishes`).then((r) => setWishes(r.data)).catch(() => {});
   }, [cardId, navigate]);
 
   const publish = async () => {
@@ -111,6 +99,7 @@ export default function CardDetail() {
         </div>
         <div className="flex flex-wrap gap-2">
           {card.status !== "published" && <button type="button" onClick={publish} className="btn-gold" data-testid="card-detail-publish-button">{t("detail.publish")}</button>}
+          <Link to={`/cards/${cardId}/guests`} className="btn-gold" data-testid="card-detail-guests-button"><Users size={15} /> {t("detail.guestList")}</Link>
           <Link to={`/cards/${cardId}/edit`} className="btn-outline" data-testid="card-detail-edit-button"><Pencil size={15} /> {t("common.edit")}</Link>
           <button type="button" onClick={remove} className="btn-outline text-rose" data-testid="card-detail-delete-button"><Trash2 size={15} /></button>
         </div>
@@ -133,7 +122,7 @@ export default function CardDetail() {
           </ul>
         </section>
       </div>
-      <div className="mt-6">{rsvps && <RsvpSummary data={rsvps} />}</div>
+      <div className="mt-6">{wishes && <WishesList wishes={wishes} />}</div>
     </HostShell>
   );
 }

@@ -9,20 +9,21 @@ import { GuestCard } from "@/card/GuestCard";
 import { TEMPLATES } from "@/templates/registry";
 import { StepDetails, StepEventType, StepMusic, StepTemplate, StepTitle } from "./wizard/Steps";
 import { StepEvents, blankEvent } from "./wizard/StepEvents";
-import { t } from "@/i18n";
+import { StepPhotos } from "./wizard/StepPhotos";
+import { t, makeT } from "@/i18n";
 
-const defaultCard = (type) => {
-  const d = t(`defaults.${type}`);
+const defaultCard = (type, lang = "en") => {
+  const d = makeT(lang)(`defaults.${type}`);
   const template = type === "birthday" ? "birthday-playful" : "wedding-royal";
   return {
-    event_type: type, template, language: "en", primary_name: "", secondary_name: "", host_family: "",
+    event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", primary_name: "", secondary_name: "", host_family: "",
     title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
     events: d.events.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
@@ -67,8 +68,22 @@ export default function Wizard() {
   const onType = (type) => {
     if (type === card.event_type) return;
     if (card.card_id) return update({ event_type: type, blessing_key: t(`defaults.${type}`).blessing });
-    setCard({ ...defaultCard(type), primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp });
+    setCard({ ...defaultCard(type, card.language), photos: card.photos, wishes_photo: card.wishes_photo, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp });
     setEventId("e1");
+  };
+  const onLanguage = (lang) => {
+    const prev = makeT(card.language)(`defaults.${card.event_type}`);
+    const next = makeT(lang)(`defaults.${card.event_type}`);
+    const swap = (cur, a, b) => (cur === a ? b : cur);
+    update({
+      language: lang,
+      title: swap(card.title, prev.title, next.title),
+      invitation_text: swap(card.invitation_text, prev.invitation, next.invitation),
+      events: card.events.map((e) => {
+        const i = prev.events.indexOf(e.name);
+        return i >= 0 && next.events[i] ? { ...e, name: next.events[i] } : e;
+      }),
+    });
   };
   const onTemplate = (id) => update({ template: id, music_track: card.music_track === TEMPLATES[card.template].defaultMusic ? TEMPLATES[id].defaultMusic : card.music_track });
   const previewEventId = card.events.some((e) => e.event_id === eventId) ? eventId : card.events[0].event_id;
@@ -81,7 +96,7 @@ export default function Wizard() {
   };
 
   const save = async (status) => {
-    const err = validate(card, 5);
+    const err = validate(card, 6);
     if (err) return toast.error(err);
     setBusy(true);
     const payload = Object.fromEntries(FIELDS.map((k) => [k, card[k]]));
@@ -99,8 +114,9 @@ export default function Wizard() {
   const body = [
     <StepEventType card={card} onType={onType} />,
     <StepTemplate card={card} onTemplate={onTemplate} />,
-    <StepDetails card={card} update={update} />,
+    <StepDetails card={card} update={update} onLanguage={onLanguage} />,
     <StepEvents card={card} update={update} />,
+    <StepPhotos card={card} update={update} />,
     <StepMusic card={card} update={update} />,
     <>
       <StepTitle hint={t("wizard.previewHint")}>{t("wizard.previewTitle")}</StepTitle>
@@ -134,7 +150,7 @@ export default function Wizard() {
           {body}
           <div className="wizard-nav">
             <button type="button" onClick={() => goTo(step - 1)} disabled={step === 0} className="btn-outline" data-testid="wizard-back-button"><ArrowLeft size={16} /> {t("common.back")}</button>
-            {step < 5 && <button type="button" onClick={() => goTo(step + 1)} className="btn-gold" data-testid="wizard-next-step-button">{t("common.next")} <ArrowRight size={16} /></button>}
+            {step < steps.length - 1 && <button type="button" onClick={() => goTo(step + 1)} className="btn-gold" data-testid="wizard-next-step-button">{t("common.next")} <ArrowRight size={16} /></button>}
           </div>
         </div>
         {desktop && <aside className="sticky top-24 self-start"><Preview card={card} eventId={previewEventId} setEventId={setEventId} /></aside>}

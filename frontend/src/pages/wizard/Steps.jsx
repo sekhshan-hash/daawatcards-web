@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TEMPLATE_LIST } from "@/templates/registry";
 import { createPlayer, MUSIC_TRACKS } from "@/lib/music";
-import { t } from "@/i18n";
+import { t, makeT, LANGUAGES } from "@/i18n";
 
 const TYPES = [
   ["wedding", Heart, true], ["birthday", Cake, true], ["engagement", Gem], ["aqiqah", Baby],
@@ -69,14 +69,25 @@ export const Field = ({ label, hint, children }) => (
   </div>
 );
 
-export const StepDetails = ({ card, update }) => {
+export const StepDetails = ({ card, update, onLanguage }) => {
   const L = t("wizard.labels");
   const typeL = L[card.event_type];
+  const ct = makeT(card.language);
   const bind = (key) => ({ value: card[key] || "", onChange: (e) => update({ [key]: e.target.value }), "data-testid": `wizard-${key.replace(/_/g, "-")}-input` });
   return (
     <>
       <StepTitle>{t("wizard.detailsTitle")}</StepTitle>
       <div className="grid gap-5">
+        <Field label={t("wizard.language")} hint={t("wizard.languageHint")}>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map((l) => (
+              <button key={l.code} type="button" onClick={() => onLanguage(l.code)} data-testid={`wizard-language-${l.code}`}
+                className={`min-w-24 rounded-full border px-5 py-2.5 text-sm transition-colors ${card.language === l.code ? "border-gold bg-gold text-background" : "border-border hover:border-gold/50"}`}>
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </Field>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={typeL.primary}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("primary_name")} /></Field>
           <Field label={`${typeL.secondary}`}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("secondary_name")} /></Field>
@@ -93,7 +104,7 @@ export const StepDetails = ({ card, update }) => {
               </button>
             ))}
           </div>
-          <p className="mt-3 text-sm italic text-muted-foreground">{card.blessing_key !== "custom" && t(`blessings.${card.blessing_key}`)}</p>
+          <p className="mt-3 text-sm italic text-muted-foreground" dir="auto">{card.blessing_key !== "custom" && ct(`blessings.${card.blessing_key}`)}</p>
         </Field>
         {card.blessing_key === "custom" && <Field label={L.blessingCustom}><Textarea className="rounded-xl text-base" maxLength={1000} {...bind("blessing_text")} /></Field>}
         <Field label={`${L.whatsapp} (${L.optional})`} hint={L.whatsappHint}>

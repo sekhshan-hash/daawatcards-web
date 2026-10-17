@@ -1,5 +1,6 @@
 import io
 import math
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -34,7 +35,16 @@ def _font(name, size):
         return ImageFont.truetype(FALLBACK, size)
 
 
+def _script_font(text, fname):
+    if re.search(r"[\u0900-\u097F]", text):
+        return "NotoDevanagari.ttf"
+    if re.search(r"[\u0600-\u06FF]", text):
+        return "NotoNastaliq.ttf"
+    return fname
+
+
 def _fit(draw, text, fname, size, maxw):
+    fname = _script_font(text, fname)
     f = _font(fname, size)
     while draw.textlength(text, font=f) > maxw and size > 22:
         size -= 4

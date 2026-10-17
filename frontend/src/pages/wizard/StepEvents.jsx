@@ -5,7 +5,7 @@ import { Field, StepTitle } from "./Steps";
 import { t } from "@/i18n";
 
 export const blankEvent = (name, id) => ({
-  event_id: id, name, date: "", time: "18:00", end_time: "", venue_name: "", venue_address: "", map_link: "", dress_code: "", custom_text: "",
+  event_id: id, name, date: "", time: "18:00", end_time: "", venue_name: "", venue_address: "", map_link: "", dress_code: "", custom_text: "", photo: "",
 });
 
 const nextId = (events) => `e${Math.max(0, ...events.map((e) => parseInt(e.event_id.slice(1), 10) || 0)) + 1}`;

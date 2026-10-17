@@ -112,7 +112,7 @@
 .royal-intro.is-opening .royal-intro-center { opacity: 0; transform: scale(.94); pointer-events: none; }
 .royal-plaque { width: 100%; max-width: 300px; text-align: center; padding: 30px 22px; background: rgba(31,5,8,.88); border: 1px solid #D4AF37; outline: 1px solid rgba(212,175,55,.4); outline-offset: 5px; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
 .royal-plaque-mandala { color: #D4AF37; margin-bottom: 10px; animation: spin 40s linear infinite; }
-.royal-guest { font-family: 'Great Vibes', cursive; font-size: 40px; color: #F3E5AB; line-height: 1.15; margin-bottom: 14px; overflow-wrap: anywhere; }
+.royal-guest { font-family: var(--font-display); font-size: 40px; color: #F3E5AB; line-height: 1.15; margin-bottom: 14px; overflow-wrap: anywhere; }
 .royal-open { animation: glow 2.4s ease-in-out infinite; }
 @keyframes glow { 50% { box-shadow: 0 0 0 8px rgba(212,175,55,.18); } }
 
@@ -148,9 +148,9 @@
 .bday-side.left { left: 10px; } .bday-side.right { right: 10px; animation-delay: 1.2s; }
 
 .bday-intro { position: absolute; inset: 0; z-index: 40; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center;
-  background: radial-gradient(120% 80% at 50% 20%, #1B263B, #0D1B2A 70%); transition: opacity .55s ease .45s; font-family: 'Outfit', sans-serif; }
+  background: radial-gradient(120% 80% at 50% 20%, #1B263B, #0D1B2A 70%); transition: opacity .55s ease .45s; font-family: var(--font-body); }
 .bday-intro.is-opening { opacity: 0; pointer-events: none; }
-.bday-intro-eyebrow { font-family: 'Fredoka', sans-serif; color: #4ECDC4; font-size: 16px; letter-spacing: .06em; }
+.bday-intro-eyebrow { font-family: var(--font-title); color: #4ECDC4; font-size: 16px; letter-spacing: .06em; }
 .bday-float { position: absolute; bottom: -180px; animation: float-up linear infinite; opacity: .75; }
 @keyframes float-up { to { transform: translateY(-130vh) rotate(6deg); } }
 .bday-main-balloon { position: relative; background: none; border: 0; padding: 0; cursor: pointer; animation: bob 3s ease-in-out infinite; }
@@ -160,7 +160,7 @@
 .bday-shard { position: absolute; top: 40%; left: 50%; width: 12px; height: 16px; border-radius: 3px; animation: shard .65s ease-out forwards; }
 @keyframes shard { from { transform: translate(-50%, 0) rotate(0); opacity: 1; } to { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; } }
 .bday-tag { background: #FAFAFA; color: #0D1B2A; border-radius: 14px; padding: 10px 20px; transform: rotate(-3deg); box-shadow: 0 10px 30px rgba(0,0,0,.35); display: flex; flex-direction: column; font-size: 13px; }
-.bday-tag strong { font-family: 'Fredoka', sans-serif; font-size: 26px; font-weight: 600; overflow-wrap: anywhere; }
+.bday-tag strong { font-family: var(--font-display); font-size: 26px; font-weight: 600; overflow-wrap: anywhere; }
 
 .confetti { position: absolute; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
 .confetti i { position: absolute; left: 50%; top: 42%; opacity: 0; animation: confetti 2.8s cubic-bezier(.15,.6,.35,1) forwards; animation-delay: var(--d); }
@@ -172,3 +172,40 @@
 .gc-root.is-reduced .royal-curtain { transition: opacity .3s ease; }
 .gc-root.is-reduced .royal-intro.is-opening .royal-curtain { opacity: 0; transform: none; }
 .gc-root.is-reduced .bday-intro { transition: opacity .3s ease; }
+
+/* ---------- Photos ---------- */
+.gc-photo { position: relative; overflow: hidden; margin: 0 auto; animation: photo-in 1.8s ease both; }
+.gc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gc-photo::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+@keyframes photo-in { from { opacity: 0; transform: scale(1.05); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.gc-photo-hero { width: 136px; height: 172px; margin-bottom: 20px; }
+.gc-photo-feature { width: 100%; max-width: 320px; aspect-ratio: 4 / 5; margin: 30px auto 6px; }
+.gc-photo-event { width: 100%; aspect-ratio: 16 / 10; margin-bottom: 20px; border-radius: var(--radius); }
+.gc-photo-wishes { width: 150px; height: 150px; margin-bottom: 18px; }
+.gc-title-screen.has-photo .gc-names { font-size: 48px; font-size: clamp(40px, 13cqw, 70px); }
+
+.tpl-royal .gc-photo-hero, .tpl-royal .gc-photo-feature { border-radius: 999px 999px 6px 6px; border: 2px solid var(--accent); outline: 1px solid var(--border); outline-offset: 5px; }
+.tpl-royal .gc-photo-hero::after, .tpl-royal .gc-photo-feature::after { background: linear-gradient(to top, rgba(43,7,12,.45), transparent 45%); }
+.tpl-royal .gc-photo-hero img, .tpl-royal .gc-photo-feature img { opacity: .92; }
+.tpl-royal .gc-photo-event { border: 1px solid var(--border); }
+.tpl-royal .gc-photo-wishes { border-radius: 50%; border: 2px solid var(--accent); outline: 1px solid var(--border); outline-offset: 4px; }
+
+.tpl-bday .gc-photo-hero { width: 150px; height: 150px; border-radius: 50%; border: 5px solid var(--accent3); box-shadow: 0 0 0 5px var(--accent2), 0 12px 30px rgba(0,0,0,.4); }
+.tpl-bday .gc-photo-feature, .tpl-bday .gc-photo-wishes { background: #fff; padding: 10px 10px 34px; border-radius: 6px; transform: rotate(-2deg); box-shadow: 0 14px 34px rgba(0,0,0,.4); animation: none; }
+.tpl-bday .gc-photo-feature img, .tpl-bday .gc-photo-wishes img { border-radius: 3px; }
+.tpl-bday .gc-photo-wishes { width: 160px; height: 190px; transform: rotate(3deg); }
+
+/* ---------- Wishes ---------- */
+.gc-suggestions { display: grid; gap: 8px; }
+.gc-suggestion { text-align: start; padding: 12px 14px; border-radius: var(--radius); border: 1px dashed var(--border); color: var(--text); font-size: 15px; line-height: 1.45; background: transparent; transition: background-color .2s, border-color .2s; }
+.gc-suggestion.is-active { border-style: solid; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.gc-wish-btn { margin-top: 18px; }
+
+/* ---------- Languages ---------- */
+.gc-root:lang(hi) .gc-eyebrow, .gc-root:lang(ur) .gc-eyebrow, .gc-root:lang(hi) .gc-row-label, .gc-root:lang(ur) .gc-row-label,
+.gc-root:lang(hi) .gc-count-label, .gc-root:lang(ur) .gc-count-label, .gc-root:lang(hi) .gc-label, .gc-root:lang(ur) .gc-label,
+.gc-root:lang(hi) .gc-madewith, .gc-root:lang(ur) .gc-madewith { letter-spacing: 0; text-transform: none; font-size: 14px; }
+.gc-root:lang(ur) { line-height: 1.9; }
+.gc-root:lang(ur) .gc-invite, .gc-root:lang(ur) .gc-blessing, .gc-root:lang(ur) .gc-muted { line-height: 2.1; }
+.gc-root:lang(ur) .gc-heading, .gc-root:lang(ur) .gc-title, .gc-root:lang(ur) .gc-host, .gc-root:lang(ur) .royal-guest { line-height: 1.9; }
+.gc-root:lang(ur) .gc-names { line-height: 1.5; }

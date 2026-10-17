@@ -1,11 +1,17 @@
 import { BACKEND_URL, API } from "./api";
 
-const query = (name) => (name?.trim() ? `?${new URLSearchParams({ to: name.trim() })}` : "");
+const query = (name, guestId) => {
+  const p = new URLSearchParams();
+  if (name?.trim()) p.set("to", name.trim());
+  if (guestId) p.set("g", guestId);
+  const s = p.toString();
+  return s ? `?${s}` : "";
+};
 
-export const guestPath = (slug, eventId, name) => `/i/${slug}/${eventId}${query(name)}`;
+export const guestPath = (slug, eventId, name, guestId) => `/i/${slug}/${eventId}${query(name, guestId)}`;
 
 // Share links go through the backend so WhatsApp gets per-event preview tags, then redirect to guestPath.
-export const shareUrl = (slug, eventId, name) => `${BACKEND_URL}/api/s/${slug}/${eventId}${query(name)}`;
+export const shareUrl = (slug, eventId, name, guestId) => `${BACKEND_URL}/api/s/${slug}/${eventId}${query(name, guestId)}`;
 
 export const icsUrl = (slug, eventId) => `${API}/public/cards/${slug}/events/${eventId}/ics`;
 

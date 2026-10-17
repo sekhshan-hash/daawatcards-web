@@ -12,12 +12,19 @@ export default function GuestCardPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const guestName = params.get("to") || "";
+  const guestId = params.get("g") || "";
+  const [guest, setGuest] = useState(null);
   const [card, setCard] = useState(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     api.get(`/public/cards/${slug}`).then((r) => setCard(r.data)).catch(() => setError(true));
   }, [slug]);
+
+  useEffect(() => {
+    if (!guestId) return;
+    api.post(`/public/cards/${slug}/opened`, { guest_id: guestId }).then((r) => setGuest(r.data)).catch(() => {});
+  }, [slug, guestId]);
 
   useEffect(() => {
     if (card) document.title = `${namesLine(card)} · ${card.title || BRAND.name}`;
@@ -37,11 +44,11 @@ export default function GuestCardPage() {
   if (!card) return <div className="guest-page grid place-items-center" data-testid="guest-card-loading"><div className="loader-ring" /></div>;
 
   const event = card.events.find((e) => e.event_id === eventId) || card.events[0];
-  const select = (id) => navigate(guestPath(slug, id, guestName), { replace: true });
+  const select = (id) => navigate(guestPath(slug, id, guestName, guestId), { replace: true });
 
   return (
     <div className="guest-page">
-      <GuestCard card={card} eventId={event.event_id} guestName={guestName} onSelectEvent={select} />
+      <GuestCard card={card} eventId={event.event_id} guestName={guest?.name || guestName} guestId={guestId} eventIds={guest?.event_ids} onSelectEvent={select} />
     </div>
   );
 }

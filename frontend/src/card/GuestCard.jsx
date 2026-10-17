@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { makeT, dirFor } from "@/i18n";
-import { getTemplate, useTemplateFonts } from "@/templates/registry";
+import { getTemplate, themeVars, useTemplateFonts } from "@/templates/registry";
 import { useReducedMotion } from "@/hooks/useMedia";
 import { createPlayer } from "@/lib/music";
 import { TitleSection, EventSwitcher, DetailsSection, CountdownSection, VenueSection, FooterSection } from "./CardSections";
-import { RsvpSection } from "./RsvpSection";
+import { WishesSection } from "./WishesSection";
 import "@/templates/templates.css";
 
-export const GuestCard = ({ card, eventId, guestName = "", preview = false, onSelectEvent }) => {
-  const tpl = getTemplate(card.template);
-  const t = useMemo(() => makeT(card.language), [card.language]);
+export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "", eventIds, preview = false, onSelectEvent }) => {
+  const tpl = getTemplate(fullCard.template);
+  const lang = fullCard.language || "en";
+  const t = useMemo(() => makeT(lang), [lang]);
+  const vars = useMemo(() => themeVars(tpl, lang), [tpl, lang]);
+  const card = useMemo(() => {
+    const visible = fullCard.events.filter((e) => !eventIds?.length || eventIds.includes(e.event_id));
+    return { ...fullCard, events: visible.length ? visible : fullCard.events };
+  }, [fullCard, eventIds]);
   const reduced = useReducedMotion();
   const [phase, setPhase] = useState("intro");
   const [particles, setParticles] = useState(false);
@@ -18,7 +24,7 @@ export const GuestCard = ({ card, eventId, guestName = "", preview = false, onSe
   const player = useRef(null);
   const scroller = useRef(null);
   const timer = useRef(null);
-  useTemplateFonts(tpl);
+  useTemplateFonts(tpl, lang);
 
   const event = card.events.find((e) => e.event_id === eventId) || card.events[0];
   const name = guestName.trim() || t("guest.specialGuest");
@@ -64,14 +70,14 @@ export const GuestCard = ({ card, eventId, guestName = "", preview = false, onSe
   const Particles = tpl.Particles;
 
   return (
-    <div className={`gc-root ${tpl.className} ${reduced ? "is-reduced" : ""}`} style={tpl.vars} dir={dirFor(card.language)} data-testid="guest-card">
+    <div className={`gc-root ${tpl.className} ${reduced ? "is-reduced" : ""}`} style={vars} dir={dirFor(lang)} lang={lang} data-testid="guest-card">
       <div ref={scroller} className={`gc-scroller ${phase === "intro" ? "is-locked" : ""}`}>
         {card.events.length > 1 && <EventSwitcher card={card} event={event} onSelect={onSelectEvent} />}
         <TitleSection card={card} event={event} t={t} tpl={tpl} single={card.events.length === 1} />
         <DetailsSection card={card} event={event} t={t} />
         <CountdownSection card={card} event={event} t={t} />
         <VenueSection card={card} event={event} t={t} preview={preview} />
-        <RsvpSection card={card} event={event} guestName={guestName} t={t} preview={preview} />
+        <WishesSection card={card} event={event} guestName={guestName} guestId={guestId} t={t} preview={preview} />
         <FooterSection card={card} t={t} tpl={tpl} onReplay={replay} />
       </div>
       {particles && <Particles />}

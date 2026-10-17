@@ -19,7 +19,11 @@ export const TEMPLATES = {
       "--bg": "#2B070C", "--bg2": "#4A0E17", "--surface": "#380911", "--accent": "#D4AF37", "--accent2": "#F3E5AB",
       "--text": "#F7F3E9", "--muted": "rgba(247,243,233,0.78)", "--border": "rgba(212,175,55,0.42)",
       "--btn-bg": "#D4AF37", "--btn-text": "#1F0508", "--radius": "4px", "--btn-radius": "2px",
-      "--font-display": "'Great Vibes', cursive", "--font-title": "'Cinzel Decorative', serif", "--font-body": "'Cormorant Garamond', serif",
+    },
+    fonts: { display: ["'Great Vibes'", "cursive"], title: ["'Cinzel Decorative'", "serif"], body: ["'Cormorant Garamond'", "serif"] },
+    langFonts: {
+      hi: { family: "'Tiro Devanagari Hindi'", href: "https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&display=swap" },
+      ur: { family: "'Noto Nastaliq Urdu'", href: "https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" },
     },
     Intro: RoyalIntro,
     Particles: Petals,
@@ -38,7 +42,11 @@ export const TEMPLATES = {
       "--bg": "#0D1B2A", "--bg2": "#1B263B", "--surface": "#162436", "--accent": "#FFD166", "--accent2": "#FF6B6B",
       "--accent3": "#4ECDC4", "--accent4": "#9D4EDD", "--text": "#FFFFFF", "--muted": "#C3D3E8",
       "--border": "rgba(78,205,196,0.4)", "--btn-bg": "#FFD166", "--btn-text": "#0D1B2A", "--radius": "22px", "--btn-radius": "999px",
-      "--font-display": "'Fredoka', sans-serif", "--font-title": "'Fredoka', sans-serif", "--font-body": "'Outfit', sans-serif",
+    },
+    fonts: { display: ["'Fredoka'", "sans-serif"], title: ["'Fredoka'", "sans-serif"], body: ["'Outfit'", "sans-serif"] },
+    langFonts: {
+      hi: { family: "'Baloo 2'", href: "https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&display=swap" },
+      ur: { family: "'Noto Nastaliq Urdu'", href: "https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" },
     },
     Intro: BalloonIntro,
     Particles: Confetti,
@@ -51,13 +59,30 @@ export const TEMPLATES = {
 export const TEMPLATE_LIST = Object.values(TEMPLATES);
 export const getTemplate = (id) => TEMPLATES[id] || TEMPLATES["wedding-royal"];
 
-export const useTemplateFonts = (tpl) => {
+// Builds CSS variables, inserting the card language's script font before the generic family.
+export const themeVars = (tpl, lang) => {
+  const extra = tpl.langFonts?.[lang]?.family;
+  const stack = ([family, generic]) => [family, extra, generic].filter(Boolean).join(", ");
+  return {
+    ...tpl.vars,
+    "--font-display": stack(tpl.fonts.display),
+    "--font-title": stack(tpl.fonts.title),
+    "--font-body": stack(tpl.fonts.body),
+  };
+};
+
+const loadFont = (id, href) => {
+  if (!href || document.querySelector(`link[data-tpl-font="${id}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  link.dataset.tplFont = id;
+  document.head.appendChild(link);
+};
+
+export const useTemplateFonts = (tpl, lang) => {
   useEffect(() => {
-    if (document.querySelector(`link[data-tpl-font="${tpl.id}"]`)) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = tpl.fontsHref;
-    link.dataset.tplFont = tpl.id;
-    document.head.appendChild(link);
-  }, [tpl]);
+    loadFont(tpl.id, tpl.fontsHref);
+    loadFont(`${tpl.id}-${lang}`, tpl.langFonts?.[lang]?.href);
+  }, [tpl, lang]);
 };
