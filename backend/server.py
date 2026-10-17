@@ -297,6 +297,8 @@ async def me(user: dict = Depends(current_user)):
 @api.post("/auth/logout")
 async def logout(request: Request, response: Response):
     token = request.cookies.get("session_token")
+    auth = request.headers.get("Authorization", "")
+    token = token or (auth[7:] if auth.startswith("Bearer ") else None)
     if token:
         await db.user_sessions.delete_one({"session_token": token})
     response.delete_cookie("session_token", path="/", secure=True, samesite="none")

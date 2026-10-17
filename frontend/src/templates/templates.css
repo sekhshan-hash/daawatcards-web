@@ -17,7 +17,7 @@
 
 .gc-title-screen { position: relative; min-height: calc(100% - 57px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 72px 32px 104px; overflow: hidden; }
 .gc-title-screen.is-single { min-height: 100%; }
-.gc-title-screen > *:not(.royal-frame):not(.bday-frame) { position: relative; z-index: 1; }
+.gc-title-screen > *:not(.royal-frame):not(.bday-frame):not(.gc-scroll-cue) { position: relative; z-index: 1; }
 .gc-names { font-family: var(--font-display); color: var(--accent2); font-size: 60px; font-size: clamp(48px, 17cqw, 88px); line-height: 1.05; display: flex; flex-direction: column; align-items: center; font-weight: 400; overflow-wrap: anywhere; }
 .gc-amp { font-size: .55em; color: var(--accent); margin: -2px 0; }
 .gc-subname { font-family: var(--font-title); font-size: 22px; color: var(--text); margin-top: 6px; }

@@ -143,7 +143,7 @@ const en = {
     empty: "No cards yet",
     emptyHint: "Start with a template, or explore the demo cards first.",
     events: "{count} events", event: "1 event",
-    responses: "{count} responses", attending: "{count} attending",
+    responses: "{count} responses", response: "1 response", attending: "{count} attending",
     hello: "Hello, {name}",
   },
   detail: {

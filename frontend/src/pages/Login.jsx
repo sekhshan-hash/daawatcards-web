@@ -68,7 +68,7 @@ const CodeForm = ({ sent, onBack, onVerified }) => {
           {t("auth.mockNotice", { code: sent.dev_code })}
         </p>
       )}
-      <InputOTP maxLength={6} value={code} onChange={(v) => { setCode(v); if (v.length === 6) verify(v); }} data-testid="login-otp-input">
+      <InputOTP autoFocus maxLength={6} value={code} onChange={(v) => { setCode(v); if (v.length === 6) verify(v); }} data-testid="login-otp-input">
         <InputOTPGroup>{[0, 1, 2, 3, 4, 5].map((i) => <InputOTPSlot key={i} index={i} className="h-12 w-11 text-lg" />)}</InputOTPGroup>
       </InputOTP>
       <button type="button" disabled={busy || code.length !== 6} onClick={() => verify()} className="btn-gold w-full" data-testid="login-verify-button">{t("auth.verify")}</button>

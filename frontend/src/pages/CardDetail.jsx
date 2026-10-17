@@ -93,9 +93,11 @@ export default function CardDetail() {
   };
   const remove = async () => {
     if (!window.confirm(t("detail.deleteConfirm"))) return;
-    await api.delete(`/cards/${cardId}`);
-    toast.success(t("detail.deleted"));
-    navigate("/dashboard");
+    try {
+      await api.delete(`/cards/${cardId}`);
+      toast.success(t("detail.deleted"));
+      navigate("/dashboard");
+    } catch (e) { toast.error(errMsg(e)); }
   };
 
   if (!card) return <FullLoader />;
@@ -114,7 +116,7 @@ export default function CardDetail() {
         </div>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+      <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_1fr] [&>*]:min-w-0">
         <LinkMaker card={card} />
         <section className="rounded-3xl border border-border bg-card p-6 sm:p-8" data-testid="card-detail-events">
           <h2 className="font-display text-2xl text-foreground">{t("detail.events")}</h2>

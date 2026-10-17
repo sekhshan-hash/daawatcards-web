@@ -1,0 +1,42 @@
+{
+  "summary": "First full test run of Daawat Phase 1. Backend: 16/16 pytest tests passed (mock OTP auth, cookie and Bearer auth, logout invalidation, Google session via mongo plus Bearer, owner-scoped card CRUD, slug generation sara-omar / sara-omar-2, event ids e1..eN, validation 422s, draft cards return 404 publicly, RSVP upsert by normalised name, per-event counts, ICS, OG PNG, share HTML with og tags and redirect, XSS escaping of ?to). Frontend: Royal guest card (mobile 390): intro name, open with curtains and petals, skip, replay, event tabs e1/e2/e3 change the URL without replaying the intro, countdown ticks, Maps href, ICS and Google calendar links, RSVP yes/maybe/no with stepper, success message, wa.me link with guest name, footer, audio toggle, 'Honoured Guest' fallback, no horizontal scroll. Birthday balloon pop with confetti. Not-found page. Host flow: OTP login, dashboard, full wizard with validation toasts, add event, music, preview, publish, CardDetail link maker (share URL, copy toast, WhatsApp message), edit saves and shows on the public link immediately, RSVP summary updates, delete, logout, protected route redirect. Desktop: landing hero, live demo phone and demo links; wizard sticky live preview updates as you type. All core flows work. Found 1 visual bug, 1 mobile overflow and 2 minor UX issues.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/logout", "issue": "Only invalidates the session taken from the cookie. A Bearer-only client calling logout gets ok:true but its session stays valid."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TitleSection scroll cue (both templates, guest card and previews)", "issue": "The 'Scroll for details' cue overlaps the event chip (e.g. 'Nikah · 12 Dec 2026'). RCA: templates.css line 20 '.gc-title-screen > *:not(.royal-frame):not(.bday-frame) { position: relative }' has higher specificity than '.gc-scroll-cue { position: absolute }' (line 27), so the cue stays in normal flow and 'bottom: 22px' moves it up onto the chip. Fix: add .gc-scroll-cue to the :not() list, or use '.gc-title-screen > .gc-scroll-cue { position: absolute; }'.", "selector": ".gc-scroll-cue / [data-testid='card-title-event-chip']", "priority": "MEDIUM"},
+      {"component": "CardDetail page on mobile (390px)", "issue": "Horizontal scroll: document scrollWidth is 406 at a 390 viewport. [data-testid=link-maker] and [data-testid=card-detail-events] extend to 406px. RCA: the 'mt-10 grid gap-6 lg:grid-cols-[...]' container has no explicit mobile column, and the grid item's min-width:auto includes the nowrap 'truncate' date line. Fix: add 'grid-cols-1' (or 'min-w-0' on both sections).", "selector": "[data-testid='link-maker'], [data-testid='card-detail-events']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Login code step", "issues": ["The OTP input is not auto-focused after 'Send code'. The user has to tap it before typing. Add autoFocus to InputOTP."]},
+      {"screen": "Dashboard card tile", "issues": ["Pluralisation: shows '1 responses · 2 attending'."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_daawat_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix the scroll-cue CSS specificity so 'Scroll for details' no longer overlaps the event chip (templates.css lines 20/27)",
+    "Add grid-cols-1 or min-w-0 to the CardDetail grid/sections to remove the 16px horizontal overflow on mobile",
+    "Autofocus the OTP input on the Login code step",
+    "Fix '1 responses' pluralisation on the dashboard",
+    "Optional: make /auth/logout also invalidate the Bearer token session"
+  ],
+  "critical_code_review_comments": [
+    "server.py logout ignores the Authorization header (see minor backend issue)",
+    "CardDetail.remove() has no try/catch: a failed delete shows no error toast",
+    "CardDetail.publish sends the whole card object including card_id/slug/owner_id. It works because Pydantic ignores extra fields, but sending the FIELDS whitelist like the Wizard would be cleaner",
+    "find_event() silently falls back to the first event for unknown event ids in ics/og/share, while the RSVP endpoint returns 404. Acceptable, but inconsistent"
+  ],
+  "updated_files": ["/app/backend/tests/test_daawat_api.py"],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "~95% (all functional flows pass; 2 layout bugs)"},
+  "test_credentials": "Phone OTP: any 10-digit number, code 123456 (from /app/memory/test_credentials.md). Google: mongo-created session and Bearer token verified to work.",
+  "seed_data_creation": "None persisted. TEST_ cards are deleted by the pytest fixture. The UI-created card 'Sana & Imran' was deleted. Host users +919123456780 and +919123456781 remain. RSVP 'Ali Khan' (e2, 3 guests) remains on the demo card aftab-hifza.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: REACT_APP_BACKEND_URL=<url> pytest /app/backend/tests/test_daawat_api.py. In Playwright, the OTP field needs page.locator('[data-input-otp]').first.click() before keyboard.type('123456') because it is not auto-focused. Use intro-skip-button with force=True to get past intros quickly. Wizard tabs wizard-step-tab-0..5 allow jumping when editing.",
+  "rca of the issue": "Scroll cue overlap: CSS specificity conflict (0,3,0 position:relative beats 0,1,0 position:absolute). CardDetail overflow: implicit grid column with grid items at min-width:auto plus a nowrap truncate child."
+}
