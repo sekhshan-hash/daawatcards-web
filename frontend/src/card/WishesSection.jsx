@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { namesLine } from "@/lib/eventTime";
+import { tCorp } from "@/i18n";
 import { waLink } from "@/lib/links";
 import { Reveal } from "./CardSections";
 import { CardPhoto } from "./CardPhoto";
@@ -31,8 +32,8 @@ export const WishesSection = ({ card, event, guestName, guestId, t, preview }) =
       <Reveal>
         <div className="gc-panel">
           <CardPhoto path={card.wishes_photo} variant="wishes" testId="card-wishes-photo" />
-          <h2 className="gc-heading gc-center">{t("guest.wishesTitle")}</h2>
-          <p className="gc-muted gc-center">{t("guest.wishesSubtitle")}</p>
+          <h2 className="gc-heading gc-center">{tCorp(t, card, "wishesTitle")}</h2>
+          <p className="gc-muted gc-center">{tCorp(t, card, "wishesSubtitle")}</p>
           <label className="gc-label" htmlFor="wish-name">{t("guest.yourName")}</label>
           <input id="wish-name" className="gc-input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} data-testid="wishes-name-input" />
           <p className="gc-label">{t("guest.suggestions")}</p>
@@ -41,11 +42,11 @@ export const WishesSection = ({ card, event, guestName, guestId, t, preview }) =
               <button key={s} type="button" onClick={() => setMessage(s)} className={`gc-suggestion ${message === s ? "is-active" : ""}`} data-testid={`wishes-suggestion-${i}`}>{s}</button>
             ))}
           </div>
-          <label className="gc-label" htmlFor="wish-msg">{t("guest.yourWish")}</label>
+          <label className="gc-label" htmlFor="wish-msg">{tCorp(t, card, "yourWish")}</label>
           <textarea id="wish-msg" className="gc-input gc-textarea" value={message} onChange={(e) => setMessage(e.target.value)} maxLength={1000} data-testid="wishes-message-input" />
           {error && <p className="gc-error" role="alert" data-testid="wishes-error">{error}</p>}
           <a className="gc-btn gc-block gc-wish-btn" href={waLink(card.host_whatsapp, text)} target="_blank" rel="noreferrer" onClick={send} data-testid="wishes-whatsapp-button">
-            <MessageCircle size={16} /> {t("guest.sendWishes")}
+            <MessageCircle size={16} /> {tCorp(t, card, "sendWishes")}
           </a>
           {sent && <p className="gc-success" role="status" data-testid="wishes-success-message">{t("guest.wishThanks", { name: sent })}</p>}
         </div>

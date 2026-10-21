@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import { HEADING_FONTS, loadFont } from "@/templates/registry";
 import { Baby, Briefcase, Cake, Check, Gem, Gift, Heart, Home, Music, Pause, Play } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TEMPLATE_LIST } from "@/templates/registry";
 import { createPlayer, MUSIC_TRACKS } from "@/lib/music";
-import { t, makeT, LANGUAGES } from "@/i18n";
+import { t, makeT, LANGUAGES, blessingText } from "@/i18n";
 
 const TYPES = [
-  ["wedding", Heart, true], ["birthday", Cake, true], ["engagement", Gem], ["aqiqah", Baby],
-  ["housewarming", Home], ["babyShower", Gift], ["corporate", Briefcase],
+  ["wedding", Heart, true], ["engagement", Gem, true], ["birthday", Cake, true], ["aqiqah", Baby, true],
+  ["babyShower", Gift, true], ["housewarming", Home, true], ["corporate", Briefcase, true],
 ];
 
 export const StepTitle = ({ children, hint }) => (
@@ -47,7 +48,7 @@ export const StepTemplate = ({ card, onTemplate }) => {
           <button key={tpl.id} type="button" onClick={() => onTemplate(tpl.id)} data-testid={`wizard-template-${tpl.id}`}
             className={`overflow-hidden rounded-2xl border text-left transition-colors ${card.template === tpl.id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/40"}`}>
             <div className="relative grid h-36 place-items-center" style={{ background: `radial-gradient(circle at 50% 30%, ${tpl.swatch[1]}, ${tpl.swatch[0]} 75%)` }}>
-              <span style={{ fontFamily: tpl.vars["--font-display"], color: tpl.swatch[2] }} className="text-4xl">{tpl.id === "wedding-royal" ? "A & H" : "Zara!"}</span>
+              <span style={{ fontFamily: tpl.vars["--font-display"], color: tpl.swatch[2] }} className="text-4xl">{tpl.sample}</span>
               {tpl.eventTypes.includes(card.event_type) && <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white">{t("wizard.recommended")}</span>}
             </div>
             <div className="p-4">
@@ -68,6 +69,23 @@ export const Field = ({ label, hint, children }) => (
     {hint && <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>}
   </div>
 );
+
+const HeadingFontPicker = ({ value, onChange }) => {
+  useEffect(() => Object.entries(HEADING_FONTS).forEach(([id, f]) => loadFont(`heading-${id}`, f.href)), []);
+  return (
+    <Field label={t("wizard.headingFont")} hint={t("wizard.headingFontHint")}>
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible" data-testid="wizard-heading-font-picker">
+        {["default", ...Object.keys(HEADING_FONTS)].map((id) => (
+          <button key={id} type="button" onClick={() => onChange(id)} data-testid={`wizard-heading-font-${id}`}
+            className={`flex min-w-[132px] shrink-0 flex-col items-start rounded-2xl border px-4 py-3 text-left transition-colors ${value === id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/50"}`}>
+            <span className="text-2xl leading-tight text-foreground" style={{ fontFamily: HEADING_FONTS[id] ? `${HEADING_FONTS[id].family}, ${HEADING_FONTS[id].generic}` : undefined }}>Aa</span>
+            <span className="mt-1 text-xs text-muted-foreground">{t(`wizard.fonts.${id}`)}</span>
+          </button>
+        ))}
+      </div>
+    </Field>
+  );
+};
 
 export const StepDetails = ({ card, update, onLanguage }) => {
   const L = t("wizard.labels");
@@ -92,6 +110,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
           <Field label={typeL.primary}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("primary_name")} /></Field>
           <Field label={`${typeL.secondary}`}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("secondary_name")} /></Field>
         </div>
+        <HeadingFontPicker value={card.heading_font || "default"} onChange={(v) => update({ heading_font: v })} />
         <Field label={L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
         <Field label={L.title}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("title")} /></Field>
         <Field label={L.invitation}><Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} {...bind("invitation_text")} /></Field>
@@ -104,7 +123,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
               </button>
             ))}
           </div>
-          <p className="mt-3 text-sm italic text-muted-foreground" dir="auto">{card.blessing_key !== "custom" && ct(`blessings.${card.blessing_key}`)}</p>
+          <p className="mt-3 text-sm italic text-muted-foreground" dir="auto">{card.blessing_key !== "custom" && blessingText(ct, card)}</p>
         </Field>
         {card.blessing_key === "custom" && <Field label={L.blessingCustom}><Textarea className="rounded-xl text-base" maxLength={1000} {...bind("blessing_text")} /></Field>}
         <Field label={`${L.whatsapp} (${L.optional})`} hint={L.whatsappHint}>

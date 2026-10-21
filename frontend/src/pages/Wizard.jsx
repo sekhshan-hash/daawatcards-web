@@ -6,7 +6,7 @@ import { api, errMsg } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMedia";
 import { HostShell, FullLoader, PhoneFrame } from "@/components/host/HostShell";
 import { GuestCard } from "@/card/GuestCard";
-import { TEMPLATES } from "@/templates/registry";
+import { TEMPLATES, TEMPLATE_LIST } from "@/templates/registry";
 import { StepDetails, StepEventType, StepMusic, StepTemplate, StepTitle } from "./wizard/Steps";
 import { StepEvents, blankEvent } from "./wizard/StepEvents";
 import { StepPhotos } from "./wizard/StepPhotos";
@@ -14,16 +14,16 @@ import { t, makeT } from "@/i18n";
 
 const defaultCard = (type, lang = "en") => {
   const d = makeT(lang)(`defaults.${type}`);
-  const template = type === "birthday" ? "birthday-playful" : "wedding-royal";
+  const template = TEMPLATE_LIST.find((tp) => tp.eventTypes.includes(type))?.id || "wedding-royal";
   return {
-    event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", primary_name: "", secondary_name: "", host_family: "",
+    event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
     title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
     events: d.events.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
@@ -68,7 +68,7 @@ export default function Wizard() {
   const onType = (type) => {
     if (type === card.event_type) return;
     if (card.card_id) return update({ event_type: type, blessing_key: t(`defaults.${type}`).blessing });
-    setCard({ ...defaultCard(type, card.language), photos: card.photos, wishes_photo: card.wishes_photo, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp });
+    setCard({ ...defaultCard(type, card.language), heading_font: card.heading_font, photos: card.photos, wishes_photo: card.wishes_photo, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp });
     setEventId("e1");
   };
   const onLanguage = (lang) => {

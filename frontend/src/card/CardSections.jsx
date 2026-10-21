@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CalendarPlus, ChevronDown, Clock, MapPin, Navigation, RotateCcw, Shirt, CalendarDays } from "lucide-react";
 import { BRAND } from "@/config/brand";
+import { COUPLE_TYPES, blessingText, tCorp } from "@/i18n";
 import { useInView } from "@/hooks/useMedia";
 import { directionsUrl, eventStartMs, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
 import { icsUrl } from "@/lib/links";
@@ -23,7 +24,7 @@ export const EventSwitcher = ({ card, event, onSelect }) => (
 );
 
 export const TitleSection = ({ card, event, t, tpl, single }) => {
-  const couple = card.event_type === "wedding" && card.secondary_name;
+  const couple = COUPLE_TYPES.includes(card.event_type) && card.secondary_name;
   const Frame = tpl.Frame;
   const Divider = tpl.Divider;
   return (
@@ -51,7 +52,7 @@ export const TitleSection = ({ card, event, t, tpl, single }) => {
   );
 };
 
-const blessingFor = (card, t) => (card.blessing_key === "custom" ? card.blessing_text : t(`blessings.${card.blessing_key}`));
+const blessingFor = (card, t) => blessingText(t, card);
 
 const Row = ({ icon: Icon, label, value, testId }) => (
   <div className="gc-row">
@@ -158,7 +159,7 @@ export const FooterSection = ({ card, t, tpl, onReplay }) => {
   return (
     <footer className="gc-footer" data-testid="card-footer">
       <Divider />
-      <p className="gc-eyebrow">{t("guest.compliments")}</p>
+      <p className="gc-eyebrow">{tCorp(t, card, "compliments")}</p>
       <p className="gc-host" data-testid="card-host-family">{card.host_family || namesLine(card)}</p>
       <button type="button" className="gc-btn gc-btn-ghost" onClick={onReplay} data-testid="card-replay-button">
         <RotateCcw size={16} /> {t("guest.replay")}

@@ -3,7 +3,7 @@ import math
 import re
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 FONT_DIR = Path(__file__).parent / "fonts"
 FALLBACK = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf"
@@ -16,9 +16,30 @@ STYLES = {
     },
     "birthday-playful": {
         "bg": "#0D1B2A", "bg2": "#1B263B", "accent": "#FFD166", "text": "#FFFFFF", "muted": "#4ECDC4",
-        "eyebrow_font": "Outfit.ttf", "name_font": "Fredoka.ttf", "body_font": "Outfit.ttf",
+        "eyebrow_font": "Outfit.ttf", "name_font": "Fredoka.ttf", "body_font": "Outfit.ttf", "frame": "circle",
+    },
+    "modern-minimal": {
+        "bg": "#FAFAF7", "bg2": "#E6EDE4", "accent": "#3E5B48", "text": "#2F3A33", "muted": "#6F8F76",
+        "eyebrow_font": "Cormorant.ttf", "name_font": "Cormorant.ttf", "body_font": "Cormorant.ttf", "frame": "rounded",
+    },
+    "rose-gold": {
+        "bg": "#FBEFEF", "bg2": "#F2D3D3", "accent": "#A35A66", "text": "#4A2C32", "muted": "#B76E79",
+        "eyebrow_font": "Cormorant.ttf", "name_font": "GreatVibes.ttf", "body_font": "Cormorant.ttf", "frame": "arch",
+    },
+    "little-star": {
+        "bg": "#E8EEFB", "bg2": "#F8E3EE", "accent": "#5A6FB0", "text": "#3A3F5C", "muted": "#8C7AE6",
+        "eyebrow_font": "Outfit.ttf", "name_font": "Fredoka.ttf", "body_font": "Outfit.ttf", "frame": "circle",
+    },
+    "warm-hearth": {
+        "bg": "#F5EBDD", "bg2": "#EBD3B5", "accent": "#A8441F", "text": "#3B2418", "muted": "#C0562F",
+        "eyebrow_font": "Cinzel.ttf", "name_font": "Cinzel.ttf", "body_font": "Cormorant.ttf", "frame": "arch",
+    },
+    "boardroom": {
+        "bg": "#0B1B33", "bg2": "#16305A", "accent": "#FFFFFF", "text": "#E8EDF5", "muted": "#7FA7E8",
+        "eyebrow_font": "Outfit.ttf", "name_font": "Outfit.ttf", "body_font": "Outfit.ttf", "frame": "rounded",
     },
 }
+STYLES["wedding-royal"]["frame"] = "arch"
 PARTY = ["#FF6B6B", "#FFD166", "#4ECDC4", "#9D4EDD"]
 
 
@@ -52,21 +73,49 @@ def _fit(draw, text, fname, size, maxw):
     return f
 
 
-def _center(draw, y, text, font, fill):
-    w = draw.textlength(text, font=font)
-    draw.text(((W - w) / 2, y), text, font=font, fill=fill)
+def _center(draw, yc, text, font, fill, x0=0, w=W):
+    left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
+    draw.text((x0 + (w - (right - left)) / 2 - left, yc - (top + bottom) / 2), text, font=font, fill=fill)
 
 
-def _royal_border(d, s):
+def _royal_border(d, s, cx=W // 2):
     gold = _rgb(s["accent"])
     d.rectangle([24, 24, W - 24, H - 24], outline=gold, width=3)
     d.rectangle([38, 38, W - 38, H - 38], outline=gold, width=1)
-    for cx, cy in [(24, 24), (W - 24, 24), (24, H - 24), (W - 24, H - 24)]:
-        d.polygon([(cx, cy - 16), (cx + 16, cy), (cx, cy + 16), (cx - 16, cy)], fill=gold)
-    cx = W // 2
-    d.line([(cx - 160, 214), (cx - 22, 214)], fill=gold, width=2)
-    d.line([(cx + 22, 214), (cx + 160, 214)], fill=gold, width=2)
-    d.polygon([(cx, 202), (cx + 12, 214), (cx, 226), (cx - 12, 214)], fill=gold)
+    for x, y in [(24, 24), (W - 24, 24), (24, H - 24), (W - 24, H - 24)]:
+        d.polygon([(x, y - 16), (x + 16, y), (x, y + 16), (x - 16, y)], fill=gold)
+    d.line([(cx - 160, 196), (cx - 22, 196)], fill=gold, width=2)
+    d.line([(cx + 22, 196), (cx + 160, 196)], fill=gold, width=2)
+    d.polygon([(cx, 184), (cx + 12, 196), (cx, 208), (cx - 12, 196)], fill=gold)
+
+
+def _line_border(d, s):
+    d.rectangle([30, 30, W - 30, H - 30], outline=_rgb(s["muted"]), width=2)
+
+
+def _shape_mask(size, shape):
+    w, h = size
+    m = Image.new("L", size, 0)
+    md = ImageDraw.Draw(m)
+    if shape == "circle":
+        md.ellipse([0, 0, w - 1, h - 1], fill=255)
+    elif shape == "arch":
+        md.ellipse([0, 0, w - 1, w - 1], fill=255)
+        md.rectangle([0, w // 2, w - 1, h - 1], fill=255)
+    else:
+        md.rounded_rectangle([0, 0, w - 1, h - 1], radius=28, fill=255)
+    return m
+
+
+def _paste_photo(img, photo_bytes, s):
+    shape = s.get("frame", "rounded")
+    pw, ph = (400, 400) if shape == "circle" else (380, 480)
+    x, y = 90, (H - ph) // 2
+    photo = ImageOps.fit(Image.open(io.BytesIO(photo_bytes)).convert("RGB"), (pw, ph))
+    pad = 10
+    ring = _shape_mask((pw + pad * 2, ph + pad * 2), shape)
+    img.paste(Image.new("RGB", ring.size, s["accent"]), (x - pad, y - pad), ring)
+    img.paste(photo, (x, y), _shape_mask((pw, ph), shape))
 
 
 def _party_border(d):
@@ -83,7 +132,7 @@ def _party_border(d):
         d.ellipse([x - r, y - r, x + r, y + r], fill=_rgb(PARTY[i % 4]))
 
 
-def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand):
+def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand, photo=None):
     s = STYLES.get(template, STYLES["wedding-royal"])
     img = Image.new("RGB", (W, H), s["bg"])
     d = ImageDraw.Draw(img)
@@ -91,19 +140,29 @@ def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand
     for y in range(H):
         k = abs(y - H / 2) / (H / 2)
         d.line([(0, y), (W, y)], fill=tuple(int(top[i] * (1 - k) + bot[i] * k) for i in range(3)))
+    x0, tw = 0, W
+    if photo:
+        try:
+            _paste_photo(img, photo, s)
+            x0, tw = 520, W - 560
+        except Exception:  # noqa: BLE001
+            pass
+    cx = x0 + tw // 2
     if template == "birthday-playful":
         _party_border(d)
+    elif template == "wedding-royal":
+        _royal_border(d, s, cx)
     else:
-        _royal_border(d, s)
-
-    _center(d, 92, eyebrow.upper(), _fit(d, eyebrow.upper(), s["eyebrow_font"], 30, 900), _rgb(s["muted"]))
-    nf = _fit(d, names, s["name_font"], 120, 1000)
-    _center(d, 236, names, nf, _rgb(s["accent"]))
-    _center(d, 400, event_line, _fit(d, event_line, s["body_font"], 44, 1000), _rgb(s["text"]))
-    _center(d, 460, date_line, _fit(d, date_line, s["body_font"], 34, 1000), _rgb(s["text"]))
+        _line_border(d, s)
+    maxw = tw - 80
+    c = lambda y, text, font, fill: _center(d, y, text, font, fill, x0, tw)  # noqa: E731
+    c(130, eyebrow.upper(), _fit(d, eyebrow.upper(), s["eyebrow_font"], 30, maxw), _rgb(s["muted"]))
+    c(300, names, _fit(d, names, s["name_font"], 110 if not photo else 88, maxw), _rgb(s["accent"]))
+    c(412, event_line, _fit(d, event_line, s["body_font"], 40, maxw), _rgb(s["text"]))
+    c(466, date_line, _fit(d, date_line, s["body_font"], 32, maxw), _rgb(s["text"]))
     if venue_line:
-        _center(d, 510, venue_line, _fit(d, venue_line, s["body_font"], 28, 1000), _rgb(s["muted"]))
-    _center(d, H - 62, brand, _font(s["eyebrow_font"], 20), _rgb(s["muted"]))
+        c(518, venue_line, _fit(d, venue_line, s["body_font"], 26, maxw), _rgb(s["muted"]))
+    c(H - 58, brand, _font(s["eyebrow_font"], 20), _rgb(s["muted"]))
 
     buf = io.BytesIO()
     img.save(buf, "PNG", optimize=True)

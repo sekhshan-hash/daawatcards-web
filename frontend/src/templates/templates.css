@@ -17,11 +17,11 @@
 
 .gc-title-screen { position: relative; min-height: calc(100% - 57px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 72px 32px 104px; overflow: hidden; }
 .gc-title-screen.is-single { min-height: 100%; }
-.gc-title-screen > *:not(.royal-frame):not(.bday-frame):not(.gc-scroll-cue) { position: relative; z-index: 1; }
-.gc-names { font-family: var(--font-display); color: var(--accent2); font-size: 60px; font-size: clamp(48px, 17cqw, 88px); line-height: 1.05; display: flex; flex-direction: column; align-items: center; font-weight: 400; overflow-wrap: anywhere; }
+.gc-title-screen > *:not(.royal-frame):not(.bday-frame):not(.gc-frame):not(.gc-scroll-cue) { position: relative; z-index: 1; }
+.gc-names { font-family: var(--font-heading); color: var(--accent2); font-size: 60px; font-size: clamp(48px, 17cqw, 88px); line-height: 1.05; display: flex; flex-direction: column; align-items: center; font-weight: 400; overflow-wrap: anywhere; }
 .gc-amp { font-size: .55em; color: var(--accent); margin: -2px 0; }
 .gc-subname { font-family: var(--font-title); font-size: 22px; color: var(--text); margin-top: 6px; }
-.gc-title { font-family: var(--font-title); font-size: 17px; letter-spacing: .06em; color: var(--text); margin-top: 6px; }
+.gc-title { font-family: var(--font-heading-title); font-size: 17px; letter-spacing: .06em; color: var(--text); margin-top: 6px; }
 .gc-chip { margin-top: 18px; padding: 8px 16px; border: 1px solid var(--border); border-radius: 999px; font-size: 15px; color: var(--muted); }
 .gc-divider { width: 200px; height: 22px; color: var(--accent); margin: 18px auto; display: block; }
 .gc-scroll-cue { position: absolute; bottom: 22px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; color: var(--muted); animation: cue 2.2s ease-in-out infinite; }
@@ -75,7 +75,7 @@
 .gc-panel > .gc-btn.gc-block { margin-top: 18px; }
 
 .gc-footer { padding: 30px 22px 56px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.gc-host { font-family: var(--font-display); font-size: 30px; color: var(--accent2); margin-bottom: 18px; line-height: 1.2; }
+.gc-host { font-family: var(--font-heading); font-size: 30px; color: var(--accent2); margin-bottom: 18px; line-height: 1.2; }
 .gc-madewith { margin-top: 26px; font-size: 12px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
 
 .gc-music { position: absolute; top: 10px; right: 12px; z-index: 35; width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; color: var(--accent);
@@ -112,7 +112,7 @@
 .royal-intro.is-opening .royal-intro-center { opacity: 0; transform: scale(.94); pointer-events: none; }
 .royal-plaque { width: 100%; max-width: 300px; text-align: center; padding: 30px 22px; background: rgba(31,5,8,.88); border: 1px solid #D4AF37; outline: 1px solid rgba(212,175,55,.4); outline-offset: 5px; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
 .royal-plaque-mandala { color: #D4AF37; margin-bottom: 10px; animation: spin 40s linear infinite; }
-.royal-guest { font-family: var(--font-display); font-size: 40px; color: #F3E5AB; line-height: 1.15; margin-bottom: 14px; overflow-wrap: anywhere; }
+.royal-guest { font-family: var(--font-heading); font-size: 40px; color: #F3E5AB; line-height: 1.15; margin-bottom: 14px; overflow-wrap: anywhere; }
 .royal-open { animation: glow 2.4s ease-in-out infinite; }
 @keyframes glow { 50% { box-shadow: 0 0 0 8px rgba(212,175,55,.18); } }
 
@@ -160,7 +160,7 @@
 .bday-shard { position: absolute; top: 40%; left: 50%; width: 12px; height: 16px; border-radius: 3px; animation: shard .65s ease-out forwards; }
 @keyframes shard { from { transform: translate(-50%, 0) rotate(0); opacity: 1; } to { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; } }
 .bday-tag { background: #FAFAFA; color: #0D1B2A; border-radius: 14px; padding: 10px 20px; transform: rotate(-3deg); box-shadow: 0 10px 30px rgba(0,0,0,.35); display: flex; flex-direction: column; font-size: 13px; }
-.bday-tag strong { font-family: var(--font-display); font-size: 26px; font-weight: 600; overflow-wrap: anywhere; }
+.bday-tag strong { font-family: var(--font-heading); font-size: 26px; font-weight: 600; overflow-wrap: anywhere; }
 
 .confetti { position: absolute; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
 .confetti i { position: absolute; left: 50%; top: 42%; opacity: 0; animation: confetti 2.8s cubic-bezier(.15,.6,.35,1) forwards; animation-delay: var(--d); }

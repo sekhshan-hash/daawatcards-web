@@ -2,6 +2,7 @@
 const TRACKS = {
   "royal-raag": { step: 0.75, scale: [0, 2, 4, 6, 7, 9, 11, 12, 14], base: 196, drone: true, wave: "triangle", decay: 1.8, gain: 0.11, rest: 0.25 },
   "party-pop": { step: 0.2, scale: [0, 2, 4, 7, 9, 12, 14, 16], base: 261.63, wave: "square", decay: 0.22, gain: 0.035, kick: true, rest: 0.1 },
+  lullaby: { step: 0.62, scale: [0, 4, 7, 9, 12, 16], base: 392, wave: "sine", decay: 1.6, gain: 0.06, rest: 0.3 },
   "music-box": { step: 0.5, scale: [0, 4, 7, 12, 16, 19, 24], base: 523.25, wave: "sine", decay: 1.3, gain: 0.07, rest: 0.2 },
 };
 
@@ -89,4 +90,4 @@ export const createPlayer = (trackId) => {
   };
 };
 
-export const MUSIC_TRACKS = ["none", "royal-raag", "party-pop", "music-box"];
+export const MUSIC_TRACKS = ["none", "royal-raag", "party-pop", "music-box", "lullaby"];

@@ -39,13 +39,23 @@ logger = logging.getLogger("invites")
 
 EMERGENT_SESSION_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
 SESSION_DAYS = 7
-EVENT_TYPES = {"wedding", "birthday"}
-TEMPLATES = {"wedding-royal", "birthday-playful"}
-MUSIC = {"none", "royal-raag", "party-pop", "music-box"}
+EVENT_TYPES = {"wedding", "birthday", "engagement", "aqiqah", "babyShower", "housewarming", "corporate"}
+TEMPLATES = {"wedding-royal", "birthday-playful", "modern-minimal", "rose-gold", "little-star", "warm-hearth", "boardroom"}
+MUSIC = {"none", "royal-raag", "party-pop", "music-box", "lullaby"}
+COUPLE_TYPES = {"wedding", "engagement"}
 EYEBROWS = {
-    "en": {"wedding": "You are invited to the wedding of", "birthday": "You're invited to celebrate"},
-    "hi": {"wedding": "आप विवाह समारोह में आमंत्रित हैं", "birthday": "जन्मदिन के जश्न में आपका स्वागत है"},
-    "ur": {"wedding": "آپ شادی کی تقریب میں مدعو ہیں", "birthday": "سالگرہ کے جشن میں آپ مدعو ہیں"},
+    "en": {"wedding": "You are invited to the wedding of", "birthday": "You're invited to celebrate",
+           "engagement": "You are invited to the engagement of", "aqiqah": "You are invited to welcome",
+           "babyShower": "You are invited to a baby shower for", "housewarming": "You are invited to the housewarming of",
+           "corporate": "You are cordially invited by"},
+    "hi": {"wedding": "आप विवाह समारोह में आमंत्रित हैं", "birthday": "जन्मदिन के जश्न में आपका स्वागत है",
+           "engagement": "आप सगाई समारोह में आमंत्रित हैं", "aqiqah": "नन्हे मेहमान के स्वागत में आमंत्रण",
+           "babyShower": "गोद भराई में आपका स्वागत है", "housewarming": "गृह प्रवेश में आप आमंत्रित हैं",
+           "corporate": "आप सादर आमंत्रित हैं"},
+    "ur": {"wedding": "آپ شادی کی تقریب میں مدعو ہیں", "birthday": "سالگرہ کے جشن میں آپ مدعو ہیں",
+           "engagement": "آپ منگنی کی تقریب میں مدعو ہیں", "aqiqah": "ننھے مہمان کے استقبال میں مدعو ہیں",
+           "babyShower": "گود بھرائی کی تقریب میں مدعو ہیں", "housewarming": "نئے گھر کی خوشی میں مدعو ہیں",
+           "corporate": "آپ کو مدعو کیا جاتا ہے"},
 }
 INVITED = {"en": "{to}, you're invited!", "hi": "{to}, आप आमंत्रित हैं!", "ur": "{to}، آپ مدعو ہیں!"}
 ALLOWED_IMG = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
@@ -86,6 +96,7 @@ class CardIn(BaseModel):
     host_whatsapp: str = Field(default="", max_length=20)
     timezone: str = Field(default="+05:30", pattern=r"^[+-]\d{2}:\d{2}$")
     status: Literal["draft", "published"] = "draft"
+    heading_font: Literal["default", "cinzel", "playfair", "greatvibes", "fredoka", "rozha"] = "default"
     events: List[EventItem] = Field(min_length=1, max_length=10)
     photos: List[str] = Field(default_factory=list, max_length=2)
     wishes_photo: str = Field(default="", max_length=300)
@@ -176,7 +187,7 @@ def assign_event_ids(events):
 
 
 def names_line(card):
-    if card["event_type"] == "wedding" and card.get("secondary_name"):
+    if card["event_type"] in COUPLE_TYPES and card.get("secondary_name"):
         return f"{card['primary_name']} & {card['secondary_name']}"
     return card["primary_name"]
 
@@ -378,7 +389,7 @@ async def list_cards(user: dict = Depends(current_user)):
 async def create_card(body: CardIn, user: dict = Depends(current_user)):
     check_photos(body, user)
     ts = now().isoformat()
-    base = slugify("-".join(filter(None, [body.primary_name, body.secondary_name if body.event_type == "wedding" else ""])))
+    base = slugify("-".join(filter(None, [body.primary_name, body.secondary_name if body.event_type in COUPLE_TYPES else ""])))
     doc = {**body.model_dump(), "events": assign_event_ids(body.events),
            "card_id": f"card_{uuid.uuid4().hex[:12]}", "slug": await unique_slug(base),
            "owner_id": user["user_id"], "created_at": ts, "updated_at": ts}
@@ -593,10 +604,17 @@ async def og_image(slug: str, event_id: str):
     card = await public_card(slug)
     ev = find_event(card, event_id)
     date_s, time_s = display_date(ev)
+    photo = None
+    path = (card.get("photos") or [""])[0]
+    if path and await db.files.find_one({"storage_path": path, "is_deleted": False}, {"_id": 1}):
+        try:
+            photo, _ = await asyncio.to_thread(get_object, path)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"OG photo fetch failed: {e}")
     png = await asyncio.to_thread(
         render_og, card["template"], EYEBROWS.get(card.get("language", "en"), EYEBROWS["en"])[card["event_type"]], names_line(card),
         ev["name"], f"{date_s}  ·  {time_s}", ", ".join(filter(None, [ev["venue_name"], ev["venue_address"]]))[:80],
-        BRAND_NAME,
+        BRAND_NAME, photo,
     )
     return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})
 

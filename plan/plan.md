@@ -1,88 +1,120 @@
-# Daawat — Cinematic Digital Invitations
+# Daawat: Heading Fonts, Five New Templates and Photo Link Previews
 
-A mobile-first web app where hosts design animated, shareable invitation cards for weddings, birthdays and other occasions.
-Each guest gets a personal link that opens a short cinematic card with their name, event details, a countdown, directions and RSVP.
+Daawat lets hosts create cinematic digital invitation cards and send every guest a personal WhatsApp link.
+This update adds a heading-font picker and five new template designs that unlock five more occasions. Shared WhatsApp links will also show the host's photo in the preview.
 
 ## Who it's for
-- **Hosts**: families and organisers who want a polished invitation they can send on WhatsApp instead of printed cards. They log in, build a card, share links and track replies.
-- **Guests**: invitees, mostly opening the link from WhatsApp on low-end Android phones. They don't log in. They view the card and RSVP.
+- **Hosts** planning weddings, engagements, aqiqahs and naming ceremonies, baby showers, housewarmings and corporate events. They want a card that fits the occasion and their own taste.
+- **Guests**, who mostly open links from WhatsApp on everyday Android phones. They should see a rich, personal preview before they even tap.
 
 ## Core features and experience
 
-### Guest card (public link)
-- Link format: `/i/{card-slug}/{event-id}?to=Guest+Name`, with readable slugs such as `aftab-hifza`. The card still works without a name.
-- Every card follows the same flow. Each template has its own look and reveal:
-  1. Intro screen showing the guest's name, with "Tap to open" and "Skip intro"
-  2. Reveal moment, which differs by template
-  3. Title screen with the host or couple names and the event title
-  4. Scrolling details: invitation text, a blessing or prayer (default text per event type, editable), date, time and a live countdown (days, hours, minutes, seconds)
-  5. Venue, with "Get Directions" (Google Maps) and "Add to Calendar" (.ics file and a Google Calendar link)
-  6. RSVP: "Confirm on WhatsApp" opens a pre-filled message with the guest name and event. There is also an in-app Yes / No / Maybe choice with a guest count, saved for the host.
-  7. Footer reading "With compliments from {host}", plus a "Replay" button
-- **Multiple events per card** (Mehndi, Nikah, Walima and so on, as /e1, /e2...). Each event has its own date, venue, dress code and text. An event switcher lets guests jump between events.
-- **Background music** with a mute toggle. Hosts pick a built-in royalty-free track for the template or upload their own audio file. Music starts only after the guest taps, because mobile browsers block autoplay.
-- **Reduced motion**: if the device asks for less motion, intros and particle effects are replaced with simple fades.
-- **WhatsApp link previews**: each event link shows its own title, date and venue description, and a generated preview image in the card's style.
-- **Languages**: English, Hindi and Urdu. Urdu uses a full right-to-left layout. The host picks one language per card. Fixed card text (buttons, labels, countdown units, default blessings) appears in that language. Host-written text appears as typed.
+### 1. Heading font picker (wizard, step 3 "Details")
+- A row of 6 chips. Each chip shows its name written in its own font:
+  - **Template default**: keeps the template's own font pairing. This is the starting choice for every card.
+  - **Cinzel Decorative**: Royal / Classic
+  - **Playfair Display**: Modern Luxury
+  - **Great Vibes**: Elegant Script
+  - **Fredoka**: Playful
+  - **Rozha One**: Traditional Ethnic
+- The chosen font applies to the guest's name on the intro screen, the couple or host names, the card title, and the "With compliments from" host name.
+- Body text, buttons and details keep the template's fonts so they stay easy to read.
+- The live phone preview updates instantly when a chip is tapped.
+- The choice is saved with the card. As with every edit, changing it later updates all links at once.
+- Hindi and Urdu cards keep working:
+  - Rozha One has Devanagari letters built in.
+  - For the other fonts, Hindi or Urdu letters fall back to the card's Hindi or Urdu font.
 
-### Templates in Phase 1 (original designs, Google Fonts, generated SVG/CSS art)
-- **Royal Wedding**: deep maroon and ivory, ornate borders, a curtain-parting intro, and petals falling on reveal.
-- **Birthday**: bright playful colours and balloons. Guests tap to pop a balloon for the reveal, followed by confetti.
-- Templates are built as a data-driven theme system (palette, fonts, ornaments, intro and reveal style), so more can be added without rebuilding the card.
+### 2. Five new templates, each with its own look, intro and reveal
+| Template | Occasions | Look | Intro | Reveal |
+|---|---|---|---|---|
+| **Modern Minimal** | Wedding (alongside Royal Velvet) | White and sage green, thin line-art florals | An envelope opens and the card slides out | Soft fade-in |
+| **Rose Gold Promise** | Engagement | Blush pink and rose gold, sparkles | Two rings sparkle and link together | Guest swipes up (or taps) to reveal, with a shimmer |
+| **Little Star** | Aqiqah / Naming, Baby Shower | Pastel palette, clouds, moon and stars | Clouds drift apart to show a sleeping moon | Stars twinkle on one by one |
+| **Warm Hearth** | Housewarming | Terracotta, mustard and cream, earthy textures | A wooden door swings open | Rows of diyas light up one after another |
+| **Boardroom** | Corporate | Navy and white, clean lines | Minimal: a thin line draws across the screen | A simple, elegant fade-up |
 
-### Host app
-- **Login**: Google sign-in, or phone number with a one-time code "sent on WhatsApp". **The WhatsApp code is MOCKED in Phase 1**: no real message is sent and the code is shown on screen. Hosts stay logged in until they log out.
-- **Create-card wizard**: event type → template → host/couple details and card language → events (date, time, venue, map link, dress code, custom text, blessing) → music → live preview → publish.
-- **My cards**: list of the host's cards. Hosts can edit them at any time, and changes go live instantly on all links.
-- **Personal link maker (Phase 1)**: the host types a guest name and gets that guest's personal link, with "Copy link" and "Send on WhatsApp" (a pre-filled message plus the link). A full guest list comes in Phase 2.
-- **Demo card**: a ready-made Royal Wedding card with three functions, so the full guest experience can be tried straight away from the landing page.
+- Every template uses only original, generated artwork (SVG/CSS patterns and illustrations) and Google Fonts. No existing invitation designs are copied.
+- All templates follow the same guest flow:
+  - personal intro with "Tap to open" and "Skip intro"
+  - reveal, then the title screen
+  - details, blessing and countdown
+  - venue, directions and calendar
+  - "Send your wishes"
+  - footer with "With compliments from" and Replay
+- All templates support photos, multiple events, music, Hindi/Urdu (including right-to-left Urdu), and reduced motion.
+- A new built-in **Lullaby** track joins the music list. It is the default for Little Star. Every other template defaults to "No music" or its closest existing track.
+- In the template step, matching templates are marked "Recommended" for the chosen occasion. Hosts can still pick any template.
+
+### 3. Five more occasions unlocked
+- Engagement, Aqiqah / Naming, Baby Shower, Housewarming and Corporate become selectable in step 1. Each comes with:
+  - its own name fields (see the table below)
+  - a default title and invitation text
+  - a choice of blessings
+  - event name suggestions
+  - wish suggestions
+- All default text exists in English, Hindi and Urdu.
+
+| Occasion | Name fields | Example default events | Blessing options |
+|---|---|---|---|
+| Engagement | Two names (shown as "A & B") | Engagement, Ring Ceremony, Dinner | Islamic, Hindu, Neutral, Custom |
+| Aqiqah / Naming | Child's name + parents' names | Aqiqah, Naming Ceremony, Lunch | Islamic, Hindu, Neutral, Custom |
+| Baby Shower | Mum-to-be's name + a tagline | Baby Shower, Godh Bharai | Neutral, Hindu, Islamic, Custom |
+| Housewarming | Family name + new address line | Griha Pravesh / Housewarming, Dinner | Hindu, Islamic, Neutral, Custom |
+| Corporate | Company / organiser + event tagline | Launch, Gala Dinner, Conference | None (optional custom message) |
+
+- **Corporate wording.** "Send your wishes" becomes "Send a note to the organiser". Its suggestions are professional (e.g. "Looking forward to it!"), and "With compliments from" reads "Hosted by".
+
+### 4. Photo in WhatsApp link previews
+- If the card has a title-screen photo, the preview image is split into two halves:
+  - **One side:** the photo, in the same frame shape as the template (arch for Royal Velvet, circle for Party Pop and Little Star, rounded rectangle for Modern Minimal and Boardroom, and so on).
+  - **Other side:** the names, event name, date and venue, in the template's colours.
+- Cards without a photo keep the current centred design. This design is extended to all new templates.
+- Every event's preview uses the card's title-screen photo, and the preview text is in the card's language.
+- Changing the photo updates the preview for links shared after the change. WhatsApp keeps the old preview for messages that were already sent.
 
 ## User flow
-1. A host opens Daawat, views the demo card, and logs in with Google or phone.
-2. The host runs the wizard, previews the card on a phone-sized frame, and publishes.
-3. The host types a guest's name, taps "Send on WhatsApp", and the guest receives a personal link with a rich preview.
-4. The guest opens the link and sees their name on the intro, taps to open, watches the reveal, and scrolls through details, countdown and venue.
-5. The guest adds the event to their calendar, gets directions, and RSVPs in the app and/or on WhatsApp. They can switch to the other events they're invited to.
-6. The host edits details later, and guests see the changes immediately.
+1. **Host creates or edits a card:** picks the occasion (all 7 now available), then a template (matching ones recommended).
+2. **Details step:** language, names, then the new Heading Font chips. The live preview restyles instantly, and the host continues through events, photos, music and preview.
+3. **Publish or save:** the font, template and photos go live on every guest link straight away.
+4. **Host sends invites** from the guest list (per-guest WhatsApp button or the "Send to all" queue). WhatsApp shows the photo preview with the names and date.
+5. **Guest opens the link** and sees the template's own intro and reveal. The guest's name, the couple or host names and the title appear in the chosen heading font.
 
 ## UI/UX feel
-- **Guest cards**: cinematic and full-screen on mobile, one template per mood, with rich but lightweight motion (CSS/SVG, no heavy video). Text stays readable over decorative backgrounds, and there is no horizontal scrolling.
-- **Host app**: clean and warm. Simple step-by-step wizard screens with big touch targets, built mobile-first, plus a live phone-frame preview on desktop.
-- Fast first load on slow connections. Fonts and assets for each template load only when that template is used.
+- **Font chips:** a horizontally scrollable row on mobile and a grid on desktop. Each chip has a short "Aa"-style sample and its label. The selected chip has a gold outline.
+- **New templates:**
+  - Modern Minimal is calm and airy.
+  - Rose Gold Promise is romantic and sparkly.
+  - Little Star is soft and dreamy.
+  - Warm Hearth is cosy, with a festive glow.
+  - Boardroom is crisp and restrained.
+- Animations stay light so cards remain smooth on low-end phones. Text contrast stays readable on every palette.
 
 ## Implementation phases
 
-### Phase 1 — MVP (built now)
-- Guest card experience: the full 7-step flow, multiple events with a switcher, countdown, directions, calendar, WhatsApp and in-app RSVP, music, reduced motion and WhatsApp previews
-- Two templates: Royal Wedding and Birthday
-- Host login: Google, plus phone with a WhatsApp code (code is MOCKED)
-- Create-card wizard, preview, publish, live editing and the My Cards list
-- Personal link maker with copy and WhatsApp send
-- English, Hindi and Urdu (right-to-left)
-- Wedding and Birthday event types
-- Seeded demo wedding card
+### Phase 1 (MVP, built now)
+- Heading font picker with 6 chips. The choice is saved with the card and shown in the live preview and on guest cards.
+- 5 new templates (Modern Minimal, Rose Gold Promise, Little Star, Warm Hearth, Boardroom), each with its own intro, reveal, artwork and preview-image style.
+- 5 new occasions with default texts in English, Hindi and Urdu, plus the Corporate wording changes.
+- Lullaby music track.
+- Photo in WhatsApp link previews (photo beside the text, in the template's frame).
 
 ### Phase 2
-- Guest list: add guests one by one, paste many lines, or import a CSV or contacts file. Each guest gets a unique link.
-- Bulk sharing: a "Send on WhatsApp" button and "Copy link" for each guest
-- Dashboard: opened or not opened, RSVP status and guest count for each guest; totals per event; CSV export
-- Remaining templates: Modern Minimal Wedding, Engagement, Aqiqah/Naming & Baby Shower (pastel, with an optional lullaby), Housewarming and Corporate
+- Pricing and plan limits with Razorpay. Prices are one-time per card, in INR, in two tiers: Standard and Premium.
+  - **Free:** 1 card, "Made with Daawat" watermark, up to 25 guests.
+  - **Paid:** no watermark, unlimited guests, music, all templates and fonts.
 
 ### Phase 3
-- Razorpay payments: one-time, per card, in INR, with Standard and Premium tiers
-- Plan limits. Free: 1 card, "Made with Daawat" watermark, up to 25 guests, no RSVP dashboard. Paid: no watermark, unlimited guests, RSVP tracking, music and all templates.
-- Remaining event types: Engagement, Aqiqah/Naming, Housewarming, Baby Shower and Corporate
-- Real WhatsApp OTP delivery, replacing the mock
+- Automatic bulk sending through the WhatsApp Business API, with delivery status per guest.
+- Real SMS or WhatsApp login codes in place of the current test code.
+- Wishes Wall: a keepsake page collecting every guest's wishes.
 
 ## Assumptions
-- The brand name is **Daawat** everywhere, including the watermark (the brief also had "Dawaat").
-- Plan limits don't apply until Phase 3. In Phase 1 every host can use music, both templates and in-app RSVP.
-- In-app RSVPs are saved from Phase 1. Hosts get a simple count per event on each card, and the full RSVP dashboard comes in Phase 2.
-- A guest who RSVPs again from the same personal link updates their earlier answer instead of adding a new one.
-- The mocked WhatsApp code shows a fixed test code on screen. Any phone number can log in with it.
-- A Google account and a phone login are treated as separate host accounts. They are not merged.
-- Uploaded music is limited to MP3/M4A files up to about 8 MB. Each template ships with 1–2 built-in royalty-free tracks.
-- Countdowns and calendar entries use the event's local time, defaulting to India Standard Time.
-- Blessing text defaults: Islamic and Hindu wedding options, plus a neutral one. The host picks one or writes their own.
-- Each event link shows the event switcher only for that card's events. Inviting a guest to only some events comes with the Phase 2 guest list.
-- Preview images for WhatsApp are generated automatically from the template style, names and date. Hosts can't upload a custom preview image yet.
+- "Template default" is the starting choice for new cards and for all existing cards, so current cards look exactly the same until the host changes the font.
+- The heading font covers the guest's name on the intro, the names, the card title and the "With compliments from" host name. Section headings, details, buttons and body text stay in the template's fonts.
+- The template names (Rose Gold Promise, Little Star, Warm Hearth, Boardroom) are working names and can be renamed.
+- Aqiqah / Naming and Baby Shower share the Little Star template. Wedding gets Modern Minimal alongside Royal Velvet.
+- The Engagement "swipe to reveal" also works with a single tap, for guests who don't swipe.
+- Corporate cards have no default blessing, and say "Hosted by" rather than "With compliments from".
+- The link preview uses the first (title-screen) photo only. Event photos are not used in previews.
+- Heading font choices are not limited by plan in this phase. Any limits arrive with Phase 2 pricing.

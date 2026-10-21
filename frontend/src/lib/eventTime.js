@@ -32,7 +32,7 @@ export const eventEndMs = (ev, tz = "+05:30") => {
 };
 
 export const namesLine = (card) =>
-  card.event_type === "wedding" && card.secondary_name ? `${card.primary_name} & ${card.secondary_name}` : card.primary_name;
+  ["wedding", "engagement"].includes(card.event_type) && card.secondary_name ? `${card.primary_name} & ${card.secondary_name}` : card.primary_name;
 
 const gcalStamp = (ms) => new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 

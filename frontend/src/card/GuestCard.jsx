@@ -7,12 +7,14 @@ import { createPlayer } from "@/lib/music";
 import { TitleSection, EventSwitcher, DetailsSection, CountdownSection, VenueSection, FooterSection } from "./CardSections";
 import { WishesSection } from "./WishesSection";
 import "@/templates/templates.css";
+import "@/templates/more.css";
 
 export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "", eventIds, preview = false, onSelectEvent }) => {
   const tpl = getTemplate(fullCard.template);
   const lang = fullCard.language || "en";
   const t = useMemo(() => makeT(lang), [lang]);
-  const vars = useMemo(() => themeVars(tpl, lang), [tpl, lang]);
+  const headingFont = fullCard.heading_font || "default";
+  const vars = useMemo(() => themeVars(tpl, lang, headingFont), [tpl, lang, headingFont]);
   const card = useMemo(() => {
     const visible = fullCard.events.filter((e) => !eventIds?.length || eventIds.includes(e.event_id));
     return { ...fullCard, events: visible.length ? visible : fullCard.events };
@@ -24,7 +26,7 @@ export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "
   const player = useRef(null);
   const scroller = useRef(null);
   const timer = useRef(null);
-  useTemplateFonts(tpl, lang);
+  useTemplateFonts(tpl, lang, headingFont);
 
   const event = card.events.find((e) => e.event_id === eventId) || card.events[0];
   const name = guestName.trim() || t("guest.specialGuest");
