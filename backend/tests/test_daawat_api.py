@@ -141,33 +141,33 @@ class TestCards:
 # ---- Public demo / share ----
 class TestPublic:
     def test_demo_card(self):
-        r = requests.get(f"{API}/public/cards/aftab-hifza")
+        r = requests.get(f"{API}/public/cards/demo-shahnawaz-farah")
         assert r.status_code == 200
         d = r.json()
-        assert len(d["events"]) == 4 and d["primary_name"] == "Aftab" and "_id" not in d
+        assert len(d["events"]) == 4 and d["primary_name"] == "Shahnawaz" and "_id" not in d
         assert requests.get(f"{API}/public/cards/zara-turns-7").status_code == 200
         assert requests.get(f"{API}/public/cards/nope").status_code == 404
 
     def test_ics(self):
-        r = requests.get(f"{API}/public/cards/aftab-hifza/events/e3/ics")
+        r = requests.get(f"{API}/public/cards/demo-shahnawaz-farah/events/e3/ics")
         assert r.status_code == 200 and r.headers["content-type"].startswith("text/calendar")
         assert "BEGIN:VCALENDAR" in r.text and "DTSTART:20261212T133000Z" in r.text and "Nikah" in r.text
 
     def test_og_png(self):
-        r = requests.get(f"{API}/og/aftab-hifza/e2.png")
+        r = requests.get(f"{API}/og/demo-shahnawaz-farah/e2.png")
         assert r.status_code == 200 and r.headers["content-type"] == "image/png"
         assert r.content[:8] == b"\x89PNG\r\n\x1a\n"
 
     def test_share_page(self):
-        r = requests.get(f"{API}/s/aftab-hifza/e2", params={"to": "Ali Khan"}, allow_redirects=False)
+        r = requests.get(f"{API}/s/demo-shahnawaz-farah/e2", params={"to": "Ali Khan"}, allow_redirects=False)
         assert r.status_code == 200 and "text/html" in r.headers["content-type"]
         t = r.text
         assert 'property="og:title"' in t and "Ali Khan" in t
         assert 'property="og:description"' in t and 'property="og:image"' in t
-        assert "/api/og/aftab-hifza/e2.png" in t
-        assert "/i/aftab-hifza/e2?to=Ali+Khan" in t
+        assert "/api/og/demo-shahnawaz-farah/e2.png" in t
+        assert "/i/demo-shahnawaz-farah/e2?to=Ali+Khan" in t
 
     def test_share_xss_escape(self):
-        r = requests.get(f"{API}/s/aftab-hifza/e1", params={"to": "</script><script>alert(1)</script>"})
+        r = requests.get(f"{API}/s/demo-shahnawaz-farah/e1", params={"to": "</script><script>alert(1)</script>"})
         assert r.status_code == 200
         assert "<script>alert(1)" not in r.text

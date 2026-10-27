@@ -115,7 +115,7 @@ class TestNewFields:
 
 class TestOG:
     @pytest.mark.parametrize("slug", ["meera-kabir", "sana-rehan", "ayaan", "the-sharmas", "acme-labs", "faraz",
-                                      "aftab-hifza", "zara-turns-7"])
+                                      "demo-shahnawaz-farah", "zara-turns-7"])
     def test_og_seeded(self, slug):
         r = requests.get(f"{API}/og/{slug}/e1.png")
         assert r.status_code == 200 and r.content[:4] == b"\x89PNG"

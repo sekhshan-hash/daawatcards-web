@@ -71,7 +71,7 @@ class TestOG:
     def test_og_each_event_png(self):
         imgs = {}
         for eid in ["e1", "e2", "e3"]:
-            r = requests.get(f"{API}/og/aftab-hifza/{eid}.png")
+            r = requests.get(f"{API}/og/demo-shahnawaz-farah/{eid}.png")
             assert r.status_code == 200
             assert r.headers["content-type"] == "image/png"
             assert r.content[:8] == b"\x89PNG\r\n\x1a\n"
@@ -83,7 +83,7 @@ class TestOG:
         from PIL import Image
         px = {}
         for eid in ["e1", "e2", "e4"]:
-            im = Image.open(BytesIO(requests.get(f"{API}/og/aftab-hifza/{eid}.png").content)).convert("RGB")
+            im = Image.open(BytesIO(requests.get(f"{API}/og/demo-shahnawaz-farah/{eid}.png").content)).convert("RGB")
             px[eid] = im.getpixel((30, im.height // 2))
         print("OG bg pixels", px)
         # iteration 6 demo: e1 Haldi marigold, e2 Baraat crimson, e4 Walima midnight
@@ -94,7 +94,7 @@ class TestOG:
     def test_share_version_differs(self):
         vs = {}
         for eid in ["e1", "e2", "e3"]:
-            r = requests.get(f"{API}/s/aftab-hifza/{eid}")
+            r = requests.get(f"{API}/s/demo-shahnawaz-farah/{eid}")
             assert r.status_code == 200
             m = re.search(r'og:image" content="([^"]+)"', r.text)
             assert m, r.text[:500]

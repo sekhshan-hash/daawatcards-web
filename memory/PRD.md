@@ -57,6 +57,15 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Demos: aftab-hifza (Muslim, 4 events) and rohan-ananya (Hindu, 6 events)
 - Tested: iteration_6, backend 112/112, frontend all flows; fixed afterwards: the snap offset, RSVP success shown only after the save succeeds, "1 guest" singular, RSVP guest_id validation
 
+## Implemented (Iteration 7: six small updates)
+- Header line in wizard step 3: Box 1 is a dropdown grouped by tradition, with "Jai Shri Ram" added; Box 2 is a custom line (text, script, transliteration, size, colour) that overrides Box 1, with "Using custom line" and "Clear custom line"; optional per-event header boxes (header_per_event, events[].header_key/custom_header)
+- Intro invitation title (intro_title, auto from event name or type, also in hi/ur) shown above "Specially for", in the browser tab and in the WhatsApp title "<title> · <names>"
+- RSVP removed completely: the guest block, the host list and the API
+- Demo renamed to Shahnawaz & Farah (slug demo-shahnawaz-farah, seeded by card_id)
+- Multi-event cards always open on the cover and auto-advance every 5s until the last page; this stops for good on any swipe, scroll, tap or key
+- Couple names stacked on 3 lines (name / & / name)
+- Tested: iteration_7, 100% backend and frontend
+
 ## Backlog
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider

@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 7 (six small updates) tested end-to-end. Backend: 121/121 pytest pass (16 new in test_iteration7_headers_title.py, plus 105 regression tests after I updated the old tests for the demo-shahnawaz-farah slug and the RSVP removal). Frontend: everything requested passed. Wizard step 3: the intro title field is prefilled, its edits show in the preview, and reset works. Box 1: the dropdown is closed by default, groups are in tradition order (Muslim open first), there is a Jai Shri Ram option, selecting closes the list and updates the preview, Escape and outside clicks close it, keyboard open and Tab work, and 'No header line' hides the header. Box 2: custom text greys out Box 1 and shows 'Using custom line'; Arabic sets RTL; size, colour and sub-line show in the preview; clear works. Per-event headers show only on their own event pages. Values persist after publish and reload. Guest card: the intro title is correct, the card opens on cover page 0 even from an /e3 link, couple names are on 3 lines, and auto-advance goes 0->1->2->...->5 and then stops at the last page. Wheel, tap, touchstart and keydown each stop it. No RSVP anywhere, wishes are still on the final page, and the single-event, Hindu demo and Urdu cards work. The landing and dashboard demo links point to the new slug.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration7_headers_title.py",
+    "/app/backend/tests/test_iteration6_tradition.py",
+    "/app/test_reports/pytest/pytest_results_it7.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Unused RSVP i18n strings remain (guest.rsvpTitle/rsvpYes/... in en_more.js, hi_more.js and the ur file). They are dead code and safe to remove.",
+    "EventItem.rsvp_line (the free-text 'RSVP / Contact line' field in WordingEditor) still exists. It is not the removed RSVP block, but the 'RSVP' label could confuse users given the request to remove RSVP completely. Consider renaming the label to 'Contact line'.",
+    "When the per-event switch is on and an event's boxes are left empty, that event page falls back to the card-level header (custom or Box 1). This seems sensible; please confirm it is the intended behaviour.",
+    "The '786' option has no transliteration or sub line. This is cosmetic only."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_daawat_api.py (slug/names -> demo-shahnawaz-farah/Shahnawaz)",
+    "/app/backend/tests/test_iteration3_new_fields.py (slug)",
+    "/app/backend/tests/test_iteration5_event_colors.py (slug)",
+    "/app/backend/tests/test_iteration6_tradition_rsvp.py renamed to test_iteration6_tradition.py; RSVP tests replaced with removal (404/405) checks",
+    "/app/backend/tests/test_iteration7_headers_title.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Phone OTP: any number, code 123456 (OTP field auto-submits after 6 digits; no need to click the verify button)",
+  "seed_data_creation": "Created card card_84a67ec3b603 (slug test-imran-sana, published, owner phone 9100000077) with custom header 'TEST Custom Line' (deva, s), header_per_event=true, e1 header_key om, e2 custom 'TEST Nikah Line', intro_title 'TEST Walima Dawat'. pytest cards are cleaned up.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Wizard step 3 = wizard-step-tab-2 (Details). Save and publish buttons only exist on wizard-step-tab-6 (Preview). In the preview, click intro-skip-button before checking card-cover-header-line or card-event-header-line. pytest.ini uses xdist (-n), so do not pass -p no:xdist. Create /tmp/test.jpg with PIL before running test_guests_wishes_uploads.py. Auto-advance: wait 5.3-5.5s between checks; the demo has 6 pages (0-5).",
+  "rca of the issue": ""
+}

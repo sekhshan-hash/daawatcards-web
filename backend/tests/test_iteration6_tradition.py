@@ -1,4 +1,4 @@
-# Daawat iteration 6: tradition/header/family/wording fields, RSVP (public save + owner list), OG per event, demo cards
+# Daawat iteration 6: tradition/header/family/wording fields, RSVP removed, OG per event, demo cards
 import os
 import uuid
 from io import BytesIO
@@ -88,52 +88,22 @@ class TestTraditionFields:
             s.delete(f"{API}/cards/{d['card_id']}")
 
 
-# ---- RSVP ----
-class TestRsvp:
-    def test_rsvp_save_and_owner_list(self, ctx):
+# ---- RSVP removed (iteration 7) ----
+class TestRsvpRemoved:
+    def test_public_rsvp_gone(self, ctx):
+        _, c = ctx
+        r = requests.post(f"{API}/public/cards/{c['slug']}/rsvp", json={"guest_name": "X", "attending": True})
+        assert r.status_code in (404, 405)
+
+    def test_owner_rsvps_gone(self, ctx):
         s, c = ctx
-        r = requests.post(f"{API}/public/cards/{c['slug']}/rsvp",
-                          json={"guest_name": "TEST  Guest", "attending": True, "count": 3, "event_ids": ["e1", "zz"]})
-        assert r.status_code == 200, r.text
-        d = r.json()
-        assert d["guest_name"] == "TEST Guest" and d["count"] == 3 and d["event_ids"] == ["e1"]
-        assert d["event_names"] == ["Haldi"] and "_id" not in d and d["rsvp_id"]
-        lst = s.get(f"{API}/cards/{c['card_id']}/rsvps")
-        assert lst.status_code == 200
-        assert any(x["guest_name"] == "TEST Guest" and x["count"] == 3 for x in lst.json())
-
-    def test_rsvp_upsert_and_decline(self, ctx):
-        s, c = ctx
-        requests.post(f"{API}/public/cards/{c['slug']}/rsvp", json={"guest_name": "test guest", "attending": False, "count": 4})
-        rows = [x for x in s.get(f"{API}/cards/{c['card_id']}/rsvps").json() if x["guest_name_key"] == "test guest"]
-        assert len(rows) == 1 and rows[0]["attending"] is False and rows[0]["count"] == 0 and rows[0]["event_ids"] == []
-
-    def test_rsvp_attending_no_events_defaults_all(self, ctx):
-        _, c = ctx
-        d = requests.post(f"{API}/public/cards/{c['slug']}/rsvp", json={"guest_name": "TEST All", "attending": True}).json()
-        assert d["event_ids"] == ["e1", "e2", "e3"]
-
-    @pytest.mark.parametrize("body", [{"guest_name": "", "attending": True}, {"guest_name": "   ", "attending": True},
-                                      {"guest_name": "X", "attending": True, "count": 51}, {"guest_name": "X"}])
-    def test_rsvp_validation(self, ctx, body):
-        _, c = ctx
-        assert requests.post(f"{API}/public/cards/{c['slug']}/rsvp", json=body).status_code == 422
-
-    def test_rsvp_unknown_slug_404(self):
-        assert requests.post(f"{API}/public/cards/no-such-slug-xyz/rsvp", json={"guest_name": "X", "attending": True}).status_code == 404
-
-    def test_rsvp_list_owner_only(self, ctx):
-        _, c = ctx
-        assert requests.get(f"{API}/cards/{c['card_id']}/rsvps").status_code == 401
-        other = _login("TEST_Other")
-        assert other.get(f"{API}/cards/{c['card_id']}/rsvps").status_code in (403, 404)
-        assert other.get(f"{API}/cards/demo-wedding/rsvps").status_code in (403, 404)
+        assert s.get(f"{API}/cards/{c['card_id']}/rsvps").status_code in (404, 405)
 
 
 # ---- demo cards & OG ----
 class TestDemosOg:
-    def test_aftab_muslim(self):
-        d = requests.get(f"{API}/public/cards/aftab-hifza").json()
+    def test_shahnawaz_muslim(self):
+        d = requests.get(f"{API}/public/cards/demo-shahnawaz-farah").json()
         assert d["tradition"] == "muslim"
         assert [e["name"] for e in d["events"]] == ["Haldi", "Baraat", "Nikah", "Walima"]
 
@@ -142,14 +112,14 @@ class TestDemosOg:
         assert d["tradition"] == "hindu" and len(d["events"]) == 6
 
     def test_og_each_event(self):
-        for slug, n in (("aftab-hifza", 4), ("rohan-ananya", 6)):
+        for slug, n in (("demo-shahnawaz-farah", 4), ("rohan-ananya", 6)):
             for i in range(1, n + 1):
                 r = requests.get(f"{API}/og/{slug}/e{i}.png")
                 assert r.status_code == 200 and r.headers["content-type"].startswith("image/png"), (slug, i)
 
     def test_baraat_og_crimson(self):
         from PIL import Image
-        im = Image.open(BytesIO(requests.get(f"{API}/og/aftab-hifza/e2.png").content)).convert("RGB").resize((60, 30))
+        im = Image.open(BytesIO(requests.get(f"{API}/og/demo-shahnawaz-farah/e2.png").content)).convert("RGB").resize((60, 30))
         px = list(im.getdata())
         r, g, b = (sum(p[k] for p in px) / len(px) for k in range(3))
         assert r > g * 1.3 and r > b * 1.3, (r, g, b)
