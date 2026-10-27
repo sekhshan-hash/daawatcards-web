@@ -5,6 +5,7 @@ import { useMediaQuery } from "@/hooks/useMedia";
 import { PhoneFrame } from "@/components/host/HostShell";
 import { GuestCard } from "@/card/GuestCard";
 import { TEMPLATES } from "@/templates/registry";
+import { eventScheme } from "@/templates/eventColors";
 import { COUPLE_TYPES, makeT, t } from "@/i18n";
 
 const SAMPLE = {
@@ -42,7 +43,7 @@ export const TemplatePreview = ({ tplId, card, onClose, onUse }) => {
   const demo = useMemo(() => sampleCard(card, tpl), [card, tpl]);
   const [run, setRun] = useState(0);
   const [sound, setSound] = useState(true);
-  const [eventId, setEventId] = useState(demo.events[0].event_id);
+  const [eventId, setEventId] = useState(() => (demo.events.find((e) => eventScheme(demo, e) === "template") || demo.events[0]).event_id);
   const hasMusic = demo.music_track && demo.music_track !== "none";
 
   useEffect(() => {

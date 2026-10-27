@@ -43,6 +43,11 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Review dedupe + "Already on your list" + merge switch (on_duplicate=merge); auto mark Sent on tap with sent time + undo (DELETE .../sent)
 - Tested: iteration_4, backend 71/71, frontend all flows pass; copy fixes applied afterwards
 
+## Implemented (Iteration 5)
+- Template preview ("Watch intro" on every tile in step 2): full intro + reveal, full screen on phones and in a phone frame on desktop, uses the host's names, language and font (sample names if empty), with Replay, Use this template, Close and music toggle. Opens on the main-ceremony event so the template's own colours show first
+- Per-event colours (cards with 2+ events): auto from the event name in en/hi/ur (Mehndi emerald, Haldi marigold, Sangeet magenta, Walima/Reception midnight; others keep the template's colours), event.color override ("" auto, "template", 10 schemes) via swatches in step 4; animated repaint through registered --c-* CSS properties; coloured tab dots; OG images per event scheme (og_image.SCHEMES; share version includes the scheme)
+- Tested: iteration_5, backend 93/93, frontend all flows
+
 ## Backlog
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider
