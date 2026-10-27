@@ -66,6 +66,15 @@ const enMore = {
     },
     corporate: { wishesTitle: "Send a note to the organiser", wishesSubtitle: "Share a quick note. It goes straight to the organiser on WhatsApp.", sendWishes: "Send note on WhatsApp", yourWish: "Your note", compliments: "Hosted by" },
     swipeUp: "Swipe up to reveal",
+    swipe: "Swipe", celebrations: "The celebrations", happeningNow: "Happening now", concluded: "This event has concluded",
+    pageOf: "Page {n} of {total}", goTo: "Go to page {n}",
+    rsvpTitle: "Will you join us?", rsvpSubtitle: "Let the hosts know. Your reply goes to them on WhatsApp.",
+    rsvpYes: "Joyfully accept", rsvpNo: "Regretfully decline", rsvpCount: "Number of guests", rsvpEvents: "Which events?",
+    rsvpSend: "Send RSVP on WhatsApp", rsvpThanks: "Thank you, {name}! Your RSVP has been sent.", rsvpChoose: "Please choose accept or decline",
+  },
+  whatsapp: {
+    rsvpYes: "RSVP: {guest} joyfully accepts ({count} guests) for {events}.\n— {names}",
+    rsvpNo: "RSVP: {guest} regretfully declines the invitation.\n— {names}",
   },
   wizard: {
     labels: {
@@ -79,6 +88,22 @@ const enMore = {
     headingFont: "Heading font",
     headingFontHint: "Used for the guest's name, your names, the title and the host line.",
     fonts: { default: "Template default", cinzel: "Royal / Classic", playfair: "Modern Luxury", greatvibes: "Elegant Script", fredoka: "Playful", rozha: "Traditional Ethnic" },
+    tradition: "Tradition", traditionHint: "Sets the sacred line, wording and event suggestions. You can edit everything later.",
+    traditions: { muslim: "Muslim", hindu: "Hindu", sikh: "Sikh", christian: "Christian", neutral: "Neutral / Other" },
+    headerLine: "Header line", headerLineHint: "Shown at the top of the cover and of each event page.", headerNone: "No header line",
+    family: "Family block", familyHint: "Printed-card style family line on the cover. Leave parts blank to skip them.",
+    familyFields: {
+      groom_family: "Groom's family name (first name)", bride_family: "Bride's family name (second name)",
+      groom_parents: "Groom's parents", bride_parents: "Bride's parents",
+      groom_grandparents: "Groom's grandparents (optional)", bride_grandparents: "Bride's grandparents (optional)",
+    },
+    parentsPlaceholder: "e.g. Mr. & Mrs. Iqbal Siddiqui",
+    hostingSide: "Hosting family", hostGroom: "Groom's family", hostBride: "Bride's family", hideFamily: "Hide the family block",
+    familyPreview: "Preview",
+    wording: "Card wording", wordingHint: "Prefilled from the tradition. Edit, hide or reset each line.",
+    wordingCheck: "Please check religious wording before publishing.",
+    wf: { header: "Header line on this page", wording: "Invitation wording", dua: "Closing dua", closing: "Closing line", concluded: "Message after the event", rsvp_line: "RSVP / Contact line (optional)" },
+    wfShow: "Show", wfHide: "Hide", wfReset: "Reset", wfHidden: "Hidden on the card", wfCustom: "Custom…",
   },
 };
 

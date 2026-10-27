@@ -48,6 +48,7 @@ const AUTO = [
   ["emerald", /meh[ae]?ndi|henna|मेहंदी|मेहन्दी|मेंहदी|مہندی|مهندی/i],
   ["marigold", /haldi|ubtan|pithi|may[ou]n|हल्दी|हलदी|ہلدی|هلدی|مایوں/i],
   ["magenta", /sang[ei]{1,2}t|dholki|संगीत|ढोलकी|سنگیت|ڈھولکی/i],
+  ["crimson", /baraa?t|बारात|بارات/i],
   ["midnight", /wal[ei]ma|valima|reception|वलीमा|वलिमा|रिसेप्शन|ولیمہ|ولیمه|استقبالیہ|ریسیپشن/i],
 ];
 

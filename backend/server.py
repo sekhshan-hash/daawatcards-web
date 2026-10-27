@@ -80,6 +80,23 @@ class EventItem(BaseModel):
     custom_text: str = Field(default="", max_length=1000)
     photo: str = Field(default="", max_length=300)
     color: Literal["", "template", "emerald", "marigold", "magenta", "midnight", "crimson", "peacock", "coral", "lavender", "champagne", "blush"] = ""
+    header_hidden: bool = False
+    wording: Optional[str] = Field(default=None, max_length=1500)
+    dua: Optional[str] = Field(default=None, max_length=600)
+    closing: Optional[str] = Field(default=None, max_length=300)
+    concluded: Optional[str] = Field(default=None, max_length=600)
+    rsvp_line: str = Field(default="", max_length=200)
+
+
+class FamilyIn(BaseModel):
+    groom_family: str = Field(default="", max_length=80)
+    bride_family: str = Field(default="", max_length=80)
+    groom_parents: str = Field(default="", max_length=120)
+    bride_parents: str = Field(default="", max_length=120)
+    groom_grandparents: str = Field(default="", max_length=160)
+    bride_grandparents: str = Field(default="", max_length=160)
+    host_side: Literal["groom", "bride"] = "groom"
+    hidden: bool = False
 
 
 class CardIn(BaseModel):
@@ -101,6 +118,9 @@ class CardIn(BaseModel):
     events: List[EventItem] = Field(min_length=1, max_length=10)
     photos: List[str] = Field(default_factory=list, max_length=2)
     wishes_photo: str = Field(default="", max_length=300)
+    tradition: Literal["muslim", "hindu", "sikh", "christian", "neutral"] = "neutral"
+    header_key: str = Field(default="", max_length=30)
+    family: FamilyIn = Field(default_factory=FamilyIn)
 
     @field_validator("event_type")
     @classmethod
@@ -129,6 +149,15 @@ class WishIn(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
     event_id: str = Field(default="", max_length=10)
     guest_id: str = Field(default="", max_length=20)
+
+
+class RsvpIn(BaseModel):
+    guest_name: str = Field(min_length=1, max_length=80)
+    guest_id: str = Field(default="", max_length=20)
+    attending: bool
+    count: int = Field(default=1, ge=0, le=50)
+    event_ids: List[str] = Field(default_factory=list, max_length=10)
+    message: str = Field(default="", max_length=500)
 
 
 class GuestIn(BaseModel):
@@ -451,6 +480,7 @@ async def delete_card(card_id: str, user: dict = Depends(current_user)):
     await db.cards.delete_one({"card_id": card_id})
     await db.guests.delete_many({"card_id": card_id})
     await db.wishes.delete_many({"card_id": card_id})
+    await db.rsvp_replies.delete_many({"card_id": card_id})
     return {"ok": True}
 
 
@@ -648,6 +678,31 @@ async def send_wish(slug: str, body: WishIn):
     return doc
 
 
+@api.post("/public/cards/{slug}/rsvp")
+async def send_rsvp(slug: str, body: RsvpIn):
+    card = await public_card(slug)
+    name = re.sub(r"\s+", " ", body.guest_name.strip())
+    if not name:
+        raise HTTPException(422, "Name is required")
+    valid = [e["event_id"] for e in card["events"]]
+    picked = [i for i in valid if i in set(body.event_ids)] if body.attending else []
+    if body.attending and not picked:
+        picked = valid
+    key = {"card_id": card["card_id"], **({"guest_id": body.guest_id} if body.guest_id else {"guest_name_key": name.lower()})}
+    doc = {**key, "guest_name": name, "guest_id": body.guest_id, "guest_name_key": name.lower(), "attending": body.attending,
+           "count": body.count if body.attending else 0, "event_ids": picked,
+           "event_names": [e["name"] for e in card["events"] if e["event_id"] in picked],
+           "message": body.message.strip(), "updated_at": now().isoformat()}
+    await db.rsvp_replies.update_one(key, {"$set": doc, "$setOnInsert": {"rsvp_id": uuid.uuid4().hex[:12]}}, upsert=True)
+    return await db.rsvp_replies.find_one(key, {"_id": 0})
+
+
+@api.get("/cards/{card_id}/rsvps")
+async def list_rsvps(card_id: str, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    return await db.rsvp_replies.find({"card_id": card_id}, {"_id": 0}).sort("updated_at", -1).to_list(2000)
+
+
 def ics_escape(s):
     return s.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
 
@@ -748,6 +803,7 @@ async def startup():
     await db.cards.create_index("owner_id")
     await db.guests.create_index([("card_id", 1), ("guest_id", 1)], unique=True)
     await db.wishes.create_index([("card_id", 1), ("created_at", -1)])
+    await db.rsvp_replies.create_index([("card_id", 1), ("updated_at", -1)])
     await db.files.create_index("storage_path")
     try:
         await asyncio.to_thread(init_storage)

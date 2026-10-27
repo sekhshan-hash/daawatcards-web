@@ -5,12 +5,13 @@ import { getTemplate, themeVars, useTemplateFonts } from "@/templates/registry";
 import { colorVars, eventScheme, schemeVars } from "@/templates/eventColors";
 import { useReducedMotion } from "@/hooks/useMedia";
 import { createPlayer } from "@/lib/music";
-import { TitleSection, EventSwitcher, DetailsSection, CountdownSection, VenueSection, FooterSection } from "./CardSections";
-import { WishesSection } from "./WishesSection";
+import { sortEvents } from "@/lib/eventTime";
+import { MultiPages, SinglePage } from "./CardPages";
 import "@/templates/templates.css";
 import "@/templates/more.css";
+import "./pages.css";
 
-export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "", eventIds, preview = false, onSelectEvent, soundOn }) => {
+export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "", eventIds, preview = false, soundOn }) => {
   const tpl = getTemplate(fullCard.template);
   const lang = fullCard.language || "en";
   const t = useMemo(() => makeT(lang), [lang]);
@@ -29,9 +30,21 @@ export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "
   const timer = useRef(null);
   useTemplateFonts(tpl, lang, headingFont);
 
-  const event = card.events.find((e) => e.event_id === eventId) || card.events[0];
-  const multi = fullCard.events.length > 1;
-  const scheme = eventScheme(fullCard, event);
+  const events = useMemo(() => sortEvents(card.events, card.timezone), [card]);
+  const multi = events.length > 1;
+  const event = events.find((e) => e.event_id === eventId) || events[0];
+  const startIdx = multi && eventId ? Math.max(0, events.findIndex((e) => e.event_id === eventId) + 1) : 0;
+  const [pageScheme, setPageScheme] = useState(() => (startIdx ? eventScheme(fullCard, events[startIdx - 1]) : "template"));
+  const [target, setTarget] = useState(null);
+  const firstStart = useRef(true);
+  useEffect(() => {
+    if (firstStart.current) {
+      firstStart.current = false;
+      return;
+    }
+    setTarget({ i: startIdx, smooth: true });
+  }, [startIdx]);
+  const scheme = multi ? pageScheme : eventScheme(fullCard, event);
   const vars = useMemo(() => colorVars({ ...baseVars, ...schemeVars(tpl, scheme) }), [baseVars, tpl, scheme]);
   const name = guestName.trim() || t("guest.specialGuest");
   const hasMusic = card.music_track && card.music_track !== "none";
@@ -80,6 +93,8 @@ export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "
   };
   const replay = () => {
     scroller.current?.scrollTo({ top: 0 });
+    document.querySelectorAll(".gc-page").forEach((p) => p.scrollTo({ top: 0 }));
+    setTarget({ i: 0, smooth: false });
     stopMusic();
     setParticles(false);
     setPhase("intro");
@@ -87,18 +102,17 @@ export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "
 
   const Intro = tpl.Intro;
   const Particles = tpl.Particles;
+  const shared = { card, t, tpl, preview, guestName, guestId, onReplay: replay };
 
   return (
-    <div className={`gc-root ${tpl.className} ${reduced ? "is-reduced" : ""} ${multi ? "has-schemes" : ""}`} style={vars} dir={dirFor(lang)} lang={lang} data-scheme={scheme} data-testid="guest-card">
-      <div ref={scroller} className={`gc-scroller ${phase === "intro" ? "is-locked" : ""}`}>
-        {card.events.length > 1 && <EventSwitcher card={card} fullCard={fullCard} tpl={tpl} event={event} onSelect={onSelectEvent} />}
-        <TitleSection card={card} event={event} t={t} tpl={tpl} single={card.events.length === 1} />
-        <DetailsSection card={card} event={event} t={t} />
-        <CountdownSection card={card} event={event} t={t} />
-        <VenueSection card={card} event={event} t={t} preview={preview} />
-        <WishesSection card={card} event={event} guestName={guestName} guestId={guestId} t={t} preview={preview} />
-        <FooterSection card={card} t={t} tpl={tpl} onReplay={replay} />
-      </div>
+    <div className={`gc-root ${tpl.className} ${reduced ? "is-reduced" : ""} ${multi ? "has-schemes is-paged" : ""}`} style={vars} dir={dirFor(lang)} lang={lang} data-scheme={scheme} data-testid="guest-card">
+      {multi ? (
+        <MultiPages {...shared} fullCard={fullCard} events={events} start={startIdx} target={target} locked={phase === "intro"} reduced={reduced} dir={dirFor(lang)} onScheme={setPageScheme} />
+      ) : (
+        <div ref={scroller} className={`gc-scroller ${phase === "intro" ? "is-locked" : ""}`}>
+          <SinglePage {...shared} event={event} />
+        </div>
+      )}
       {particles && <Particles />}
       {phase === "intro" && (
         <Intro guestName={name} t={t} reduced={reduced} onOpen={handleOpen} onDone={() => setPhase("card")} onSkip={handleSkip} />

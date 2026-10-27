@@ -3,10 +3,12 @@ import { HEADING_FONTS, loadFont } from "@/templates/registry";
 import { Baby, Briefcase, Cake, Check, Gem, Gift, Heart, Home, Music, Pause, Play, PlayCircle } from "lucide-react";
 import { TemplatePreview } from "./TemplatePreview";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { TEMPLATE_LIST } from "@/templates/registry";
 import { createPlayer, MUSIC_TRACKS } from "@/lib/music";
 import { t, makeT, LANGUAGES, blessingText } from "@/i18n";
+import { SCRIPT_FONTS, TRADITIONS, familyText, headerOptions } from "@/i18n/traditions";
 
 const TYPES = [
   ["wedding", Heart, true], ["engagement", Gem, true], ["birthday", Cake, true], ["aqiqah", Baby, true],
@@ -20,7 +22,7 @@ export const StepTitle = ({ children, hint }) => (
   </div>
 );
 
-export const StepEventType = ({ card, onType }) => (
+export const StepEventType = ({ card, onType, onTradition }) => (
   <>
     <StepTitle>{t("wizard.typeTitle")}</StepTitle>
     <div className="grid gap-3 sm:grid-cols-2">
@@ -36,8 +38,75 @@ export const StepEventType = ({ card, onType }) => (
         </button>
       ))}
     </div>
+    <div className="mt-8">
+      <Field label={t("wizard.tradition")} hint={t("wizard.traditionHint")}>
+        <div className="flex flex-wrap gap-2" data-testid="wizard-tradition-picker">
+          {TRADITIONS.map((k) => (
+            <button key={k} type="button" onClick={() => onTradition(k)} data-testid={`wizard-tradition-${k}`}
+              className={`rounded-full border px-5 py-2.5 text-sm transition-colors ${(card.tradition || "neutral") === k ? "border-gold bg-gold text-background" : "border-border hover:border-gold/50"}`}>
+              {t(`wizard.traditions.${k}`)}
+            </button>
+          ))}
+        </div>
+      </Field>
+    </div>
   </>
 );
+
+const HeaderPicker = ({ card, update }) => {
+  const options = headerOptions(card);
+  const current = card.header_key === "none" ? "none" : (options.find((h) => h.id === card.header_key) || options[0]).id;
+  useEffect(() => Object.values(SCRIPT_FONTS).forEach((href, i) => loadFont(`script-${Object.keys(SCRIPT_FONTS)[i]}`, href)), []);
+  return (
+    <Field label={t("wizard.headerLine")} hint={t("wizard.headerLineHint")}>
+      <div className="grid gap-2 sm:grid-cols-2" data-testid="wizard-header-picker">
+        {[...options, { id: "none", text: t("wizard.headerNone") }].map((h) => (
+          <button key={h.id} type="button" onClick={() => update({ header_key: h.id })} data-testid={`wizard-header-${h.id}`}
+            className={`rounded-2xl border px-4 py-3 text-center transition-colors ${current === h.id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/50"}`}>
+            <span className={`block text-lg text-foreground script-${h.script || "latin"}`} dir="auto">{h.text}</span>
+            {h.sub && <span className="mt-1 block text-xs text-muted-foreground">{h.sub}</span>}
+          </button>
+        ))}
+      </div>
+    </Field>
+  );
+};
+
+const FamilyFields = ({ card, update }) => {
+  const f = card.family || {};
+  const set = (patch) => update({ family: { ...f, ...patch } });
+  const keys = ["groom_family", "bride_family", "groom_parents", "bride_parents", "groom_grandparents", "bride_grandparents"];
+  const preview = familyText({ ...card, family: { ...f, hidden: false } });
+  return (
+    <Field label={t("wizard.family")} hint={t("wizard.familyHint")}>
+      <div className="space-y-4 rounded-2xl border border-border p-4" data-testid="wizard-family-block">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {keys.map((k) => (
+            <div key={k}>
+              <p className="mb-1 text-xs text-muted-foreground">{t(`wizard.familyFields.${k}`)}</p>
+              <Input className="h-11 rounded-xl" value={f[k] || ""} maxLength={k.endsWith("grandparents") ? 160 : 120} onChange={(e) => set({ [k]: e.target.value })}
+                placeholder={k.endsWith("parents") && !k.includes("grand") ? t("wizard.parentsPlaceholder") : ""} data-testid={`wizard-family-${k.replace(/_/g, "-")}-input`} />
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-muted-foreground">{t("wizard.hostingSide")}:</span>
+          {["groom", "bride"].map((s) => (
+            <button key={s} type="button" onClick={() => set({ host_side: s })} data-testid={`wizard-family-host-${s}`}
+              className={`rounded-full border px-4 py-1.5 text-xs ${(f.host_side || "groom") === s ? "border-gold bg-gold/15 text-gold" : "border-border text-muted-foreground"}`}>
+              {t(s === "groom" ? "wizard.hostGroom" : "wizard.hostBride")}
+            </button>
+          ))}
+        </div>
+        <label className="flex items-center justify-between gap-3 text-sm">
+          {t("wizard.hideFamily")}
+          <Switch checked={!!f.hidden} onCheckedChange={(v) => set({ hidden: v })} data-testid="wizard-family-hide-switch" />
+        </label>
+        {preview && !f.hidden && <p className="rounded-xl bg-secondary/60 px-4 py-3 text-sm italic text-foreground" data-testid="wizard-family-preview">{preview}</p>}
+      </div>
+    </Field>
+  );
+};
 
 export const StepTemplate = ({ card, onTemplate }) => {
   const [previewId, setPreviewId] = useState(null);
@@ -122,6 +191,8 @@ export const StepDetails = ({ card, update, onLanguage }) => {
           <Field label={`${typeL.secondary}`}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("secondary_name")} /></Field>
         </div>
         <HeadingFontPicker value={card.heading_font || "default"} onChange={(v) => update({ heading_font: v })} />
+        <HeaderPicker card={card} update={update} />
+        {["wedding", "engagement"].includes(card.event_type) && <FamilyFields card={card} update={update} />}
         <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
         <Field label={L.title}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("title")} /></Field>
         <Field label={L.invitation}><Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} {...bind("invitation_text")} /></Field>

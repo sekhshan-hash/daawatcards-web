@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FitText } from "@/card/FitText";
 import { Balloon, PARTY } from "./BirthdayArt";
 
 const FLOATERS = [
@@ -36,7 +37,7 @@ export const BalloonIntro = ({ guestName, t, reduced, onOpen, onDone, onSkip }) 
       </button>
       <div className="bday-tag">
         <span>{t("guest.to")}</span>
-        <strong data-testid="intro-guest-name">{guestName}</strong>
+        <FitText as="strong" data-testid="intro-guest-name">{guestName}</FitText>
       </div>
       <button type="button" className="gc-btn" onClick={pop} data-testid="intro-open-button">{t("guest.tapBalloon")}</button>
       {!popped && (

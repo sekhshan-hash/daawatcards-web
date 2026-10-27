@@ -3,53 +3,60 @@ import { CalendarPlus, ChevronDown, Clock, MapPin, Navigation, RotateCcw, Shirt,
 import { BRAND } from "@/config/brand";
 import { COUPLE_TYPES, blessingText, tCorp } from "@/i18n";
 import { useInView } from "@/hooks/useMedia";
-import { directionsUrl, eventStartMs, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
+import { directionsUrl, eventStartMs, eventStatus, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
 import { icsUrl } from "@/lib/links";
-import { eventScheme, schemeDot } from "@/templates/eventColors";
+import { eventConcluded, familyText } from "@/i18n/traditions";
 import { CardPhoto } from "./CardPhoto";
+import { FitText } from "./FitText";
+import { ClosingLine, EventDua, EventWording, FamilyBlock, HeaderLine } from "./Wording";
 
 export const Reveal = ({ children, className = "" }) => {
   const [ref, inView] = useInView();
   return <div ref={ref} className={`gc-reveal ${inView ? "is-in" : ""} ${className}`}>{children}</div>;
 };
 
-export const EventSwitcher = ({ card, fullCard, tpl, event, onSelect }) => (
-  <nav className="gc-switcher" data-testid="event-switcher">
-    {card.events.map((ev) => (
-      <button key={ev.event_id} type="button" onClick={() => onSelect?.(ev.event_id)}
-        className={ev.event_id === event.event_id ? "is-active" : ""} data-testid={`event-switch-tab-${ev.event_id}`}>
-        <span className="gc-switch-dot" style={{ background: schemeDot(tpl, eventScheme(fullCard, ev)) }} data-testid={`event-switch-dot-${ev.event_id}`} />
-        {ev.name}
-      </button>
-    ))}
-  </nav>
-);
 
-export const TitleSection = ({ card, event, t, tpl, single }) => {
+
+export const TitleSection = ({ card, event, t, tpl, single, cover = false, events = [], onJump }) => {
   const couple = COUPLE_TYPES.includes(card.event_type) && card.secondary_name;
   const Frame = tpl.Frame;
   const Divider = tpl.Divider;
   return (
-    <section className={`gc-title-screen ${single ? "is-single" : ""} ${card.photos?.[0] ? "has-photo" : ""}`} data-testid="card-title-section">
+    <section className={`gc-title-screen ${single ? "is-single" : ""} ${cover ? "is-cover" : ""} ${card.photos?.[0] ? "has-photo" : ""}`} data-testid="card-title-section">
       <Frame />
+      <HeaderLine card={card} testId="card-cover-header-line" />
       <CardPhoto path={card.photos?.[0]} variant="hero" testId="card-hero-photo" />
-      <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>
+      <FamilyBlock card={card} />
+      {!familyText(card) && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
       {couple ? (
-        <h1 className="gc-names" data-testid="card-names">
-          <span>{card.primary_name}</span>
-          <span className="gc-amp">&amp;</span>
-          <span>{card.secondary_name}</span>
-        </h1>
+        <FitText as="h1" className="gc-names is-couple" data-testid="card-names">
+          {card.primary_name} <span className="gc-amp">&amp;</span> {card.secondary_name}
+        </FitText>
       ) : (
         <>
-          <h1 className="gc-names" data-testid="card-names">{tpl.renderName ? tpl.renderName(card.primary_name) : card.primary_name}</h1>
+          <FitText as="h1" className="gc-names" data-testid="card-names">{tpl.renderName ? tpl.renderName(card.primary_name) : card.primary_name}</FitText>
           {card.secondary_name && <p className="gc-subname">{card.secondary_name}</p>}
         </>
       )}
       <Divider />
       {card.title && <p className="gc-title" data-testid="card-event-title">{card.title}</p>}
-      <p className="gc-chip" data-testid="card-title-event-chip">{event.name}{event.date ? ` · ${formatShortDate(event.date, card.language)}` : ""}</p>
-      <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
+      {cover ? (
+        <ul className="gc-cover-events" data-testid="cover-events-list">
+          {events.map((ev, i) => (
+            <li key={ev.event_id}>
+              <button type="button" onClick={() => onJump(i + 1)} data-testid={`cover-event-${ev.event_id}`}>
+                <span className="gc-cover-event-name">{ev.name}</span>
+                <span className="gc-cover-event-date">{formatShortDate(ev.date, card.language)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <>
+          <p className="gc-chip" data-testid="card-title-event-chip">{event.name}{event.date ? ` · ${formatShortDate(event.date, card.language)}` : ""}</p>
+          <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
+        </>
+      )}
     </section>
   );
 };
@@ -63,14 +70,16 @@ const Row = ({ icon: Icon, label, value, testId }) => (
   </div>
 );
 
-export const DetailsSection = ({ card, event, t }) => {
+export const DetailsSection = ({ card, event, t, page = false }) => {
   const blessing = blessingFor(card, t);
   const time = [formatTime(event.time, card.language), formatTime(event.end_time, card.language)].filter(Boolean).join(" – ");
   return (
     <section className="gc-section" data-testid="card-details-section">
-      {card.invitation_text && <Reveal><p className="gc-invite" data-testid="card-invitation-text">{card.invitation_text}</p></Reveal>}
-      {card.photos?.[1] && <Reveal><CardPhoto path={card.photos[1]} variant="feature" testId="card-feature-photo" /></Reveal>}
-      {blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
+      {page && <HeaderLine card={card} ev={event} testId="card-event-header-line" />}
+      {!page && card.invitation_text && <Reveal><p className="gc-invite" data-testid="card-invitation-text">{card.invitation_text}</p></Reveal>}
+      {!page && card.photos?.[1] && <Reveal><CardPhoto path={card.photos[1]} variant="feature" testId="card-feature-photo" /></Reveal>}
+      {!page && blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
+      <Reveal><EventWording card={card} ev={event} /></Reveal>
       <Reveal>
         <div className="gc-panel">
           <CardPhoto path={event.photo} variant="event" testId="card-event-photo" />
@@ -93,33 +102,46 @@ const split = (ms) => {
   return [Math.floor(s / 86400), Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60];
 };
 
-export const CountdownSection = ({ card, event, t }) => {
+const useNow = () => {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  return now;
+};
+
+export const CountdownSection = ({ card, event, t }) => {
+  const now = useNow();
   const target = eventStartMs(event, card.timezone);
   const valid = !Number.isNaN(target);
-  const diff = valid ? target - now : 0;
-  const parts = split(diff);
+  const status = eventStatus(event, card.timezone, now);
+  const parts = split(valid ? target - now : 0);
   const labels = [t("guest.days"), t("guest.hours"), t("guest.minutes"), t("guest.seconds")];
+  if (status === "live" || status === "over") {
+    return (
+      <section className="gc-section gc-center" data-testid="card-countdown">
+        <Reveal>
+          <p className={`gc-heading gc-started ${status === "live" ? "is-live" : ""}`} data-testid={status === "live" ? "event-happening-now" : "event-concluded"}>
+            {status === "live" ? t("guest.happeningNow") : t("guest.concluded")}
+          </p>
+          {status === "over" && eventConcluded(card, event) && <p className="gc-muted gc-concluded-msg" dir="auto" data-testid="event-concluded-message">{eventConcluded(card, event)}</p>}
+        </Reveal>
+      </section>
+    );
+  }
   return (
     <section className="gc-section gc-center" data-testid="card-countdown">
       <Reveal>
         <p className="gc-eyebrow">{t("guest.countdownTitle")}</p>
-        {valid && diff <= 0 ? (
-          <p className="gc-heading gc-started" data-testid="countdown-started">{t("guest.started")}</p>
-        ) : (
-          <div className="gc-countdown">
-            {parts.map((v, i) => (
-              <div key={i} className="gc-count-box">
-                <span className="gc-count-num" data-testid={`countdown-${["days", "hours", "minutes", "seconds"][i]}`}>{valid ? String(v).padStart(2, "0") : "--"}</span>
-                <span className="gc-count-label">{labels[i]}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="gc-countdown">
+          {parts.map((v, i) => (
+            <div key={i} className="gc-count-box">
+              <span className="gc-count-num" data-testid={`countdown-${["days", "hours", "minutes", "seconds"][i]}`}>{valid ? String(v).padStart(2, "0") : "--"}</span>
+              <span className="gc-count-label">{labels[i]}</span>
+            </div>
+          ))}
+        </div>
       </Reveal>
     </section>
   );
@@ -128,6 +150,7 @@ export const CountdownSection = ({ card, event, t }) => {
 export const VenueSection = ({ card, event, t, preview }) => {
   const [open, setOpen] = useState(false);
   const gcal = googleCalendarUrl(card, event);
+  const over = eventStatus(event, card.timezone) === "over";
   return (
     <section className="gc-section" data-testid="card-venue-section">
       <Reveal>
@@ -140,11 +163,13 @@ export const VenueSection = ({ card, event, t, preview }) => {
             <a className="gc-btn" href={directionsUrl(event)} target="_blank" rel="noreferrer" data-testid="get-directions-button">
               <Navigation size={16} /> {t("guest.directions")}
             </a>
-            <button type="button" className="gc-btn gc-btn-ghost" onClick={() => setOpen((o) => !o)} aria-expanded={open} data-testid="add-calendar-button">
-              <CalendarPlus size={16} /> {t("guest.addCalendar")}
-            </button>
+            {!over && (
+              <button type="button" className="gc-btn gc-btn-ghost" onClick={() => setOpen((o) => !o)} aria-expanded={open} data-testid="add-calendar-button">
+                <CalendarPlus size={16} /> {t("guest.addCalendar")}
+              </button>
+            )}
           </div>
-          {open && (
+          {open && !over && (
             <div className="gc-cal-options" data-testid="calendar-options">
               <a className="gc-link" href={preview || !card.slug ? undefined : icsUrl(card.slug, event.event_id)} aria-disabled={preview || !card.slug} data-testid="calendar-ics-link">{t("guest.downloadIcs")}</a>
               <a className="gc-link" href={gcal || undefined} target="_blank" rel="noreferrer" data-testid="calendar-google-link">{t("guest.googleCalendar")}</a>
@@ -156,13 +181,22 @@ export const VenueSection = ({ card, event, t, preview }) => {
   );
 };
 
+export const ClosingSection = ({ card, event }) => (
+  <section className="gc-section gc-center" data-testid="card-closing-section">
+    <Reveal>
+      <EventDua card={card} ev={event} />
+      <ClosingLine card={card} ev={event} />
+    </Reveal>
+  </section>
+);
+
 export const FooterSection = ({ card, t, tpl, onReplay }) => {
   const Divider = tpl.Divider;
   return (
     <footer className="gc-footer" data-testid="card-footer">
       <Divider />
       <p className="gc-eyebrow">{tCorp(t, card, "compliments")}</p>
-      <p className="gc-host" data-testid="card-host-family">{card.host_family || namesLine(card)}</p>
+      <FitText className="gc-host" data-testid="card-host-family">{card.host_family || namesLine(card)}</FitText>
       <button type="button" className="gc-btn gc-btn-ghost" onClick={onReplay} data-testid="card-replay-button">
         <RotateCcw size={16} /> {t("guest.replay")}
       </button>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { FitText } from "@/card/FitText";
 
 export const useOpen = (onOpen, onDone, reduced, ms) => {
   const [opening, setOpening] = useState(false);
@@ -21,7 +22,7 @@ export const IntroShell = ({ className, opening, onSkip, t, children, ...rest })
 export const IntroName = ({ t, guestName }) => (
   <>
     <p className="gc-eyebrow">{t("guest.to")}</p>
-    <h2 className="intro-name" data-testid="intro-guest-name">{guestName}</h2>
+    <FitText as="h2" className="intro-name" data-testid="intro-guest-name">{guestName}</FitText>
   </>
 );
 

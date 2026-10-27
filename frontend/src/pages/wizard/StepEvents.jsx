@@ -4,10 +4,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { getTemplate } from "@/templates/registry";
 import { SCHEME_IDS, autoScheme, schemeSwatch } from "@/templates/eventColors";
 import { Field, StepTitle } from "./Steps";
+import { WordingEditor } from "./WordingEditor";
+import { weddingSuggestions } from "@/i18n/traditions";
 import { t, makeT } from "@/i18n";
 
 export const blankEvent = (name, id) => ({
   event_id: id, name, date: "", time: "18:00", end_time: "", venue_name: "", venue_address: "", map_link: "", dress_code: "", custom_text: "", photo: "", color: "",
+  header_hidden: false, wording: null, dua: null, closing: null, concluded: null, rsvp_line: "",
 });
 
 const nextId = (events) => `e${Math.max(0, ...events.map((e) => parseInt(e.event_id.slice(1), 10) || 0)) + 1}`;
@@ -37,7 +40,7 @@ const ColorPicker = ({ ev, index, tpl, onChange }) => {
   );
 };
 
-const EventEditor = ({ ev, index, eventType, lang, tpl, multi, onChange, onRemove, canRemove }) => {
+const EventEditor = ({ ev, index, eventType, lang, tpl, multi, card, onChange, onRemove, canRemove }) => {
   const L = t("wizard.labels");
   const bind = (key, type = "text") => ({ type, value: ev[key] || "", onChange: (e) => onChange({ [key]: e.target.value }), "data-testid": `wizard-event-${index}-${key.replace(/_/g, "-")}-input`, dir: "auto" });
   return (
@@ -50,7 +53,7 @@ const EventEditor = ({ ev, index, eventType, lang, tpl, multi, onChange, onRemov
         <Field label={L.eventName}>
           <Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("name")} />
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {makeT(lang)(`eventSuggestions.${eventType}`).map((s) => (
+            {((eventType === "wedding" && weddingSuggestions(card)) || makeT(lang)(`eventSuggestions.${eventType}`)).map((s) => (
               <button key={s} type="button" onClick={() => onChange({ name: s })} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-gold/50 hover:text-foreground">{s}</button>
             ))}
           </div>
@@ -68,6 +71,7 @@ const EventEditor = ({ ev, index, eventType, lang, tpl, multi, onChange, onRemov
           <Field label={`${L.dress} (${L.optional})`}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("dress_code")} /></Field>
         </div>
         <Field label={`${L.custom} (${L.optional})`}><Textarea className="rounded-xl text-base" maxLength={1000} {...bind("custom_text")} /></Field>
+        <WordingEditor card={card} ev={ev} index={index} onChange={onChange} />
       </div>
     </div>
   );
@@ -80,10 +84,11 @@ export const StepEvents = ({ card, update }) => {
   return (
     <>
       <StepTitle hint={t("wizard.eventsHint")}>{t("wizard.eventsTitle")}</StepTitle>
+      <p className="mb-5 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-gold" data-testid="wizard-wording-check-events">{t("wizard.wordingCheck")}</p>
       <div className="space-y-4">
         {card.events.map((ev, i) => (
           <EventEditor key={ev.event_id} ev={ev} index={i} eventType={card.event_type} lang={card.language} canRemove={card.events.length > 1}
-            tpl={getTemplate(card.template)} multi={card.events.length > 1}
+            tpl={getTemplate(card.template)} multi={card.events.length > 1} card={card}
             onChange={(p) => setEvent(i, p)} onRemove={() => remove(i)} />
         ))}
       </div>

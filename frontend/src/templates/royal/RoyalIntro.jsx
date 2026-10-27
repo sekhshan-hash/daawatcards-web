@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FitText } from "@/card/FitText";
 import { Mandala } from "./RoyalArt";
 
 const Valance = () => (
@@ -26,7 +27,7 @@ export const RoyalIntro = ({ guestName, t, reduced, onOpen, onDone, onSkip }) =>
         <div className="royal-plaque">
           <Mandala size={84} className="royal-plaque-mandala" />
           <p className="gc-eyebrow">{t("guest.to")}</p>
-          <h2 className="royal-guest" data-testid="intro-guest-name">{guestName}</h2>
+          <FitText as="h2" className="royal-guest" data-testid="intro-guest-name">{guestName}</FitText>
           <button type="button" className="gc-btn royal-open" onClick={open} data-testid="intro-open-button">
             {t("guest.tapToOpen")}
           </button>

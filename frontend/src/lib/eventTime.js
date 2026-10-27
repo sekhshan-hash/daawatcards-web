@@ -31,6 +31,17 @@ export const eventEndMs = (ev, tz = "+05:30") => {
   return end;
 };
 
+// "upcoming" | "live" (start to end time, or midnight without one) | "over"; null when the date is unset.
+export const eventStatus = (ev, tz = "+05:30", now = Date.now()) => {
+  const start = eventStartMs(ev, tz);
+  if (Number.isNaN(start)) return null;
+  const end = ev.end_time ? eventEndMs(ev, tz) : Date.parse(`${ev.date}T00:00:00${tz}`) + 864e5;
+  return now < start ? "upcoming" : now < end ? "live" : "over";
+};
+
+export const sortEvents = (events, tz) =>
+  [...events].sort((a, b) => (eventStartMs(a, tz) || 0) - (eventStartMs(b, tz) || 0));
+
 export const namesLine = (card) =>
   ["wedding", "engagement"].includes(card.event_type) && card.secondary_name ? `${card.primary_name} & ${card.secondary_name}` : card.primary_name;
 

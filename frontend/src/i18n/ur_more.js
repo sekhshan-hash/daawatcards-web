@@ -38,6 +38,11 @@ const urMore = {
     eyebrow: { engagement: "وعدے کی اس خوشی میں", aqiqah: "ننھے مہمان کے استقبال میں", babyShower: "ایک ننھا مہمان آنے والا ہے", housewarming: "نئے گھر کی خوشی میں", corporate: "آپ کو مدعو کیا جاتا ہے" },
     corporate: { wishesTitle: "منتظم کو پیغام بھیجیں", wishesSubtitle: "ایک مختصر پیغام لکھیں، یہ سیدھا واٹس ایپ پر پہنچے گا۔", sendWishes: "واٹس ایپ پر پیغام بھیجیں", yourWish: "آپ کا پیغام", compliments: "میزبان" },
     swipeUp: "کھولنے کے لیے اوپر سوائپ کریں",
+    swipe: "سوائپ کریں", celebrations: "تقریبات", happeningNow: "ابھی جاری ہے", concluded: "یہ تقریب اختتام پذیر ہو چکی ہے",
+    pageOf: "صفحہ {n} / {total}", goTo: "صفحہ {n} پر جائیں",
+    rsvpTitle: "کیا آپ تشریف لائیں گے؟", rsvpSubtitle: "میزبانوں کو بتائیں۔ آپ کا جواب واٹس ایپ پر ان تک پہنچے گا۔",
+    rsvpYes: "بخوشی قبول", rsvpNo: "معذرت کے ساتھ انکار", rsvpCount: "مہمانوں کی تعداد", rsvpEvents: "کون سی تقریبات؟",
+    rsvpSend: "واٹس ایپ پر RSVP بھیجیں", rsvpThanks: "شکریہ، {name}! آپ کا RSVP بھیج دیا گیا ہے۔", rsvpChoose: "براہ کرم قبول یا انکار منتخب کریں",
   },
 };
 

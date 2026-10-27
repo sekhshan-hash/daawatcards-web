@@ -59,6 +59,7 @@ AUTO_SCHEMES = [
     ("emerald", re.compile(r"meh[ae]?ndi|henna|मेहंदी|मेहन्दी|मेंहदी|مہندی|مهندی", re.I)),
     ("marigold", re.compile(r"haldi|ubtan|pithi|may[ou]n|हल्दी|हलदी|ہلدی|هلدی|مایوں", re.I)),
     ("magenta", re.compile(r"sang[ei]{1,2}t|dholki|संगीत|ढोलकी|سنگیت|ڈھولکی", re.I)),
+    ("crimson", re.compile(r"baraa?t|बारात|بارات", re.I)),
     ("midnight", re.compile(r"wal[ei]ma|valima|reception|वलीमा|वलिमा|रिसेप्शन|ولیمہ|ولیمه|استقبالیہ|ریسیپشن", re.I)),
 ]
 

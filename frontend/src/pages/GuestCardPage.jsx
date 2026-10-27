@@ -45,10 +45,13 @@ export default function GuestCardPage() {
 
   const event = card.events.find((e) => e.event_id === eventId) || card.events[0];
   const select = (id) => navigate(guestPath(slug, id, guestName, guestId), { replace: true });
+  // Event links open on that event's page; guest links open on the cover unless the guest has a single event.
+  const invited = guest?.event_ids || [];
+  const openOn = guestId ? (invited.length === 1 ? invited[0] : null) : eventId ? event.event_id : null;
 
   return (
     <div className="guest-page">
-      <GuestCard card={card} eventId={event.event_id} guestName={guest?.name || guestName} guestId={guestId} eventIds={guest?.event_ids} onSelectEvent={select} />
+      <GuestCard card={card} eventId={openOn} guestName={guest?.name || guestName} guestId={guestId} eventIds={guest?.event_ids} onSelectEvent={select} />
     </div>
   );
 }
