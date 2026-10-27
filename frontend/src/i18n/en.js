@@ -137,7 +137,7 @@ const en = {
     onlyUnsent: "Only guests not sent yet",
     queueOpen: "Open WhatsApp for {name}",
     queueSkip: "Skip",
-    queueDone: "All done! Every invitation in the queue has been opened in WhatsApp.",
+    queueDone: "All done! You've reached the end of the queue. Skipped guests stay as Not sent.",
     queueProgress: "{current} of {total}",
     noPhone: "No number: WhatsApp will ask you to choose the chat",
     noNumber: "No number",
@@ -167,6 +167,7 @@ const en = {
     dupMerge: "Update names for numbers already on the list",
     addedMerged: "{added} added, {merged} updated, {skipped} skipped",
     reviewDeduped: "{count} repeated entries removed",
+    reviewDedupedOne: "1 repeated entry removed",
   },
 
   whatsapp: {

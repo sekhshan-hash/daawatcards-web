@@ -38,7 +38,7 @@ const ReviewList = ({ rows, setRows, onAdd, busy, existingKeys, merge, setMerge 
         </label>
       )}
       <button type="button" onClick={onAdd} disabled={busy || !rows.length} className="btn-gold w-full" data-testid="add-guests-confirm-button">
-        {t("guests.addMany", { count: rows.filter((r) => r.name.trim()).length })}
+        {t("guests.addMany", { count: rows.filter((r) => r.name.trim() && !existingKeys.has(keyOf(r))).length })}
       </button>
     </div>
   );
@@ -87,7 +87,8 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
     if (!list.length) return toast.error(t("guests.nothingFound"));
     const seen = new Set(rows.map(keyOf));
     const fresh = list.filter((r) => !seen.has(keyOf(r)) && seen.add(keyOf(r)));
-    if (fresh.length < list.length) toast(t("guests.reviewDeduped", { count: list.length - fresh.length }));
+    const removed = list.length - fresh.length;
+    if (removed) toast(t(removed === 1 ? "guests.reviewDedupedOne" : "guests.reviewDeduped", { count: removed }));
     setRows([...rows, ...fresh]);
   };
   const onFile = async (e) => {

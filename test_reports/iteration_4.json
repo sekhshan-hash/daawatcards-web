@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 4: tested 'Guests & Send'. Backend: new pytest file test_iteration4_guests_send.py (8 tests) plus full regression, 71/71 pass when run serially (-n 0). Frontend (390px mobile and 1920px desktop): contacts tab shows the 'not supported' message on desktop; Paste list with 38 lines works (repeated row removed with toast, 'Already on your list' hint, merge switch -> '36 added, 1 updated, 0 skipped'); the Virtuoso window-scroll list renders later rows (Guest 33-35) after scrolling; search by name and by digits works; filters all/pending/sent/opened work; selection, select-all and the bulk bar work; Tidy names turns 'ali khan 😀' into 'Ali Khan' and 'existing renamed' into 'Existing Renamed'; Send to selected opens a queue with only the selected guests; Remove has a working cancel and confirm; Edit message placeholder chips, live preview, save persisted (wa.me href contains the custom text, guest name and personal link), and Default resets the text and saves ''; tapping WhatsApp marks the guest Sent with a sent time, and undo returns it to Not sent; send queue open advances and marks sent, skip leaves the guest unsent, and the done state shows.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "tests (infra)", "issue": "test_guests_wishes_uploads.py needs /tmp/test.jpg (not created by the test). With pytest.ini '-n 2 --dist loadscope' the module-scoped 'card' fixture was shared across classes on different workers, and test_bulk_normalise_dedupe_events saw 4 guests instead of 3. Both pass serially with -n 0."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Add guests review", "issues": ["Confirm button says 'Add 37 guests' even when 1 row will be merged or skipped (the result was 36 added, 1 updated). Consider excluding duplicate rows from the count.", "Toast grammar: '1 repeated entries removed' should be singular."]},
+      {"screen": "Send queue done", "issues": ["Copy says 'Every invitation in the queue has been opened in WhatsApp' even when some guests were skipped."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration4_guests_send.py", "/app/test_reports/pytest/pytest_iter4.xml"],
+  "action_items": [
+    "Optional: make test_guests_wishes_uploads.py create its own test jpg and make it safe for xdist loadscope (use a class-scoped card fixture)",
+    "Optional copy fixes: review confirm count should exclude merged/skipped duplicates; singular/plural in the reviewDeduped toast; queue done message when some guests were skipped",
+    "Optional: reset the 'merge' switch state when AddGuestsDialog closes (it stays on for the next import)"
+  ],
+  "critical_code_review_comments": [
+    "AddGuestsDialog: 'merge' state is never reset after a submit or when the dialog closes, so the next import silently keeps merge mode on.",
+    "GuestRow.markSent swallows errors silently (catch(() => {})), so the user gets no feedback if marking sent fails. The same applies to SendQueueDialog.sent.",
+    "Backend bulk add: guests without a phone are deduped by name (lowercased). Two different guests with the same name and no number get merged or skipped. This is probably acceptable, but worth knowing."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration4_guests_send.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "Temporary test users and cards were created via OTP (random 95xxxxxxxx/96xxxxxxxx numbers); the cards were deleted after the tests.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run backend tests with: cd /app/backend && REACT_APP_BACKEND_URL=... python -m pytest tests/ -n 0 (create /tmp/test.jpg first via PIL). For the UI, log in via page.request POST /api/auth/otp/request + /verify (code 123456), which sets the cookie in the browser context. Block wa.me with context.route to avoid opening WhatsApp."
+}
