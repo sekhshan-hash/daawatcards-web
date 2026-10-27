@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { FitText } from "@/card/FitText";
 
 export const useOpen = (onOpen, onDone, reduced, ms) => {
@@ -19,8 +19,16 @@ export const IntroShell = ({ className, opening, onSkip, t, children, ...rest })
   </div>
 );
 
+export const IntroTitleContext = createContext("");
+
+export const IntroTitle = () => {
+  const title = useContext(IntroTitleContext);
+  return title ? <FitText className="intro-title" maxLines={2} dir="auto" data-testid="intro-invitation-title">{title}</FitText> : null;
+};
+
 export const IntroName = ({ t, guestName }) => (
   <>
+    <IntroTitle />
     <p className="gc-eyebrow">{t("guest.to")}</p>
     <FitText as="h2" className="intro-name" data-testid="intro-guest-name">{guestName}</FitText>
   </>

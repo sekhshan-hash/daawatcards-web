@@ -58,6 +58,24 @@ EYEBROWS = {
            "corporate": "آپ کو مدعو کیا جاتا ہے"},
 }
 INVITED = {"en": "{to}, you're invited!", "hi": "{to}, आप आमंत्रित हैं!", "ur": "{to}، آپ مدعو ہیں!"}
+TYPE_TITLES = {"wedding": "Wedding", "engagement": "Engagement", "birthday": "Birthday", "aqiqah": "Aqiqah Ceremony",
+               "babyShower": "Baby Shower", "housewarming": "Housewarming", "corporate": "Event"}
+
+
+def intro_title(card):
+    """Invitation title on the intro screen; mirrors frontend autoIntroTitle (traditions.js)."""
+    if card.get("intro_title", "").strip():
+        return card["intro_title"].strip()
+    evs = card.get("events", [])
+    lang = card.get("language", "en")
+    name = TYPE_TITLES.get(card.get("event_type"), "Event") if len(evs) != 1 else evs[0]["name"].strip()
+    if len(evs) == 1 and name.lower() == "aqiqah":
+        name = "Aqiqah Ceremony"
+    if lang == "hi":
+        return f"{name} निमंत्रण"
+    if lang == "ur":
+        return f"دعوتِ {name}"
+    return name if "invitation" in name.lower() else f"{name} Invitation"
 ALLOWED_IMG = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
 MAX_UPLOAD = 8 * 1024 * 1024
 
@@ -67,6 +85,14 @@ def now():
 
 
 # ---------- Models ----------
+class CustomHeader(BaseModel):
+    text: str = Field(default="", max_length=120)
+    sub: str = Field(default="", max_length=160)
+    script: Literal["latin", "deva", "arabic", "guru", "other"] = "latin"
+    size: Literal["s", "m", "l"] = "m"
+    color: Literal["gold", "white"] = "gold"
+
+
 class EventItem(BaseModel):
     event_id: Optional[str] = None
     name: str = Field(min_length=1, max_length=60)
@@ -86,6 +112,8 @@ class EventItem(BaseModel):
     closing: Optional[str] = Field(default=None, max_length=300)
     concluded: Optional[str] = Field(default=None, max_length=600)
     rsvp_line: str = Field(default="", max_length=200)
+    header_key: str = Field(default="", max_length=30)
+    custom_header: CustomHeader = Field(default_factory=CustomHeader)
 
 
 class FamilyIn(BaseModel):
@@ -121,6 +149,9 @@ class CardIn(BaseModel):
     tradition: Literal["muslim", "hindu", "sikh", "christian", "neutral"] = "neutral"
     header_key: str = Field(default="", max_length=30)
     family: FamilyIn = Field(default_factory=FamilyIn)
+    custom_header: CustomHeader = Field(default_factory=CustomHeader)
+    header_per_event: bool = False
+    intro_title: str = Field(default="", max_length=80)
 
     @field_validator("event_type")
     @classmethod
@@ -149,15 +180,6 @@ class WishIn(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
     event_id: str = Field(default="", max_length=10)
     guest_id: str = Field(default="", max_length=20)
-
-
-class RsvpIn(BaseModel):
-    guest_name: str = Field(min_length=1, max_length=80)
-    guest_id: str = Field(default="", max_length=20)
-    attending: bool
-    count: int = Field(default=1, ge=0, le=50)
-    event_ids: List[str] = Field(default_factory=list, max_length=10)
-    message: str = Field(default="", max_length=500)
 
 
 class GuestIn(BaseModel):
@@ -480,7 +502,6 @@ async def delete_card(card_id: str, user: dict = Depends(current_user)):
     await db.cards.delete_one({"card_id": card_id})
     await db.guests.delete_many({"card_id": card_id})
     await db.wishes.delete_many({"card_id": card_id})
-    await db.rsvp_replies.delete_many({"card_id": card_id})
     return {"ok": True}
 
 
@@ -678,33 +699,6 @@ async def send_wish(slug: str, body: WishIn):
     return doc
 
 
-@api.post("/public/cards/{slug}/rsvp")
-async def send_rsvp(slug: str, body: RsvpIn):
-    card = await public_card(slug)
-    name = re.sub(r"\s+", " ", body.guest_name.strip())
-    if not name:
-        raise HTTPException(422, "Name is required")
-    valid = [e["event_id"] for e in card["events"]]
-    gid = body.guest_id if body.guest_id and await db.guests.find_one(
-        {"card_id": card["card_id"], "guest_id": body.guest_id}, {"_id": 1}) else ""
-    picked = [i for i in valid if i in set(body.event_ids)] if body.attending else []
-    if body.attending and not picked:
-        picked = valid
-    key = {"card_id": card["card_id"], **({"guest_id": gid} if gid else {"guest_id": "", "guest_name_key": name.lower()})}
-    doc = {**key, "guest_name": name, "guest_id": gid, "guest_name_key": name.lower(), "attending": body.attending,
-           "count": body.count if body.attending else 0, "event_ids": picked,
-           "event_names": [e["name"] for e in card["events"] if e["event_id"] in picked],
-           "message": body.message.strip(), "updated_at": now().isoformat()}
-    await db.rsvp_replies.update_one(key, {"$set": doc, "$setOnInsert": {"rsvp_id": uuid.uuid4().hex[:12]}}, upsert=True)
-    return await db.rsvp_replies.find_one(key, {"_id": 0})
-
-
-@api.get("/cards/{card_id}/rsvps")
-async def list_rsvps(card_id: str, user: dict = Depends(current_user)):
-    await owned_card(card_id, user)
-    return await db.rsvp_replies.find({"card_id": card_id}, {"_id": 0}).sort("updated_at", -1).to_list(2000)
-
-
 def ics_escape(s):
     return s.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
 
@@ -757,7 +751,7 @@ async def share_page(slug: str, event_id: str, request: Request, to: str = "", g
     params = {k: v for k, v in {"to": to, "g": g.strip()[:20]}.items() if v}
     target = f"{base}/i/{slug}/{ev['event_id']}" + (f"?{urlencode(params)}" if params else "")
     date_s, time_s = display_date(ev)
-    title = f"{names_line(card)} · {ev['name']}"
+    title = f"{intro_title(card)} · {names_line(card)}"
     if to:
         title = f"{INVITED.get(card.get('language', 'en'), INVITED['en']).format(to=to)} {title}"
     desc = f"{date_s} at {time_s}" + (f" · {ev['venue_name']}" if ev["venue_name"] else "")
@@ -805,7 +799,6 @@ async def startup():
     await db.cards.create_index("owner_id")
     await db.guests.create_index([("card_id", 1), ("guest_id", 1)], unique=True)
     await db.wishes.create_index([("card_id", 1), ("created_at", -1)])
-    await db.rsvp_replies.create_index([("card_id", 1), ("updated_at", -1)])
     await db.files.create_index("storage_path")
     try:
         await asyncio.to_thread(init_storage)
@@ -814,7 +807,7 @@ async def startup():
     await db.users.create_index("user_id", unique=True)
     await db.user_sessions.create_index("session_token", unique=True)
     for card in DEMO_CARDS:
-        await db.cards.replace_one({"slug": card["slug"]}, card, upsert=True)
+        await db.cards.replace_one({"card_id": card["card_id"]}, card, upsert=True)
     logger.info("Demo cards seeded")
 
 

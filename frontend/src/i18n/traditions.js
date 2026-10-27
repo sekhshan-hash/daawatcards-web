@@ -10,6 +10,7 @@ export const HEADERS = {
     { id: "ganesh", text: "॥ श्री गणेशाय नमः ॥", sub: "Shri Ganeshaya Namah", script: "deva" },
     { id: "om", text: "ॐ", script: "deva" },
     { id: "radhakrishna", text: "॥ श्री राधा कृष्णाय नमः ॥", sub: "Shri Radha Krishnaya Namah", script: "deva" },
+    { id: "jaishriram", text: "॥ जय श्री राम ॥", sub: "Jai Shri Ram", script: "deva" },
   ],
   sikh: [{ id: "ikonkar", text: "ੴ ਸਤਿਗੁਰ ਪ੍ਰਸਾਦਿ", sub: "Ik Onkar, Satgur Prasad", script: "guru" }],
   christian: [
@@ -61,12 +62,32 @@ const trad = (card) => (TRADITIONS.includes(card.tradition) ? card.tradition : "
 const pick = (custom, fallback) => (custom === null || custom === undefined ? fallback : custom);
 
 export const headerOptions = (card) => HEADERS[trad(card)];
-export const cardHeader = (card) => {
-  if (card.header_key === "none") return null;
-  const list = headerOptions(card);
-  return list.find((h) => h.id === card.header_key) || list[0];
+const ALL_HEADERS = Object.values(HEADERS).flat();
+const resolveKey = (card, key) => {
+  if (key === "none") return null;
+  return ALL_HEADERS.find((h) => h.id === key) || headerOptions(card)[0];
 };
-export const eventHeader = (card, ev) => (ev?.header_hidden ? null : cardHeader(card));
+const customOf = (c) => (c?.text?.trim() ? { id: "custom", ...c, text: c.text.trim(), custom: true } : null);
+
+// Box 2 (custom line) wins over Box 1 (ready-made line) when it has text.
+export const cardHeader = (card) => customOf(card.custom_header) || resolveKey(card, card.header_key);
+export const eventHeader = (card, ev) => {
+  if (ev?.header_hidden) return null;
+  if (!card.header_per_event || !ev) return cardHeader(card);
+  return customOf(ev.custom_header) || (ev.header_key ? resolveKey(card, ev.header_key) : cardHeader(card));
+};
+
+const TYPE_TITLES = { wedding: "Wedding", engagement: "Engagement", birthday: "Birthday", aqiqah: "Aqiqah Ceremony", babyShower: "Baby Shower", housewarming: "Housewarming", corporate: "Event" };
+// Mirrors backend intro_title(): single event -> "<event> Invitation"; multi -> "<type> Invitation".
+export const autoIntroTitle = (card) => {
+  const evs = card.events || [];
+  let name = evs.length === 1 ? (evs[0].name || "").trim() : TYPE_TITLES[card.event_type] || "Event";
+  if (evs.length === 1 && name.toLowerCase() === "aqiqah") name = "Aqiqah Ceremony";
+  if (card.language === "hi") return `${name} निमंत्रण`;
+  if (card.language === "ur") return `دعوتِ ${name}`;
+  return /invitation/i.test(name) ? name : `${name} Invitation`;
+};
+export const introTitle = (card) => card.intro_title?.trim() || autoIntroTitle(card);
 
 export const defaultWording = (card, ev) => {
   const tr = card.event_type === "aqiqah" ? "muslim" : trad(card);

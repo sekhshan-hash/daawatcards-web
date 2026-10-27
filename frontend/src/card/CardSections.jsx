@@ -29,8 +29,10 @@ export const TitleSection = ({ card, event, t, tpl, single, cover = false, event
       <FamilyBlock card={card} />
       {!familyText(card) && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
       {couple ? (
-        <FitText as="h1" className="gc-names is-couple" data-testid="card-names">
-          {card.primary_name} <span className="gc-amp">&amp;</span> {card.secondary_name}
+        <FitText as="h1" className="gc-names is-couple is-stacked" maxLines={5} data-testid="card-names">
+          <span className="gc-name-line">{card.primary_name}</span>
+          <span className="gc-amp">&amp;</span>
+          <span className="gc-name-line">{card.secondary_name}</span>
         </FitText>
       ) : (
         <>

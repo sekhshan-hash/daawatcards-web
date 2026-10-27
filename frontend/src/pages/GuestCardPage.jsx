@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { guestPath } from "@/lib/links";
 import { namesLine } from "@/lib/eventTime";
+import { introTitle } from "@/i18n/traditions";
 import { t } from "@/i18n";
 import { BRAND } from "@/config/brand";
 import { GuestCard } from "@/card/GuestCard";
@@ -27,7 +28,7 @@ export default function GuestCardPage() {
   }, [slug, guestId]);
 
   useEffect(() => {
-    if (card) document.title = `${namesLine(card)} · ${card.title || BRAND.name}`;
+    if (card) document.title = `${introTitle(card)} · ${namesLine(card)}`;
   }, [card]);
 
   if (error) {

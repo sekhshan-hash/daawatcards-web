@@ -8,9 +8,9 @@ import { TEMPLATES } from "@/templates/registry";
 import { COUPLE_TYPES, makeT, t } from "@/i18n";
 
 const SAMPLE = {
-  en: { couple: ["Aftab", "Hifza"], one: "Zara" },
-  hi: { couple: ["आफ़ताब", "हिफ़्ज़ा"], one: "ज़ारा" },
-  ur: { couple: ["آفتاب", "حفظہ"], one: "زارا" },
+  en: { couple: ["Shahnawaz", "Farah"], one: "Zara" },
+  hi: { couple: ["शाहनवाज़", "फ़राह"], one: "ज़ारा" },
+  ur: { couple: ["شاہنواز", "فرح"], one: "زارا" },
 };
 
 const inDays = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);

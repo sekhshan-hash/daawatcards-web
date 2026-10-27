@@ -13,9 +13,9 @@ def _ev(event_id, name, date, time, venue, address, dress, text, end=""):
 
 DEMO_CARDS = [
     {
-        "card_id": "demo-wedding", "slug": "aftab-hifza", "owner_id": "demo-host", "status": "published",
+        "card_id": "demo-wedding", "slug": "demo-shahnawaz-farah", "owner_id": "demo-host", "status": "published",
         "event_type": "wedding", "template": "wedding-royal", "language": "en",
-        "primary_name": "Aftab", "secondary_name": "Hifza",
+        "primary_name": "Shahnawaz", "secondary_name": "Farah",
         "host_family": "The Siddiqui & Qureshi Families",
         "title": "Wedding Celebrations",
         "invitation_text": "With the blessings of the Almighty and the love of our elders, we joyfully invite you and your family to celebrate the union of our beloved children.",

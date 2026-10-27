@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 const isField = (el) => /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName || "") || el?.isContentEditable;
 
 // Horizontal full-screen pages on native scroll-snap; each page scrolls vertically on its own.
-export const SwipePages = ({ count, start, target, locked, reduced, dir, onIndex, renderPage, pageStyle, dotColors, t }) => {
+export const SwipePages = ({ count, start, target, locked, reduced, dir, onIndex, renderPage, pageStyle, dotColors, t, autoMs = 5000 }) => {
   const track = useRef(null);
   const indexRef = useRef(start);
   const [index, setIndex] = useState(start);
@@ -63,6 +63,34 @@ export const SwipePages = ({ count, start, target, locked, reduced, dir, onIndex
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [locked, sign, goTo]);
+
+  // Auto-advance every autoMs until the last page; stops for good once the guest swipes, scrolls, taps or uses keys.
+  useEffect(() => {
+    const el = track.current;
+    if (locked || !el) return undefined;
+    let timer = 0;
+    let stopped = false;
+    const stop = () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
+    const tick = () => {
+      if (stopped || indexRef.current >= count - 1) return;
+      goTo(indexRef.current + 1);
+      timer = setTimeout(tick, autoMs);
+    };
+    const onInnerScroll = (e) => e.target !== el && stop();
+    timer = setTimeout(tick, autoMs);
+    ["pointerdown", "wheel", "touchstart"].forEach((ev) => window.addEventListener(ev, stop, { passive: true }));
+    el.addEventListener("scroll", onInnerScroll, { capture: true, passive: true });
+    window.addEventListener("keydown", stop);
+    return () => {
+      stop();
+      ["pointerdown", "wheel", "touchstart"].forEach((ev) => window.removeEventListener(ev, stop));
+      el.removeEventListener("scroll", onInnerScroll, { capture: true });
+      window.removeEventListener("keydown", stop);
+    };
+  }, [locked, count, autoMs, goTo]);
 
   const onPointerDown = (e) => {
     if (e.pointerType !== "mouse" || e.button !== 0 || locked || isField(e.target)) return;

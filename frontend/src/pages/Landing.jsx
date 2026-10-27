@@ -12,14 +12,14 @@ import { t } from "@/i18n";
 import { BRAND } from "@/config/brand";
 
 const DEMOS = [
-  { slug: "aftab-hifza", tpl: "wedding-royal", guest: "Honoured Guest", img: "https://images.unsplash.com/photo-1722952934708-749c22eb2e58?crop=entropy&cs=srgb&fm=jpg&q=80&w=900" },
+  { slug: "demo-shahnawaz-farah", tpl: "wedding-royal", guest: "Honoured Guest", img: "https://images.unsplash.com/photo-1722952934708-749c22eb2e58?crop=entropy&cs=srgb&fm=jpg&q=80&w=900" },
   { slug: "zara-turns-7", tpl: "birthday-playful", guest: "Little Explorer", img: "https://images.unsplash.com/photo-1513151233558-d860c5398176?crop=entropy&cs=srgb&fm=jpg&q=80&w=900" },
 ];
 
 const LivePreview = () => {
   const [card, setCard] = useState(null);
   const [eventId, setEventId] = useState("e2");
-  useEffect(() => { api.get("/public/cards/aftab-hifza").then((r) => setCard(r.data)).catch(() => {}); }, []);
+  useEffect(() => { api.get("/public/cards/demo-shahnawaz-farah").then((r) => setCard(r.data)).catch(() => {}); }, []);
   return (
     <div className="relative">
       <PhoneFrame>{card ? <GuestCard card={card} eventId={eventId} guestName="Honoured Guest" onSelectEvent={setEventId} /> : <div className="h-full bg-[#2B070C]" />}</PhoneFrame>
@@ -50,7 +50,7 @@ export default function Landing() {
           <p className="mt-6 max-w-lg text-base text-muted-foreground md:text-lg">{t("landing.subtitle")}</p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link to={start} className="btn-gold" data-testid="landing-create-card-button">{t("landing.ctaCreate")} <ArrowRight size={17} /></Link>
-            <Link to={guestPath("aftab-hifza", "e1", "Honoured Guest")} className="btn-outline" data-testid="landing-demo-wedding-link">{t("landing.ctaDemo")}</Link>
+            <Link to={guestPath("demo-shahnawaz-farah", "e1", "Honoured Guest")} className="btn-outline" data-testid="landing-demo-wedding-link">{t("landing.ctaDemo")}</Link>
             <Link to={guestPath("zara-turns-7", "e1", "Little Explorer")} className="btn-outline" data-testid="landing-demo-birthday-link">{t("landing.ctaDemoBirthday")}</Link>
           </div>
         </div>

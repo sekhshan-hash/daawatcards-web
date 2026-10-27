@@ -12,6 +12,7 @@ import { StepEvents, blankEvent } from "./wizard/StepEvents";
 import { StepPhotos } from "./wizard/StepPhotos";
 import { t, makeT } from "@/i18n";
 import { weddingDefaults } from "@/i18n/traditions";
+import { BLANK_HEADER } from "./wizard/HeaderBoxes";
 
 const BLANK_FAMILY = { groom_family: "", bride_family: "", groom_parents: "", bride_parents: "", groom_grandparents: "", bride_grandparents: "", host_side: "groom", hidden: false };
 
@@ -23,12 +24,12 @@ const defaultCard = (type, lang = "en", tradition = "neutral") => {
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
     title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
-    tradition, header_key: "", family: BLANK_FAMILY,
+    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "",
     events: names.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
@@ -66,7 +67,8 @@ export default function Wizard() {
 
   useEffect(() => {
     if (!cardId) return;
-    api.get(`/cards/${cardId}`).then((r) => setCard({ tradition: "neutral", header_key: "", ...r.data, family: { ...BLANK_FAMILY, ...(r.data.family || {}) } })).catch(() => navigate("/dashboard"));
+    api.get(`/cards/${cardId}`).then((r) => setCard({ tradition: "neutral", header_key: "", header_per_event: false, intro_title: "", ...r.data,
+      custom_header: { ...BLANK_HEADER, ...(r.data.custom_header || {}) }, family: { ...BLANK_FAMILY, ...(r.data.family || {}) } })).catch(() => navigate("/dashboard"));
   }, [cardId, navigate]);
 
   if (!card) return <FullLoader />;

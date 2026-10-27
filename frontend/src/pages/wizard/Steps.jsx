@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HEADING_FONTS, loadFont } from "@/templates/registry";
-import { Baby, Briefcase, Cake, Check, Gem, Gift, Heart, Home, Music, Pause, Play, PlayCircle } from "lucide-react";
+import { Baby, Briefcase, Cake, Check, Gem, Gift, Heart, Home, Music, Pause, Play, PlayCircle, RotateCcw } from "lucide-react";
 import { TemplatePreview } from "./TemplatePreview";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { TEMPLATE_LIST } from "@/templates/registry";
 import { createPlayer, MUSIC_TRACKS } from "@/lib/music";
 import { t, makeT, LANGUAGES, blessingText } from "@/i18n";
-import { SCRIPT_FONTS, TRADITIONS, familyText, headerOptions } from "@/i18n/traditions";
+import { TRADITIONS, autoIntroTitle, cardHeader, familyText, headerOptions } from "@/i18n/traditions";
+import { HeaderBoxes } from "./HeaderBoxes";
 
 const TYPES = [
   ["wedding", Heart, true], ["engagement", Gem, true], ["birthday", Cake, true], ["aqiqah", Baby, true],
@@ -54,19 +55,42 @@ export const StepEventType = ({ card, onType, onTradition }) => (
 );
 
 const HeaderPicker = ({ card, update }) => {
-  const options = headerOptions(card);
-  const current = card.header_key === "none" ? "none" : (options.find((h) => h.id === card.header_key) || options[0]).id;
-  useEffect(() => Object.values(SCRIPT_FONTS).forEach((href, i) => loadFont(`script-${Object.keys(SCRIPT_FONTS)[i]}`, href)), []);
+  const tradition = card.tradition || "neutral";
+  const fallback = headerOptions(card)[0];
+  const setEvent = (i, patch) => update({ events: card.events.map((e, j) => (j === i ? { ...e, ...patch } : e)) });
   return (
     <Field label={t("wizard.headerLine")} hint={t("wizard.headerLineHint")}>
-      <div className="grid gap-2 sm:grid-cols-2" data-testid="wizard-header-picker">
-        {[...options, { id: "none", text: t("wizard.headerNone") }].map((h) => (
-          <button key={h.id} type="button" onClick={() => update({ header_key: h.id })} data-testid={`wizard-header-${h.id}`}
-            className={`rounded-2xl border px-4 py-3 text-center transition-colors ${current === h.id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/50"}`}>
-            <span className={`block text-lg text-foreground script-${h.script || "latin"}`} dir="auto">{h.text}</span>
-            {h.sub && <span className="mt-1 block text-xs text-muted-foreground">{h.sub}</span>}
-          </button>
+      <div className="space-y-4" data-testid="wizard-header-picker">
+        <HeaderBoxes tradition={tradition} fallback={fallback} keyValue={card.header_key} custom={card.custom_header}
+          onKey={(k) => update({ header_key: k })} onCustom={(c) => update({ custom_header: c })} testId="wizard-header" />
+        {card.events.length > 1 && (
+          <label className="flex items-center justify-between gap-3 rounded-2xl border border-border px-4 py-3 text-sm">
+            {t("wizard.headerPerEvent")}
+            <Switch checked={!!card.header_per_event} onCheckedChange={(v) => update({ header_per_event: v })} data-testid="wizard-header-per-event-switch" />
+          </label>
+        )}
+        {card.header_per_event && card.events.length > 1 && card.events.map((ev, i) => (
+          <div key={ev.event_id} className="space-y-2 rounded-2xl border border-gold/30 p-3" data-testid={`wizard-event-${i}-header`}>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gold">{ev.name || `#${i + 1}`}</p>
+            <HeaderBoxes tradition={tradition} fallback={cardHeader(card) || fallback} keyValue={ev.header_key} custom={ev.custom_header}
+              onKey={(k) => setEvent(i, { header_key: k })} onCustom={(c) => setEvent(i, { custom_header: c })} testId={`wizard-event-${i}-header`} />
+          </div>
         ))}
+      </div>
+    </Field>
+  );
+};
+
+const IntroTitleField = ({ card, update }) => {
+  const auto = autoIntroTitle(card);
+  return (
+    <Field label={t("wizard.introTitle")} hint={t("wizard.introTitleHint")}>
+      <div className="flex gap-2">
+        <Input className="h-12 rounded-xl text-base" maxLength={80} value={card.intro_title || auto} dir="auto"
+          onChange={(e) => update({ intro_title: e.target.value === auto ? "" : e.target.value })} data-testid="wizard-intro-title-input" />
+        {card.intro_title && (
+          <button type="button" onClick={() => update({ intro_title: "" })} className="btn-outline shrink-0" data-testid="wizard-intro-title-reset"><RotateCcw size={15} /></button>
+        )}
       </div>
     </Field>
   );
@@ -191,6 +215,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
           <Field label={`${typeL.secondary}`}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("secondary_name")} /></Field>
         </div>
         <HeadingFontPicker value={card.heading_font || "default"} onChange={(v) => update({ heading_font: v })} />
+        <IntroTitleField card={card} update={update} />
         <HeaderPicker card={card} update={update} />
         {["wedding", "engagement"].includes(card.event_type) && <FamilyFields card={card} update={update} />}
         <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>

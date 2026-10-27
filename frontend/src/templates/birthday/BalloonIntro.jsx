@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FitText } from "@/card/FitText";
+import { IntroTitle } from "../more/common";
 import { Balloon, PARTY } from "./BirthdayArt";
 
 const FLOATERS = [
@@ -36,6 +37,7 @@ export const BalloonIntro = ({ guestName, t, reduced, onOpen, onDone, onSkip }) 
         ))}
       </button>
       <div className="bday-tag">
+        <IntroTitle />
         <span>{t("guest.to")}</span>
         <FitText as="strong" data-testid="intro-guest-name">{guestName}</FitText>
       </div>

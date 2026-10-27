@@ -7,6 +7,8 @@ import { useReducedMotion } from "@/hooks/useMedia";
 import { createPlayer } from "@/lib/music";
 import { sortEvents } from "@/lib/eventTime";
 import { MultiPages, SinglePage } from "./CardPages";
+import { IntroTitleContext } from "@/templates/more/common";
+import { introTitle } from "@/i18n/traditions";
 import "@/templates/templates.css";
 import "@/templates/more.css";
 import "./pages.css";
@@ -33,17 +35,17 @@ export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "
   const events = useMemo(() => sortEvents(card.events, card.timezone), [card]);
   const multi = events.length > 1;
   const event = events.find((e) => e.event_id === eventId) || events[0];
-  const startIdx = multi && eventId ? Math.max(0, events.findIndex((e) => e.event_id === eventId) + 1) : 0;
-  const [pageScheme, setPageScheme] = useState(() => (startIdx ? eventScheme(fullCard, events[startIdx - 1]) : "template"));
+  const startIdx = 0;
+  const [pageScheme, setPageScheme] = useState("template");
   const [target, setTarget] = useState(null);
-  const firstStart = useRef(true);
+  const jumpIdx = multi && eventId ? Math.max(0, events.findIndex((e) => e.event_id === eventId) + 1) : 0;
+  const prevJump = useRef(jumpIdx);
+  // Guests always land on the cover; later eventId changes (wizard preview picker) jump to that page.
   useEffect(() => {
-    if (firstStart.current) {
-      firstStart.current = false;
-      return;
-    }
-    setTarget({ i: startIdx, smooth: true });
-  }, [startIdx]);
+    if (prevJump.current === jumpIdx) return;
+    prevJump.current = jumpIdx;
+    setTarget({ i: jumpIdx, smooth: true });
+  }, [jumpIdx]);
   const scheme = multi ? pageScheme : eventScheme(fullCard, event);
   const vars = useMemo(() => colorVars({ ...baseVars, ...schemeVars(tpl, scheme) }), [baseVars, tpl, scheme]);
   const name = guestName.trim() || t("guest.specialGuest");
@@ -115,7 +117,9 @@ export const GuestCard = ({ card: fullCard, eventId, guestName = "", guestId = "
       )}
       {particles && <Particles />}
       {phase === "intro" && (
-        <Intro guestName={name} t={t} reduced={reduced} onOpen={handleOpen} onDone={() => setPhase("card")} onSkip={handleSkip} />
+        <IntroTitleContext.Provider value={introTitle(fullCard)}>
+          <Intro guestName={name} t={t} reduced={reduced} onOpen={handleOpen} onDone={() => setPhase("card")} onSkip={handleSkip} />
+        </IntroTitleContext.Provider>
       )}
       {hasMusic && phase === "card" && !controlled && (
         <button type="button" className="gc-music" onClick={musicOn ? stopMusic : startMusic}

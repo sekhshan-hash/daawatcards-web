@@ -63,7 +63,7 @@ export default function Dashboard() {
             <p className="mt-2 text-muted-foreground">{t("dashboard.emptyHint")}</p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link to="/create" className="btn-gold">{t("dashboard.create")}</Link>
-              <Link to={guestPath("aftab-hifza", "e1", user?.name)} className="btn-outline" data-testid="dashboard-demo-link">{t("landing.ctaDemo")}</Link>
+              <Link to={guestPath("demo-shahnawaz-farah", "e1", user?.name)} className="btn-outline" data-testid="dashboard-demo-link">{t("landing.ctaDemo")}</Link>
             </div>
           </div>
         )}

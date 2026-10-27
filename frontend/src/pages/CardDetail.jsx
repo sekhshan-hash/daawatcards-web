@@ -44,32 +44,6 @@ const LinkMaker = ({ card }) => {
   );
 };
 
-const RsvpList = ({ rsvps }) => {
-  const yes = rsvps.filter((r) => r.attending);
-  const heads = yes.reduce((n, r) => n + (r.count || 0), 0);
-  return (
-    <section className="rounded-3xl border border-border bg-card p-6 sm:p-8" data-testid="rsvp-list">
-      <h2 className="font-display text-2xl text-foreground">{t("detail.rsvps")}</h2>
-      <p className="mt-2 text-sm text-muted-foreground" data-testid="rsvp-summary">{t("detail.rsvpSummary", { yes: yes.length, no: rsvps.length - yes.length, heads })}</p>
-      {rsvps.length === 0 ? <p className="mt-6 text-sm text-muted-foreground">{t("detail.noRsvps")}</p> : (
-        <ul className="mt-6 grid gap-3 md:grid-cols-2">
-          {rsvps.map((r) => (
-            <li key={r.rsvp_id} className="rounded-2xl border border-border bg-background p-4" data-testid={`rsvp-item-${r.rsvp_id}`}>
-              <p className="flex items-center justify-between gap-2 text-sm">
-                <span className="font-semibold text-foreground" dir="auto">{r.guest_name}</span>
-                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${r.attending ? "bg-emerald-400/15 text-emerald-300" : "bg-rose/15 text-rose"}`}>
-                  {r.attending ? t("detail.rsvpYes", { count: r.count }) : t("detail.rsvpNo")}
-                </span>
-              </p>
-              {r.attending && <p className="mt-2 text-xs text-muted-foreground">{r.event_names.join(" · ")}</p>}
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-};
-
 const WishesList = ({ wishes }) => (
   <section className="rounded-3xl border border-border bg-card p-6 sm:p-8" data-testid="wishes-list">
     <h2 className="font-display text-2xl text-foreground">{t("detail.wishes")}</h2>
@@ -92,12 +66,10 @@ export default function CardDetail() {
   const navigate = useNavigate();
   const [card, setCard] = useState(null);
   const [wishes, setWishes] = useState(null);
-  const [rsvps, setRsvps] = useState(null);
 
   useEffect(() => {
     api.get(`/cards/${cardId}`).then((r) => setCard(r.data)).catch(() => navigate("/dashboard"));
     api.get(`/cards/${cardId}/wishes`).then((r) => setWishes(r.data)).catch(() => {});
-    api.get(`/cards/${cardId}/rsvps`).then((r) => setRsvps(r.data)).catch(() => {});
   }, [cardId, navigate]);
 
   const publish = async () => {
@@ -150,7 +122,6 @@ export default function CardDetail() {
           </ul>
         </section>
       </div>
-      <div className="mt-6">{rsvps && <RsvpList rsvps={rsvps} />}</div>
       <div className="mt-6">{wishes && <WishesList wishes={wishes} />}</div>
     </HostShell>
   );

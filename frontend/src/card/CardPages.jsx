@@ -3,7 +3,6 @@ import { colorVars, eventScheme, schemeDot, schemeVars } from "@/templates/event
 import { blessingText } from "@/i18n";
 import { ClosingSection, CountdownSection, DetailsSection, FooterSection, Reveal, TitleSection, VenueSection } from "./CardSections";
 import { CardPhoto } from "./CardPhoto";
-import { RsvpSection } from "./RsvpSection";
 import { SwipePages } from "./SwipePages";
 import { WishesSection } from "./WishesSection";
 
@@ -15,7 +14,6 @@ const FinalSections = ({ card, t, tpl, guestName, guestId, preview, onReplay, wi
     <>
       {withIntro && card.photos?.[1] && <section className="gc-section"><Reveal><CardPhoto path={card.photos[1]} variant="feature" testId="card-feature-photo" /></Reveal></section>}
       {withIntro && blessing && <section className="gc-section"><Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal></section>}
-      <RsvpSection card={card} guestName={guestName} guestId={guestId} t={t} preview={preview} />
       <WishesSection card={card} event={wishEvent(card)} guestName={guestName} guestId={guestId} t={t} preview={preview} />
       <FooterSection card={card} t={t} tpl={tpl} onReplay={onReplay} />
     </>
