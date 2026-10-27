@@ -5,6 +5,7 @@ import { COUPLE_TYPES, blessingText, tCorp } from "@/i18n";
 import { useInView } from "@/hooks/useMedia";
 import { directionsUrl, eventStartMs, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
 import { icsUrl } from "@/lib/links";
+import { eventScheme, schemeDot } from "@/templates/eventColors";
 import { CardPhoto } from "./CardPhoto";
 
 export const Reveal = ({ children, className = "" }) => {
@@ -12,11 +13,12 @@ export const Reveal = ({ children, className = "" }) => {
   return <div ref={ref} className={`gc-reveal ${inView ? "is-in" : ""} ${className}`}>{children}</div>;
 };
 
-export const EventSwitcher = ({ card, event, onSelect }) => (
+export const EventSwitcher = ({ card, fullCard, tpl, event, onSelect }) => (
   <nav className="gc-switcher" data-testid="event-switcher">
     {card.events.map((ev) => (
       <button key={ev.event_id} type="button" onClick={() => onSelect?.(ev.event_id)}
         className={ev.event_id === event.event_id ? "is-active" : ""} data-testid={`event-switch-tab-${ev.event_id}`}>
+        <span className="gc-switch-dot" style={{ background: schemeDot(tpl, eventScheme(fullCard, ev)) }} data-testid={`event-switch-dot-${ev.event_id}`} />
         {ev.name}
       </button>
     ))}

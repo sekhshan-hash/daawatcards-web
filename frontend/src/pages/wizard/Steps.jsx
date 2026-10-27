@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HEADING_FONTS, loadFont } from "@/templates/registry";
-import { Baby, Briefcase, Cake, Check, Gem, Gift, Heart, Home, Music, Pause, Play } from "lucide-react";
+import { Baby, Briefcase, Cake, Check, Gem, Gift, Heart, Home, Music, Pause, Play, PlayCircle } from "lucide-react";
+import { TemplatePreview } from "./TemplatePreview";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TEMPLATE_LIST } from "@/templates/registry";
@@ -39,26 +40,35 @@ export const StepEventType = ({ card, onType }) => (
 );
 
 export const StepTemplate = ({ card, onTemplate }) => {
+  const [previewId, setPreviewId] = useState(null);
   useEffect(() => TEMPLATE_LIST.forEach((tp) => loadFont(tp.id, tp.fontsHref)), []);
   const list = [...TEMPLATE_LIST].sort((a, b) => b.eventTypes.includes(card.event_type) - a.eventTypes.includes(card.event_type));
+  const closePreview = useCallback(() => setPreviewId(null), []);
   return (
     <>
       <StepTitle>{t("wizard.templateTitle")}</StepTitle>
       <div className="grid gap-4 sm:grid-cols-2">
         {list.map((tpl) => (
-          <button key={tpl.id} type="button" onClick={() => onTemplate(tpl.id)} data-testid={`wizard-template-${tpl.id}`}
-            className={`overflow-hidden rounded-2xl border text-left transition-colors ${card.template === tpl.id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/40"}`}>
-            <div className="relative grid h-36 place-items-center" style={{ background: `radial-gradient(circle at 50% 30%, ${tpl.swatch[1]}, ${tpl.swatch[0]} 75%)` }}>
-              <span style={{ fontFamily: tpl.fonts.display.join(", "), color: tpl.swatch[2] }} className="text-4xl">{tpl.sample}</span>
-              {tpl.eventTypes.includes(card.event_type) && <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white">{t("wizard.recommended")}</span>}
-            </div>
-            <div className="p-4">
-              <p className="font-semibold text-foreground">{t(`templates.${tpl.id}.name`)}</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t(`templates.${tpl.id}.desc`)}</p>
-            </div>
-          </button>
+          <div key={tpl.id} className="relative">
+            <button type="button" onClick={() => onTemplate(tpl.id)} data-testid={`wizard-template-${tpl.id}`}
+              className={`w-full overflow-hidden rounded-2xl border text-left transition-colors ${card.template === tpl.id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/40"}`}>
+              <div className="relative grid h-36 place-items-center" style={{ background: `radial-gradient(circle at 50% 30%, ${tpl.swatch[1]}, ${tpl.swatch[0]} 75%)` }}>
+                <span style={{ fontFamily: tpl.fonts.display.join(", "), color: tpl.swatch[2] }} className="text-4xl">{tpl.sample}</span>
+                {tpl.eventTypes.includes(card.event_type) && <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white">{t("wizard.recommended")}</span>}
+              </div>
+              <div className="p-4">
+                <p className="font-semibold text-foreground">{t(`templates.${tpl.id}.name`)}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t(`templates.${tpl.id}.desc`)}</p>
+              </div>
+            </button>
+            <button type="button" onClick={() => setPreviewId(tpl.id)} data-testid={`wizard-template-watch-${tpl.id}`}
+              className="absolute right-3 top-[6.5rem] inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur transition-colors hover:bg-black/75">
+              <PlayCircle size={14} /> {t("wizard.watchIntro")}
+            </button>
+          </div>
         ))}
       </div>
+      {previewId && <TemplatePreview tplId={previewId} card={card} onClose={closePreview} onUse={(id) => { onTemplate(id); setPreviewId(null); }} />}
     </>
   );
 };

@@ -42,6 +42,45 @@ STYLES = {
 STYLES["wedding-royal"]["frame"] = "arch"
 PARTY = ["#FF6B6B", "#FFD166", "#4ECDC4", "#9D4EDD"]
 
+# Per-event colour schemes (bg, bg2, accent, text, muted), mirroring frontend/src/templates/eventColors.js.
+SCHEMES = {
+    "emerald": {"dark": ("#0B2A1E", "#134232", "#D9B44A", "#F2F7EE", "#A7D7A0"), "light": ("#EEF6E9", "#DCEBD3", "#2F6B3F", "#1F3324", "#1E4D2B")},
+    "marigold": {"dark": ("#3A2405", "#5A3A08", "#FFC93C", "#FFF8E6", "#FFE7A3"), "light": ("#FFF6D6", "#FFE89A", "#9A6400", "#3D2A05", "#7A4D00")},
+    "magenta": {"dark": ("#2E0626", "#4D0D40", "#FF5FB8", "#FFF0F8", "#FFC2E5"), "light": ("#FDEAF4", "#F8CFE5", "#B0136E", "#3F0A2B", "#860F55")},
+    "midnight": {"dark": ("#0A1230", "#14204D", "#E3C77A", "#EEF2FF", "#AFC3FF"), "light": ("#E9EEFB", "#D3DCF5", "#22336E", "#141D3D", "#15224F")},
+    "crimson": {"dark": ("#3A0A10", "#5C1019", "#F2C14E", "#FFF5EC", "#FFDDA1"), "light": ("#FBEDEA", "#F3D3CC", "#9B1C2C", "#3A0D13", "#73121F")},
+    "peacock": {"dark": ("#06282D", "#0C3F47", "#E8C766", "#EFFAF9", "#7FD6D0"), "light": ("#E6F5F4", "#C9EAE7", "#0E6E73", "#0F2E30", "#0A5054")},
+    "coral": {"dark": ("#33140E", "#552218", "#FF9A76", "#FFF4EF", "#FFD3BF"), "light": ("#FFF0EA", "#FFD9C9", "#B5482A", "#3E1A10", "#93391D")},
+    "lavender": {"dark": ("#1E1636", "#2F2456", "#C9B6FF", "#F6F2FF", "#F0E8FF"), "light": ("#F2EEFB", "#E2D9F6", "#6A4FB3", "#2A2045", "#4D378A")},
+    "champagne": {"dark": ("#2A2418", "#3F3624", "#E9D29A", "#FBF7EC", "#FFF3D1"), "light": ("#FBF7EE", "#F1E8D3", "#8C6A2A", "#2E2615", "#6B4F1C")},
+    "blush": {"dark": ("#2E1219", "#4A1E29", "#F7B2C4", "#FFF3F6", "#FFE0E8"), "light": ("#FDEFF2", "#F8D9E0", "#B04A66", "#3F1B25", "#8A3550")},
+}
+AUTO_SCHEMES = [
+    ("emerald", re.compile(r"meh[ae]?ndi|henna|मेहंदी|मेहन्दी|मेंहदी|مہندی|مهندی", re.I)),
+    ("marigold", re.compile(r"haldi|ubtan|pithi|may[ou]n|हल्दी|हलदी|ہلدی|هلدی|مایوں", re.I)),
+    ("magenta", re.compile(r"sang[ei]{1,2}t|dholki|संगीत|ढोलकी|سنگیت|ڈھولکی", re.I)),
+    ("midnight", re.compile(r"wal[ei]ma|valima|reception|वलीमा|वलिमा|रिसेप्शन|ولیمہ|ولیمه|استقبالیہ|ریسیپشن", re.I)),
+]
+
+
+def event_scheme(card, ev):
+    if len(card.get("events", [])) < 2:
+        return None
+    color = ev.get("color", "")
+    if color == "template":
+        return None
+    if color in SCHEMES:
+        return color
+    return next((sid for sid, rx in AUTO_SCHEMES if rx.search(ev.get("name", ""))), None)
+
+
+def _with_scheme(s, scheme):
+    if scheme not in SCHEMES:
+        return s
+    r, g, b = _rgb(s["bg"])
+    tone = "dark" if (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5 else "light"
+    return {**s, **dict(zip(("bg", "bg2", "accent", "text", "muted"), SCHEMES[scheme][tone], strict=True))}
+
 
 def _rgb(h):
     h = h.lstrip("#")
@@ -132,8 +171,8 @@ def _party_border(d):
         d.ellipse([x - r, y - r, x + r, y + r], fill=_rgb(PARTY[i % 4]))
 
 
-def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand, photo=None):
-    s = STYLES.get(template, STYLES["wedding-royal"])
+def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand, photo=None, scheme=None):
+    s = _with_scheme(STYLES.get(template, STYLES["wedding-royal"]), scheme)
     img = Image.new("RGB", (W, H), s["bg"])
     d = ImageDraw.Draw(img)
     top, bot = _rgb(s["bg2"]), _rgb(s["bg"])

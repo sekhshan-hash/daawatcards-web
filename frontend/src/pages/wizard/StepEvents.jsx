@@ -1,16 +1,43 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Wand2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { getTemplate } from "@/templates/registry";
+import { SCHEME_IDS, autoScheme, schemeSwatch } from "@/templates/eventColors";
 import { Field, StepTitle } from "./Steps";
 import { t, makeT } from "@/i18n";
 
 export const blankEvent = (name, id) => ({
-  event_id: id, name, date: "", time: "18:00", end_time: "", venue_name: "", venue_address: "", map_link: "", dress_code: "", custom_text: "", photo: "",
+  event_id: id, name, date: "", time: "18:00", end_time: "", venue_name: "", venue_address: "", map_link: "", dress_code: "", custom_text: "", photo: "", color: "",
 });
 
 const nextId = (events) => `e${Math.max(0, ...events.map((e) => parseInt(e.event_id.slice(1), 10) || 0)) + 1}`;
 
-const EventEditor = ({ ev, index, eventType, lang, onChange, onRemove, canRemove }) => {
+const ColorPicker = ({ ev, index, tpl, onChange }) => {
+  const value = ev.color || "";
+  const auto = autoScheme(ev.name);
+  const Swatch = ({ id, label }) => {
+    const [bg, accent] = schemeSwatch(tpl, id === "" ? auto : id);
+    const active = value === id;
+    return (
+      <button type="button" onClick={() => onChange({ color: id })} title={label} aria-label={label} aria-pressed={active} data-testid={`wizard-event-${index}-color-${id || "auto"}`}
+        className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-full transition-transform hover:scale-110 ${active ? "ring-2 ring-gold ring-offset-2 ring-offset-background" : "ring-1 ring-border"}`}
+        style={{ background: `linear-gradient(135deg, ${bg} 50%, ${accent} 50%)` }}>
+        {id === "" && <Wand2 size={14} className="text-white drop-shadow" />}
+      </button>
+    );
+  };
+  return (
+    <Field label={t("wizard.eventColor")} hint={value === "" ? t("wizard.colorAutoHint", { name: t(`colors.${auto}`) }) : t(`colors.${value}`)}>
+      <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 py-1.5 sm:flex-wrap" data-testid={`wizard-event-${index}-colors`}>
+        <Swatch id="" label={t("colors.auto")} />
+        <Swatch id="template" label={t("colors.template")} />
+        {SCHEME_IDS.map((id) => <Swatch key={id} id={id} label={t(`colors.${id}`)} />)}
+      </div>
+    </Field>
+  );
+};
+
+const EventEditor = ({ ev, index, eventType, lang, tpl, multi, onChange, onRemove, canRemove }) => {
   const L = t("wizard.labels");
   const bind = (key, type = "text") => ({ type, value: ev[key] || "", onChange: (e) => onChange({ [key]: e.target.value }), "data-testid": `wizard-event-${index}-${key.replace(/_/g, "-")}-input`, dir: "auto" });
   return (
@@ -28,6 +55,7 @@ const EventEditor = ({ ev, index, eventType, lang, onChange, onRemove, canRemove
             ))}
           </div>
         </Field>
+        {multi && <ColorPicker ev={ev} index={index} tpl={tpl} onChange={onChange} />}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label={L.date}><Input className="h-12 rounded-xl text-base" {...bind("date", "date")} /></Field>
           <Field label={L.time}><Input className="h-12 rounded-xl text-base" {...bind("time", "time")} /></Field>
@@ -55,6 +83,7 @@ export const StepEvents = ({ card, update }) => {
       <div className="space-y-4">
         {card.events.map((ev, i) => (
           <EventEditor key={ev.event_id} ev={ev} index={i} eventType={card.event_type} lang={card.language} canRemove={card.events.length > 1}
+            tpl={getTemplate(card.template)} multi={card.events.length > 1}
             onChange={(p) => setEvent(i, p)} onRemove={() => remove(i)} />
         ))}
       </div>

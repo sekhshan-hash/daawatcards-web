@@ -23,7 +23,7 @@ from starlette.middleware.cors import CORSMiddleware
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
-from og_image import render_og  # noqa: E402
+from og_image import event_scheme, render_og  # noqa: E402
 from otp_providers import get_otp_provider  # noqa: E402
 from seed import DEMO_CARDS  # noqa: E402
 from storage import STORAGE_PREFIX, get_object, init_storage, put_object  # noqa: E402
@@ -79,6 +79,7 @@ class EventItem(BaseModel):
     dress_code: str = Field(default="", max_length=120)
     custom_text: str = Field(default="", max_length=1000)
     photo: str = Field(default="", max_length=300)
+    color: Literal["", "template", "emerald", "marigold", "magenta", "midnight", "crimson", "peacock", "coral", "lavender", "champagne", "blush"] = ""
 
 
 class CardIn(BaseModel):
@@ -685,7 +686,7 @@ async def og_image(slug: str, event_id: str):
     png = await asyncio.to_thread(
         render_og, card["template"], EYEBROWS.get(card.get("language", "en"), EYEBROWS["en"])[card["event_type"]], names_line(card),
         ev["name"], f"{date_s}  ·  {time_s}", ", ".join(filter(None, [ev["venue_name"], ev["venue_address"]]))[:80],
-        BRAND_NAME, photo,
+        BRAND_NAME, photo, event_scheme(card, ev),
     )
     return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})
 
@@ -703,7 +704,7 @@ async def share_page(slug: str, event_id: str, request: Request, to: str = "", g
     if to:
         title = f"{INVITED.get(card.get('language', 'en'), INVITED['en']).format(to=to)} {title}"
     desc = f"{date_s} at {time_s}" + (f" · {ev['venue_name']}" if ev["venue_name"] else "")
-    version = hashlib.md5(card["updated_at"].encode()).hexdigest()[:8]
+    version = hashlib.md5(f"{card['updated_at']}{event_scheme(card, ev)}".encode()).hexdigest()[:8]
     image = f"{base}/api/og/{slug}/{ev['event_id']}.png?v={version}"
     e = html.escape
     page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">

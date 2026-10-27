@@ -8,6 +8,10 @@ const enMore = {
     boardroom: { name: "Boardroom", desc: "Navy and white, clean lines. A thin line draws across, then an elegant fade-up." },
   },
   music: { lullaby: "Lullaby" },
+  colors: {
+    auto: "Auto", template: "Template colours", emerald: "Mehndi green", marigold: "Haldi yellow", magenta: "Sangeet magenta",
+    midnight: "Midnight blue", crimson: "Crimson", peacock: "Peacock teal", coral: "Coral", lavender: "Lavender", champagne: "Champagne", blush: "Blush pink",
+  },
   musicHints: { lullaby: "A soft, sleepy music box" },
   blessingLabels: { none: "No blessing" },
   blessingOptions: {
