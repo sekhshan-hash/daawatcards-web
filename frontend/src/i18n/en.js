@@ -78,6 +78,7 @@ const en = {
     wishesTitle: "Send your wishes",
     wishesSubtitle: "Write a few words for the family. They go straight to them on WhatsApp.",
     suggestions: "Tap a suggestion or write your own",
+    yourName: "Your name",
     yourWish: "Your wishes",
     sendWishes: "Send wishes on WhatsApp",
     wishThanks: "Thank you, {name}! Your wishes are on their way.",

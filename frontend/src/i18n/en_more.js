@@ -71,6 +71,7 @@ const enMore = {
       housewarming: { primary: "Family name (e.g. The Sharmas)", secondary: "New address line (e.g. Flat 402, Green Park)" },
       corporate: { primary: "Company / organiser", secondary: "Event tagline" },
     },
+    hostedBy: "Hosted by",
     headingFont: "Heading font",
     headingFontHint: "Used for the guest's name, your names, the title and the host line.",
     fonts: { default: "Template default", cinzel: "Royal / Classic", playfair: "Modern Luxury", greatvibes: "Elegant Script", fredoka: "Playful", rozha: "Traditional Ethnic" },

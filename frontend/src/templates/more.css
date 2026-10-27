@@ -16,11 +16,12 @@
 .mm-intro { background: var(--bg2); transition: opacity .6s ease 1.3s; }
 .mm-intro.is-opening { opacity: 0; pointer-events: none; }
 .mm-env { position: relative; width: 270px; height: 176px; margin-bottom: 24px; cursor: pointer; perspective: 800px; }
-.mm-env-back { position: absolute; inset: 0; background: #DCE5D8; border-radius: 4px; }
+.mm-env-back { position: absolute; inset: 0; background: #C9D6C4; border-radius: 4px; }
 .mm-letter { position: absolute; left: 14px; right: 14px; top: 10px; bottom: 10px; background: #fff; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; transition: transform .9s cubic-bezier(.2,.7,.2,1) .45s; z-index: 1; }
-.mm-letter .intro-name { font-size: 30px; margin-bottom: 0; }
-.mm-env-front { position: absolute; inset: 0; z-index: 2; background: #E8EFE5; clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%); border-radius: 4px; box-shadow: 0 16px 40px rgba(62,91,72,.18); }
-.mm-flap { position: absolute; left: 0; right: 0; top: 0; height: 60%; z-index: 3; background: #D3DECF; clip-path: polygon(0 0, 100% 0, 50% 100%); transform-origin: top; transition: transform .6s ease, z-index 0s .3s; }
+.mm-letter .gc-divider { width: 140px; margin: 0; }
+.mm-intro .intro-name { margin-bottom: 22px; }
+.mm-env-front { position: absolute; inset: 0; z-index: 2; background: #DDE6D9; clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%); border-radius: 4px; box-shadow: 0 16px 40px rgba(62,91,72,.18); }
+.mm-flap { position: absolute; left: 0; right: 0; top: 0; height: 60%; z-index: 3; background: #B9C9B3; clip-path: polygon(0 0, 100% 0, 50% 100%); transform-origin: top; transition: transform .6s ease, z-index 0s .3s; }
 .mm-seal { position: absolute; z-index: 4; left: 50%; top: 52%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(124,154,130,.25); transition: opacity .3s; }
 .mm-intro.is-opening .mm-flap { transform: rotateX(180deg); z-index: 0; }
 .mm-intro.is-opening .mm-seal { opacity: 0; }

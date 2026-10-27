@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 3 tested end to end: heading font picker, 5 new templates, 5 new occasions, the lullaby track, and photo OG previews. Backend: 63 pytest tests (36 new in test_iteration3_new_fields.py). On the first run 62/63 passed; the one failure was an existing guest-list test, which passed on two reruns, so it is flaky. Checked: new event_type/template/music/heading_font values are accepted and bad values get 422 (POST and PUT); heading_font defaults to 'default' and edits are saved; engagement slugs use both names with -2 for a repeat; OG returns a 1200x630 PNG for every seeded card and for every new template with and without a photo. I looked at the arch, circle and rounded frames: the photo is on the left and the text is on the right. Frontend at mobile 390x760, on meera-kabir, sana-rehan, ayaan, the-sharmas and acme-labs: the intro shows the guest name, open and skip; opening shows the title; soft-fade, rose-sparkles, little-stars and hearth-diyas all appear (diyas light one by one). The rose-gold swipe up opens the card (a 20px swipe does not) and the swipe hint shows. Frames stay inside the title section. No horizontal scroll. Countdown, directions, calendar, wishes and replay work on all 7 cards, Royal and Birthday included. Reduced motion works. The corporate card shows the right wishes heading, button and 'Hosted by' footer, with no blessing. Heading fonts: Playfair on sana-rehan and Rozha on the-sharmas; default cards use the template font. Wizard: all 7 occasions are enabled. Engagement, aqiqah and corporate pick the right default and recommended template, title, events, labels and music (lullaby is the active track for aqiqah). Corporate blessings are none/custom only. Font chips change the live preview at once. Switching to ur changes the title to 'عقیقہ کی تقریب', the preview is RTL and the eyebrow is 'ننھے مہمان کے استقبال میں'. Publish worked; changing heading_font to rozha in edit showed up on the live card. Hindi and Urdu were also checked on warm-hearth, rose-gold and boardroom. UI OTP login, the dashboard and the guests page still work. Found and fixed one regression: on every English card the wishes name label showed the raw key 'GUEST.YOURNAME'.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/og/{slug}/{eid}.png", "issue": "For hi/ur cards the date, time and brand line in the OG image stay in English ('Tue, 01 Dec 2026 · 6:00 PM'). Only the eyebrow is translated."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "i18n en.js guest.yourName", "issue": "FIXED BY TESTER: the key was dropped in iteration 2 (when RSVP was removed), so the wishes name label read 'GUEST.YOURNAME' on all English cards. Added yourName: 'Your name'.", "selector": "label[for=wish-name]", "priority": "HIGH (fixed)"},
+      {"component": "ModernMinimal EnvelopeIntro", "issue": "Before the guest taps, the guest name ('Specially for Ali') is inside the envelope, covered by .mm-env-front and the seal (an elementFromPoint check at the name's centre hits .mm-seal). The guest only sees their name for about 1s while the card opens (letter slides up at about 0.9s, the intro fades at 1.3-1.9s). Other templates show the name before tapping.", "selector": "[data-testid=intro-guest-name]", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Wizard step 2 template tiles", "issues": ["Sample text uses style fontFamily tpl.vars['--font-display'], but no template defines that var, so every tile's sample (e.g. 'A & H', 'Acme') falls back to the app font instead of the template font."]},
+      {"screen": "Wizard step 3 corporate", "issues": ["The host field label is still 'With compliments from', but the corporate footer reads 'Hosted by'. Consider a corporate label."]},
+      {"screen": "Wizard step 4 events", "issues": ["Date and time use the browser's native type=date/time inputs, not the shadcn calendar/popover."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration3_new_fields.py", "/app/backend/tests/test_daawat_api.py", "/app/backend/tests/test_guests_wishes_uploads.py", "/app/test_reports/pytest/pytest_results_iter3.xml"],
+  "action_items": [
+    "Show the guest name on the Modern Minimal intro before opening (e.g. put 'Specially for {name}' outside/above the envelope, or show the letter peeking out).",
+    "Fix the template tile sample font in StepTemplate: use stack(tpl.fonts.display) instead of tpl.vars['--font-display'].",
+    "Optional: translate the date/time in the OG image for hi/ur; add a corporate label for the host field; use the shadcn date picker for events."
+  ],
+  "critical_code_review_comments": [
+    "i18n: no check for missing keys. A dropped key fell back to the raw key text without anyone noticing for a whole iteration. Consider a dev-time console.warn in makeT when it falls back to the key.",
+    "test_guests_wishes_uploads.py: the TestGuests/TestOpened classes share a module-scoped 'card' fixture. With xdist loadscope this is order dependent (test_bulk_normalise_dedupe_events saw 4 guests instead of 3 once). Give each class its own card.",
+    "Wizard switches the template on onType, and onTemplate only swaps music if it was the template default. Good. Consider the same guard for title/events when the user already edited them (not verified)."
+  ],
+  "updated_files": ["/app/frontend/src/i18n/en.js", "/app/backend/tests/test_iteration3_new_fields.py"],
+  "success_rate": {"backend": "100% (63/63 on rerun; 1 flaky existing test)", "frontend": "95% (1 medium UX issue, 1 fixed regression)"},
+  "flaky_tests": ["test_guests_wishes_uploads.py::TestGuests::test_bulk_normalise_dedupe_events (1 of 3 runs failed, shared fixture state)"],
+  "test_credentials": "Phone 9000000002 / OTP 123456 (owner of meera-kabir, sana-rehan, ayaan, the-sharmas, acme-labs). Any phone works with 123456.",
+  "seed_data_creation": "Test cards created during testing were deleted (testbaby card and API test cards). No seed data left.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest from /app/backend/tests with REACT_APP_BACKEND_URL exported. Wizard step tabs are validated: fill the names (wizard-primary-name-input / wizard-secondary-name-input) and event date/time (wizard-event-{i}-date-input / -time-input, native inputs, fill 'YYYY-MM-DD') before the later tabs (Music = wizard-step-tab-5, Publish = tab-6). Login shortcut: page.request.post otp/request + otp/verify. Effects testids: soft-fade only lives for about 1.3s after opening (particleMs), so check for it right after the click. Template tile active state is the 'ring-2' class; music active is .choice-tile.is-active."
+}

@@ -222,8 +222,22 @@ def event_utc(ev, tz):
     return start, end
 
 
-def display_date(ev):
+LOCAL_DATES = {
+    "hi": (["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],
+           ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्तूबर", "नवंबर", "दिसंबर"],
+           ("पूर्वाह्न", "अपराह्न"), ","),
+    "ur": (["پیر", "منگل", "بدھ", "جمعرات", "جمعہ", "ہفتہ", "اتوار"],
+           ["جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون", "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"],
+           ("صبح", "شام"), "،"),
+}
+
+
+def display_date(ev, lang="en"):
     d = datetime.strptime(f"{ev['date']} {ev['time']}", "%Y-%m-%d %H:%M")
+    if lang in LOCAL_DATES:
+        days, months, ampm, comma = LOCAL_DATES[lang]
+        return (f"{days[d.weekday()]}{comma} {d.day} {months[d.month - 1]} {d.year}",
+                f"{d.strftime('%I:%M').lstrip('0')} {ampm[d.hour >= 12]}")
     return d.strftime("%a, %d %b %Y"), d.strftime("%I:%M %p").lstrip("0")
 
 
@@ -603,7 +617,7 @@ async def event_ics(slug: str, event_id: str):
 async def og_image(slug: str, event_id: str):
     card = await public_card(slug)
     ev = find_event(card, event_id)
-    date_s, time_s = display_date(ev)
+    date_s, time_s = display_date(ev, card.get("language", "en"))
     photo = None
     path = (card.get("photos") or [""])[0]
     if path and await db.files.find_one({"storage_path": path, "is_deleted": False}, {"_id": 1}):

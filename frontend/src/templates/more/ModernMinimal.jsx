@@ -36,9 +36,10 @@ export const EnvelopeIntro = ({ guestName, t, reduced, onOpen, onDone, onSkip })
   const [opening, open] = useOpen(onOpen, onDone, reduced, 1900);
   return (
     <IntroShell className="mm-intro" opening={opening} onSkip={onSkip} t={t}>
+      <IntroName t={t} guestName={guestName} />
       <div className="mm-env" onClick={open} role="presentation">
         <div className="mm-env-back" />
-        <div className="mm-letter"><IntroName t={t} guestName={guestName} /></div>
+        <div className="mm-letter"><MinimalDivider /></div>
         <div className="mm-env-front" />
         <div className="mm-flap" />
         <span className="mm-seal" />

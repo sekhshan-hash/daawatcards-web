@@ -39,6 +39,7 @@ export const StepEventType = ({ card, onType }) => (
 );
 
 export const StepTemplate = ({ card, onTemplate }) => {
+  useEffect(() => TEMPLATE_LIST.forEach((tp) => loadFont(tp.id, tp.fontsHref)), []);
   const list = [...TEMPLATE_LIST].sort((a, b) => b.eventTypes.includes(card.event_type) - a.eventTypes.includes(card.event_type));
   return (
     <>
@@ -48,7 +49,7 @@ export const StepTemplate = ({ card, onTemplate }) => {
           <button key={tpl.id} type="button" onClick={() => onTemplate(tpl.id)} data-testid={`wizard-template-${tpl.id}`}
             className={`overflow-hidden rounded-2xl border text-left transition-colors ${card.template === tpl.id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/40"}`}>
             <div className="relative grid h-36 place-items-center" style={{ background: `radial-gradient(circle at 50% 30%, ${tpl.swatch[1]}, ${tpl.swatch[0]} 75%)` }}>
-              <span style={{ fontFamily: tpl.vars["--font-display"], color: tpl.swatch[2] }} className="text-4xl">{tpl.sample}</span>
+              <span style={{ fontFamily: tpl.fonts.display.join(", "), color: tpl.swatch[2] }} className="text-4xl">{tpl.sample}</span>
               {tpl.eventTypes.includes(card.event_type) && <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white">{t("wizard.recommended")}</span>}
             </div>
             <div className="p-4">
@@ -111,7 +112,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
           <Field label={`${typeL.secondary}`}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("secondary_name")} /></Field>
         </div>
         <HeadingFontPicker value={card.heading_font || "default"} onChange={(v) => update({ heading_font: v })} />
-        <Field label={L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
+        <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
         <Field label={L.title}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("title")} /></Field>
         <Field label={L.invitation}><Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} {...bind("invitation_text")} /></Field>
         <Field label={L.blessing}>

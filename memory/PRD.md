@@ -29,6 +29,13 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Card language en/hi/ur (guest card only; Urdu is RTL with Nastaliq). OG images support Devanagari/Nastaliq
 - Tested: iteration_2, backend 27/27; frontend flows pass
 
+## Implemented (Iteration 3)
+- Heading font picker (6 options, saved as heading_font) applied to the intro name, names, title and host line
+- 5 new templates: Modern Minimal (envelope), Rose Gold Promise (rings + swipe/tap), Little Star (clouds/moon + stars), Warm Hearth (door + diyas), Boardroom (line draw)
+- 5 new occasions (engagement, aqiqah, babyShower, housewarming, corporate) with en/hi/ur defaults; corporate wording (organiser note, "Hosted by")
+- Lullaby track; OG preview shows photos[0] in a template-shaped frame beside the text, with dates translated for hi/ur
+- Tested: iteration_3 (backend 63 tests; frontend all flows). Envelope name visibility and template sample fonts fixed afterwards
+
 ## Backlog
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider
