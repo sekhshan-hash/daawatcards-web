@@ -5,7 +5,7 @@ import { COUPLE_TYPES, blessingText, tCorp } from "@/i18n";
 import { useInView } from "@/hooks/useMedia";
 import { directionsUrl, eventStartMs, eventStatus, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
 import { icsUrl } from "@/lib/links";
-import { eventConcluded, familyText } from "@/i18n/traditions";
+import { cardHeader, eventConcluded, familyText } from "@/i18n/traditions";
 import { CardPhoto } from "./CardPhoto";
 import { mealLine } from "@/lib/meals";
 import { FitText } from "./FitText";
@@ -28,7 +28,7 @@ export const TitleSection = ({ card, event, t, tpl, single, cover = false, event
       <HeaderLine card={card} testId="card-cover-header-line" />
       <CardPhoto path={card.photos?.[0]} fit={card.photo_fit?.hero} variant="hero" testId="card-hero-photo" />
       <FamilyBlock card={card} />
-      {!familyText(card) && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
+      {!familyText(card) && !(couple && cardHeader(card)?.id === "together") && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
       {couple ? (
         <FitText as="h1" className="gc-names is-couple is-stacked" maxLines={5} data-testid="card-names">
           <span className="gc-name-line">{card.primary_name}</span>

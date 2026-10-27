@@ -66,6 +66,13 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Couple names stacked on 3 lines (name / & / name)
 - Tested: iteration_7, 100% backend and frontend
 
+## Implemented (Iteration 8: wizard mobile fit, photo adjust/blend, cover pill, meals)
+- Wizard on phones: progress bar "Step N of 7" plus a step dropdown (tabs only at >=640px); host grids use minmax(0,1fr), 16px padding, no sideways scroll; swatches and font picker wrap
+- Photos: PhotoAdjust dialog (shapes full/portrait/square/wide/arch/circle, drag, pinch/slider zoom, Framed/Blended, live preview, FaceDetector focus when available); saved as card.photo_fit{hero,feature,wishes} and events[].photo_fit; cover photo defaults to full + blended (feathered mask + accent glow)
+- Cover: safe top padding and `justify-content: safe center` (no clipped header); ornaments behind content; the pill shows date and time only; neutral "Together with their families" header localised for hi/ur and no longer duplicated by the eyebrow on couple cards; swipe hint moved to the bottom corner
+- Meals per event (meal, meal_custom, meal_line): event page row, Google Calendar details, ICS description and WhatsApp og:description, localised en/hi/ur
+- Tested: iteration_8, backend 137/138 (1 known flaky isolation test), frontend 100%; polish fixes from that report then applied
+
 ## Backlog
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider

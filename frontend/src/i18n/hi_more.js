@@ -34,7 +34,7 @@ const hiMore = {
     housewarming: ["नए घर की बहुत बधाई!", "नए घर में सुख, शांति और समृद्धि रहे।", "जल्द ही मिलने आएँगे!"],
     corporate: ["ज़रूर आएँगे!", "निमंत्रण के लिए धन्यवाद।", "इस उपलब्धि की बधाई!"],
   },
-  meals: { breakfast: "नाश्ता", brunch: "ब्रंच", lunch: "दोपहर का भोजन", hightea: "हाई टी", snacks: "जलपान", supper: "रात्रि भोज", dinner: "रात्रि भोज", hightea_dinner: "हाई टी और रात्रि भोज" },
+  meals: { breakfast: "नाश्ते", brunch: "ब्रंच", lunch: "दोपहर के भोजन", hightea: "हाई टी", snacks: "जलपान", supper: "रात्रि भोज", dinner: "रात्रि भोज", hightea_dinner: "हाई टी और रात्रि भोज" },
 
   guest: {
     eyebrow: { engagement: "वादे के इस जश्न में", aqiqah: "नन्हे मेहमान के स्वागत में", babyShower: "एक नन्हा मेहमान आने वाला है", housewarming: "नए घर की खुशी में", corporate: "आप सादर आमंत्रित हैं" },

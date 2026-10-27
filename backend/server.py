@@ -103,11 +103,25 @@ class PhotoFit(BaseModel):
 
 MEAL_LABELS = {"breakfast": "Breakfast", "brunch": "Brunch", "lunch": "Lunch", "hightea": "High Tea",
                "snacks": "Snacks / Refreshments", "supper": "Supper", "dinner": "Dinner", "hightea_dinner": "High Tea & Dinner"}
+MEAL_I18N = {
+    "hi": {"breakfast": "नाश्ते", "brunch": "ब्रंच", "lunch": "दोपहर के भोजन", "hightea": "हाई टी", "snacks": "जलपान",
+           "supper": "रात्रि भोज", "dinner": "रात्रि भोज", "hightea_dinner": "हाई टी और रात्रि भोज"},
+    "ur": {"breakfast": "ناشتہ", "brunch": "برنچ", "lunch": "ظہرانہ", "hightea": "ہائی ٹی", "snacks": "ریفریشمنٹ",
+           "supper": "عشائیہ", "dinner": "عشائیہ", "hightea_dinner": "ہائی ٹی اور عشائیہ"},
+}
+MEAL_LINE = {"en": "{m} to follow", "hi": "{m} की व्यवस्था रहेगी", "ur": "{m} کا اہتمام ہوگا"}
 
 
-def meal_name(ev):
+def meal_name(ev, lang="en"):
     meal = ev.get("meal", "")
-    return ev.get("meal_custom", "").strip() if meal == "custom" else MEAL_LABELS.get(meal, "")
+    if meal == "custom":
+        return ev.get("meal_custom", "").strip()
+    return MEAL_I18N.get(lang, MEAL_LABELS).get(meal, "")
+
+
+def meal_line(ev, lang="en"):
+    name = meal_name(ev, lang)
+    return (ev.get("meal_line", "").strip() or MEAL_LINE.get(lang, MEAL_LINE["en"]).format(m=name)) if name else ""
 
 
 class EventItem(BaseModel):
@@ -726,9 +740,7 @@ def ics_escape(s):
 
 
 def ics_description(card, ev):
-    meal = meal_name(ev)
-    line = ev.get("meal_line", "").strip() or (f"{meal} to follow" if meal else "")
-    return "\n".join(filter(None, [card.get("title", ""), line]))
+    return "\n".join(filter(None, [card.get("title", ""), meal_line(ev, card.get("language", "en"))]))
 
 
 @api.get("/public/cards/{slug}/events/{event_id}/ics")
@@ -782,7 +794,7 @@ async def share_page(slug: str, event_id: str, request: Request, to: str = "", g
     title = f"{intro_title(card)} · {names_line(card)}"
     if to:
         title = f"{INVITED.get(card.get('language', 'en'), INVITED['en']).format(to=to)} {title}"
-    desc = " · ".join(filter(None, [f"{date_s} at {time_s}", meal_name(ev), ev["venue_name"]]))
+    desc = " · ".join(filter(None, [f"{date_s} at {time_s}", meal_name(ev, card.get("language", "en")), ev["venue_name"]]))
     version = hashlib.md5(f"{card['updated_at']}{event_scheme(card, ev)}".encode()).hexdigest()[:8]
     image = f"{base}/api/og/{slug}/{ev['event_id']}.png?v={version}"
     e = html.escape

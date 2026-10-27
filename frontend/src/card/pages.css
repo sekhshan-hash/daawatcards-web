@@ -2,7 +2,7 @@
 /* Title screen: never clip the top (safe centring), keep ornaments behind content. */
 .gc-title-screen { justify-content: safe center; overflow: visible; overflow-x: clip; padding-top: max(88px, calc(env(safe-area-inset-top) + 72px)); }
 .gc-title-screen > .gc-frame, .gc-title-screen > .royal-frame, .gc-title-screen > .bday-frame { z-index: 0; }
-.gc-title-screen > *:not(.royal-frame):not(.bday-frame):not(.gc-frame):not(.gc-scroll-cue) { max-width: calc(100% - 8px); }
+.gc-title-screen > :where(*:not(.royal-frame):not(.bday-frame):not(.gc-frame):not(.gc-scroll-cue)) { max-width: calc(100% - 8px); }
 
 /* Photos: shape, position, zoom and framed/blended style. */
 .gc-root .gc-photo.has-fit { width: 100%; height: auto; max-width: var(--pmax, 320px); overflow: visible; }
@@ -67,9 +67,10 @@
 .gc-dots button.is-active { width: 24px; background: var(--dot); }
 .gc-dots button::before { content: ""; position: absolute; inset: -10px; }
 .gc-dots button { position: relative; }
-.gc-swipe-hint { position: absolute; bottom: 34px; left: 50%; z-index: 30; transform: translateX(-50%); padding: 7px 16px; border-radius: 999px; font-size: 13px; letter-spacing: .08em;
+.gc-swipe-hint { position: absolute; bottom: 9px; right: 12px; z-index: 30; padding: 6px 12px; border-radius: 999px; font-size: 12px; letter-spacing: .08em;
   background: color-mix(in srgb, var(--surface) 80%, transparent); color: var(--text); border: 1px solid var(--border); pointer-events: none; animation: gc-hint 2.4s ease-in-out 1 both; }
-@keyframes gc-hint { 0% { opacity: 0; transform: translate(-50%, 6px); } 25% { opacity: 1; transform: translate(-50%, 0); } 45% { transform: translate(calc(-50% + 10px), 0); } 65% { transform: translate(-50%, 0); } 100% { opacity: .9; } }
+@keyframes gc-hint { 0% { opacity: 0; transform: translateX(6px); } 25% { opacity: 1; transform: none; } 45% { transform: translateX(8px); } 65% { transform: none; } 100% { opacity: .9; } }
+[dir="rtl"] .gc-swipe-hint { right: auto; left: 12px; }
 
 .gc-cover-events { list-style: none; margin: 18px 0 0; padding: 0; width: 100%; max-width: 340px; display: grid; gap: 8px; }
 .gc-cover-events button { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 16px; border-radius: var(--radius);

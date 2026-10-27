@@ -17,7 +17,7 @@ export const HEADERS = {
     { id: "cor13", text: "Love is patient, love is kind", sub: "1 Corinthians 13:4", script: "latin" },
     { id: "mark10", text: "What God has joined together, let no one separate", sub: "Mark 10:9", script: "latin" },
   ],
-  neutral: [{ id: "together", text: "Together with their families", script: "latin" }],
+  neutral: [{ id: "together", text: "Together with their families", text_hi: "परिवारों के आशीर्वाद के साथ", text_ur: "اپنے خاندانوں کی دعاؤں کے ساتھ", script: "latin" }],
 };
 
 export const SCRIPT_FONTS = {
@@ -65,7 +65,9 @@ export const headerOptions = (card) => HEADERS[trad(card)];
 const ALL_HEADERS = Object.values(HEADERS).flat();
 const resolveKey = (card, key) => {
   if (key === "none") return null;
-  return ALL_HEADERS.find((h) => h.id === key) || headerOptions(card)[0];
+  const h = ALL_HEADERS.find((x) => x.id === key) || headerOptions(card)[0];
+  const local = h[`text_${card.language}`];
+  return local ? { ...h, text: local } : h;
 };
 const customOf = (c) => (c?.text?.trim() ? { id: "custom", ...c, text: c.text.trim(), custom: true } : null);
 
