@@ -82,13 +82,14 @@ class TestOG:
         from io import BytesIO
         from PIL import Image
         px = {}
-        for eid in ["e1", "e2", "e3"]:
+        for eid in ["e1", "e2", "e4"]:
             im = Image.open(BytesIO(requests.get(f"{API}/og/aftab-hifza/{eid}.png").content)).convert("RGB")
             px[eid] = im.getpixel((30, im.height // 2))
         print("OG bg pixels", px)
-        assert px["e1"] != px["e3"] and px["e1"] != px["e2"]
-        assert px["e1"][1] > px["e1"][2]  # greenish emerald
-        assert px["e3"][2] > px["e3"][0]  # bluish midnight
+        # iteration 6 demo: e1 Haldi marigold, e2 Baraat crimson, e4 Walima midnight
+        assert px["e1"] != px["e4"] and px["e1"] != px["e2"]
+        assert px["e2"][0] > px["e2"][2]  # reddish crimson
+        assert px["e4"][2] > px["e4"][0]  # bluish midnight
 
     def test_share_version_differs(self):
         vs = {}

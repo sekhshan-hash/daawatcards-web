@@ -17,18 +17,18 @@ export const RsvpSection = ({ card, guestName, guestId, t, preview }) => {
   const toggle = (id) => setPicked((p) => (p.includes(id) ? (p.length > 1 ? p.filter((x) => x !== id) : p) : [...p, id]));
   const evNames = card.events.filter((e) => picked.includes(e.event_id)).map((e) => e.name).join(", ");
   const text = attending
-    ? t("whatsapp.rsvpYes", { guest: name.trim(), count, events: evNames, names: namesLine(card) })
+    ? t(count === 1 ? "whatsapp.rsvpYesOne" : "whatsapp.rsvpYes", { guest: name.trim(), count, events: evNames, names: namesLine(card) })
     : t("whatsapp.rsvpNo", { guest: name.trim(), names: namesLine(card) });
 
   const send = (e) => {
     const err = !name.trim() ? t("guest.nameRequired") : attending === null ? t("guest.rsvpChoose") : "";
     setError(err);
     if (err) return e.preventDefault();
-    setSent(name.trim());
-    if (preview || !card.slug) return;
+    if (preview || !card.slug) return setSent(name.trim());
+    const who = name.trim();
     api.post(`/public/cards/${card.slug}/rsvp`, {
-      guest_name: name.trim(), guest_id: guestId || "", attending, count: attending ? count : 0, event_ids: attending ? picked : [],
-    }).catch(() => {});
+      guest_name: who, guest_id: guestId || "", attending, count: attending ? count : 0, event_ids: attending ? picked : [],
+    }).then(() => setSent(who)).catch(() => setError(t("guest.rsvpFailed")));
   };
 
   return (

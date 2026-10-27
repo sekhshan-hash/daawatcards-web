@@ -144,12 +144,12 @@ class TestPublic:
         r = requests.get(f"{API}/public/cards/aftab-hifza")
         assert r.status_code == 200
         d = r.json()
-        assert len(d["events"]) == 3 and d["primary_name"] == "Aftab" and "_id" not in d
+        assert len(d["events"]) == 4 and d["primary_name"] == "Aftab" and "_id" not in d
         assert requests.get(f"{API}/public/cards/zara-turns-7").status_code == 200
         assert requests.get(f"{API}/public/cards/nope").status_code == 404
 
     def test_ics(self):
-        r = requests.get(f"{API}/public/cards/aftab-hifza/events/e2/ics")
+        r = requests.get(f"{API}/public/cards/aftab-hifza/events/e3/ics")
         assert r.status_code == 200 and r.headers["content-type"].startswith("text/calendar")
         assert "BEGIN:VCALENDAR" in r.text and "DTSTART:20261212T133000Z" in r.text and "Nikah" in r.text
 

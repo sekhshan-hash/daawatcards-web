@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 6 (swipe pages, tradition wording, RSVP, names that fit, status). Backend: new pytest file with 19 tests, all passing. Full suite 112/112 after I updated 3 old tests that assumed the old 3-event demo. Frontend (Playwright at 360/390/412 and 1920): checked the swipe cover, dots, hint, cover event jumps, per-page schemes, arrow keys, mouse drag, vertical scroll inside a page, per-event wording/dua/closing, the final page with RSVP and wishes once, RSVP save and owner list, event/general/guest links, the Hindu demo with 8 dots, single-event cards, long-name fitting, concluded and live status, the full wizard (tradition swap, header picker, family block and preview, wording editor with edit/hide/reset/closing options/concluded/rsvp line/header switch, both wording-check notes, publish, and the guest card showing the edits), the preview Cover option, template Watch intro, card detail RSVP list and guests page. No page errors. One visible layout bug: event pages settle 6-16px off after a swipe in Chromium.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/public/cards/{slug}/rsvp", "issue": "guest_id is not checked against db.guests, so any caller can overwrite another guest's RSVP by sending their guest_id. Replies without a guest_id are keyed on lower-cased name, so two different guests with the same name overwrite each other."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SwipePages / pages.css (.gc-pages > .gc-page tilt animation)", "issue": "After ArrowRight, a dot tap, a cover-event tap or a drag, the track settles at scrollLeft 406/795/1185 instead of 390/780/1170 (390px viewport). Each event page is shifted about 15px left: the left edge is cut off and a strip of the next page shows. RTL is shifted too (-398 instead of -390). With animation:none the offsets are exact (390/780/1170). RCA: the scroll-driven transform (animation-timeline: view(inline), rotateY/scale) is on the scroll-snap target itself. Chromium snaps to the transformed box, which feeds back into the animation, so it settles off-grid. Fix: keep .gc-page untransformed as the snap target and put the tilt animation on an inner wrapper. Or, on scrollend, force an exact scrollTo(index*clientWidth) with scroll-snap still on.", "selector": "[data-testid=swipe-pages] .gc-page", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "RSVP submit", "issue": "api.post(...).catch(() => {}) swallows errors, so rsvp-success-message shows even if the save fails (422/500/network).", "affected_selectors": ["rsvp-success-message"]}
+    ],
+    "design_issues": [
+      {"screen": "Guest card on hi/ur cards", "issues": ["Tradition wording, closing lines, concluded message and the family sentence are English only. An Urdu card shows English 'With the blessings of Almighty Allah ... occasion of نکاح' with Urdu labels around it."]},
+      {"screen": "Wizard step 1", "issues": ["The Neutral tradition suggests Mehndi, Nikah, Walima, which are Muslim-specific; a neutral set would fit better. The Wedding tile subtitle always says 'Mehndi, Nikah, Walima' whatever tradition is picked."]},
+      {"screen": "RSVP WhatsApp text", "issues": ["Plural is wrong: '(1 guests)'."]},
+      {"screen": "Guest card pages", "issues": ["The floating music button overlaps the top-right frame ornament on the cover. The dots pill overlaps content such as the cover event rows and the Directions button while scrolling. This is acceptable, but the last item on each page is only clear because of padding-bottom: 48px."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration6_tradition_rsvp.py", "/app/backend/tests/setup_iter6_ui.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "HIGH: fix the off-grid snap. Move the gc-turn tilt animation from .gc-page (the snap target) to an inner wrapper, or snap exactly on scrollend. Then check that scrollLeft equals index*clientWidth after ArrowRight, dot tap and drag.",
+    "Localise tradition wording, closings, concluded messages and the family sentence for hi/ur, or default them to the card language.",
+    "Show an error and do not show the success message when the RSVP POST fails.",
+    "Optional: check RSVP guest_id against db.guests. Give the neutral tradition generic wedding events. Fix 'guests' pluralisation."
+  ],
+  "critical_code_review_comments": [
+    "FitText useLayoutEffect has no dependency array, so it refits and rebuilds a ResizeObserver on every render of the parent. Give it deps [children, maxLines] or keep the observer in a ref.",
+    "RsvpSection: the 'picked' state is set once from card.events. If the guest's visible events change, for example in the wizard preview when an event is added or removed, stale ids are posted. The backend filters them, but the UI chips can drift.",
+    "SwipePages onScroll calls setMoving on every scroll event, which re-renders all pages during a swipe. Consider a ref plus a class toggle."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration6_tradition_rsvp.py (new)",
+    "/app/backend/tests/setup_iter6_ui.py (new helper)",
+    "/app/backend/tests/test_daawat_api.py (demo now has 4 events; ics uses e3 Nikah)",
+    "/app/backend/tests/test_iteration5_event_colors.py (OG colour check uses e1 marigold, e2 crimson, e4 midnight)"
+  ],
+  "success_rate": {"backend": "100% (112/112)", "frontend": "~95% (all requested flows work; 1 HIGH layout bug in the snap offset)"},
+  "seed_data_creation": "Created and then deleted TEST_ cards under phone 9727303389. RSVP rows from tests remain in rsvp_replies for the demo card (Ali Khan was not submitted; only href was checked).",
+  "test_credentials": "Phone OTP: any number, code 123456 (/app/memory/test_credentials.md)",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Demo aftab-hifza: e1 Haldi marigold, e2 Baraat crimson, e3 Nikah template, e4 Walima midnight; 6 dots. rohan-ananya: 6 events, 8 dots. Measure snap alignment with swipe-pages.scrollLeft vs index*clientWidth after waiting 2.5s. /tmp/test.jpg is needed by test_guests_wishes_uploads.py (create it with PIL before running). Touch swipe (real touch events) was not tested; only keys, dots, mouse drag and wheel."
+}

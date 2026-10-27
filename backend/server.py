@@ -685,11 +685,13 @@ async def send_rsvp(slug: str, body: RsvpIn):
     if not name:
         raise HTTPException(422, "Name is required")
     valid = [e["event_id"] for e in card["events"]]
+    gid = body.guest_id if body.guest_id and await db.guests.find_one(
+        {"card_id": card["card_id"], "guest_id": body.guest_id}, {"_id": 1}) else ""
     picked = [i for i in valid if i in set(body.event_ids)] if body.attending else []
     if body.attending and not picked:
         picked = valid
-    key = {"card_id": card["card_id"], **({"guest_id": body.guest_id} if body.guest_id else {"guest_name_key": name.lower()})}
-    doc = {**key, "guest_name": name, "guest_id": body.guest_id, "guest_name_key": name.lower(), "attending": body.attending,
+    key = {"card_id": card["card_id"], **({"guest_id": gid} if gid else {"guest_id": "", "guest_name_key": name.lower()})}
+    doc = {**key, "guest_name": name, "guest_id": gid, "guest_name_key": name.lower(), "attending": body.attending,
            "count": body.count if body.attending else 0, "event_ids": picked,
            "event_names": [e["name"] for e in card["events"] if e["event_id"] in picked],
            "message": body.message.strip(), "updated_at": now().isoformat()}

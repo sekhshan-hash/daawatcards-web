@@ -71,9 +71,11 @@ const enMore = {
     rsvpTitle: "Will you join us?", rsvpSubtitle: "Let the hosts know. Your reply goes to them on WhatsApp.",
     rsvpYes: "Joyfully accept", rsvpNo: "Regretfully decline", rsvpCount: "Number of guests", rsvpEvents: "Which events?",
     rsvpSend: "Send RSVP on WhatsApp", rsvpThanks: "Thank you, {name}! Your RSVP has been sent.", rsvpChoose: "Please choose accept or decline",
+    rsvpFailed: "Couldn't save your RSVP. Please try again.",
   },
   whatsapp: {
     rsvpYes: "RSVP: {guest} joyfully accepts ({count} guests) for {events}.\n— {names}",
+    rsvpYesOne: "RSVP: {guest} joyfully accepts (1 guest) for {events}.\n— {names}",
     rsvpNo: "RSVP: {guest} regretfully declines the invitation.\n— {names}",
   },
   wizard: {

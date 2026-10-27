@@ -48,6 +48,15 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Per-event colours (cards with 2+ events): auto from the event name in en/hi/ur (Mehndi emerald, Haldi marigold, Sangeet magenta, Walima/Reception midnight; others keep the template's colours), event.color override ("" auto, "template", 10 schemes) via swatches in step 4; animated repaint through registered --c-* CSS properties; coloured tab dots; OG images per event scheme (og_image.SCHEMES; share version includes the scheme)
 - Tested: iteration_5, backend 93/93, frontend all flows
 
+## Implemented (Iteration 6: Swipe pages, tradition wording, names that fit)
+- Cards with 2+ events: horizontal swipe pages (cover with header line, family block, names, title and event list; one page per event in date order; final page with RSVP, wishes and footer). Native scroll-snap, mouse drag, arrow keys, coloured dots, one-time "Swipe" hint, per-page colour schemes (Baraat auto = crimson), page-turn tilt via a CSS scroll-driven animation on .gc-page-inner (not on the snap target), fade under reduced motion. The tab bar has been removed. Event link opens on its page, general link on the cover, guest link on the cover unless the guest is invited to exactly one event
+- RSVP (accept/decline, number of guests, events) on the final page: WhatsApp to the host plus POST /public/cards/{slug}/rsvp (collection rsvp_replies; guest_id checked against guests); host list on the card detail page (GET /cards/{id}/rsvps). Wishes appear once
+- FitText: cover names, intro guest name and footer host name shrink so the longest word fits, max 3 lines
+- Traditions (frontend/src/i18n/traditions.js): muslim/hindu/sikh/christian/neutral, with header lines (Arabic/Devanagari/Gurmukhi fonts), wedding event suggestions and defaults, family sentence, per-event wording, dua (Muslim Nikah/Walima), closings and concluded messages. Per event, null = default, "" = hidden, string = custom. Card fields: tradition, header_key ("" default, "none"), family{}. Event fields: header_hidden, wording, dua, closing, concluded, rsvp_line
+- Event status: upcoming countdown / Happening now / concluded + message; calendar hidden when the event is over
+- Demos: aftab-hifza (Muslim, 4 events) and rohan-ananya (Hindu, 6 events)
+- Tested: iteration_6, backend 112/112, frontend all flows; fixed afterwards: the snap offset, RSVP success shown only after the save succeeds, "1 guest" singular, RSVP guest_id validation
+
 ## Backlog
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider

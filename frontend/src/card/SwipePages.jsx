@@ -103,7 +103,7 @@ export const SwipePages = ({ count, start, target, locked, reduced, dir, onIndex
         {Array.from({ length: count }, (_, i) => (
           <div key={i} className={`gc-scroller gc-page ${i === index ? "is-active" : ""}`} style={pageStyle(i)}
             aria-label={t("guest.pageOf", { n: i + 1, total: count })} data-testid={`swipe-page-${i}`}>
-            {renderPage(i, goTo)}
+            <div className="gc-page-inner">{renderPage(i, goTo)}</div>
           </div>
         ))}
       </div>
