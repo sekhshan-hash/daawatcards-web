@@ -178,10 +178,10 @@ const HeadingFontPicker = ({ value, onChange }) => {
   useEffect(() => Object.entries(HEADING_FONTS).forEach(([id, f]) => loadFont(`heading-${id}`, f.href)), []);
   return (
     <Field label={t("wizard.headingFont")} hint={t("wizard.headingFontHint")}>
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible" data-testid="wizard-heading-font-picker">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-testid="wizard-heading-font-picker">
         {["default", ...Object.keys(HEADING_FONTS)].map((id) => (
           <button key={id} type="button" onClick={() => onChange(id)} data-testid={`wizard-heading-font-${id}`}
-            className={`flex min-w-[132px] shrink-0 flex-col items-start rounded-2xl border px-4 py-3 text-left transition-colors ${value === id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/50"}`}>
+            className={`flex min-w-0 flex-col items-start rounded-2xl border px-4 py-3 text-left transition-colors ${value === id ? "border-gold ring-2 ring-gold/30" : "border-border hover:border-gold/50"}`}>
             <span className="text-2xl leading-tight text-foreground" style={{ fontFamily: HEADING_FONTS[id] ? `${HEADING_FONTS[id].family}, ${HEADING_FONTS[id].generic}` : undefined }}>Aa</span>
             <span className="mt-1 text-xs text-muted-foreground">{t(`wizard.fonts.${id}`)}</span>
           </button>

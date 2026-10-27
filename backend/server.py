@@ -8,7 +8,7 @@ import re
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 from urllib.parse import urlencode
 
 import requests
@@ -93,6 +93,23 @@ class CustomHeader(BaseModel):
     color: Literal["gold", "white"] = "gold"
 
 
+class PhotoFit(BaseModel):
+    shape: Literal["full", "portrait", "square", "wide", "arch", "circle"] = "full"
+    x: float = Field(default=50, ge=0, le=100)
+    y: float = Field(default=40, ge=0, le=100)
+    zoom: float = Field(default=1, ge=1, le=4)
+    style: Literal["framed", "blended"] = "framed"
+
+
+MEAL_LABELS = {"breakfast": "Breakfast", "brunch": "Brunch", "lunch": "Lunch", "hightea": "High Tea",
+               "snacks": "Snacks / Refreshments", "supper": "Supper", "dinner": "Dinner", "hightea_dinner": "High Tea & Dinner"}
+
+
+def meal_name(ev):
+    meal = ev.get("meal", "")
+    return ev.get("meal_custom", "").strip() if meal == "custom" else MEAL_LABELS.get(meal, "")
+
+
 class EventItem(BaseModel):
     event_id: Optional[str] = None
     name: str = Field(min_length=1, max_length=60)
@@ -103,6 +120,10 @@ class EventItem(BaseModel):
     venue_address: str = Field(default="", max_length=300)
     map_link: str = Field(default="", max_length=500)
     dress_code: str = Field(default="", max_length=120)
+    meal: Literal["", "none", "breakfast", "brunch", "lunch", "hightea", "snacks", "supper", "dinner", "hightea_dinner", "custom"] = ""
+    meal_custom: str = Field(default="", max_length=60)
+    meal_line: str = Field(default="", max_length=140)
+    photo_fit: Optional[PhotoFit] = None
     custom_text: str = Field(default="", max_length=1000)
     photo: str = Field(default="", max_length=300)
     color: Literal["", "template", "emerald", "marigold", "magenta", "midnight", "crimson", "peacock", "coral", "lavender", "champagne", "blush"] = ""
@@ -152,6 +173,7 @@ class CardIn(BaseModel):
     custom_header: CustomHeader = Field(default_factory=CustomHeader)
     header_per_event: bool = False
     intro_title: str = Field(default="", max_length=80)
+    photo_fit: Dict[Literal["hero", "feature", "wishes"], PhotoFit] = Field(default_factory=dict)
 
     @field_validator("event_type")
     @classmethod
@@ -703,6 +725,12 @@ def ics_escape(s):
     return s.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
 
 
+def ics_description(card, ev):
+    meal = meal_name(ev)
+    line = ev.get("meal_line", "").strip() or (f"{meal} to follow" if meal else "")
+    return "\n".join(filter(None, [card.get("title", ""), line]))
+
+
 @api.get("/public/cards/{slug}/events/{event_id}/ics")
 async def event_ics(slug: str, event_id: str):
     card = await public_card(slug)
@@ -715,7 +743,7 @@ async def event_ics(slug: str, event_id: str):
         "BEGIN:VEVENT", f"UID:{card['card_id']}-{ev['event_id']}@invites",
         f"DTSTAMP:{now().strftime(fmt)}", f"DTSTART:{start.strftime(fmt)}", f"DTEND:{end.strftime(fmt)}",
         f"SUMMARY:{ics_escape(ev['name'] + ' - ' + names_line(card))}",
-        f"DESCRIPTION:{ics_escape(card.get('title', ''))}", f"LOCATION:{ics_escape(location)}",
+        f"DESCRIPTION:{ics_escape(ics_description(card, ev))}", f"LOCATION:{ics_escape(location)}",
         "END:VEVENT", "END:VCALENDAR", "",
     ])
     return Response(body, media_type="text/calendar; charset=utf-8",
@@ -754,7 +782,7 @@ async def share_page(slug: str, event_id: str, request: Request, to: str = "", g
     title = f"{intro_title(card)} · {names_line(card)}"
     if to:
         title = f"{INVITED.get(card.get('language', 'en'), INVITED['en']).format(to=to)} {title}"
-    desc = f"{date_s} at {time_s}" + (f" · {ev['venue_name']}" if ev["venue_name"] else "")
+    desc = " · ".join(filter(None, [f"{date_s} at {time_s}", meal_name(ev), ev["venue_name"]]))
     version = hashlib.md5(f"{card['updated_at']}{event_scheme(card, ev)}".encode()).hexdigest()[:8]
     image = f"{base}/api/og/{slug}/{ev['event_id']}.png?v={version}"
     e = html.escape

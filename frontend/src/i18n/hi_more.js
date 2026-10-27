@@ -34,11 +34,14 @@ const hiMore = {
     housewarming: ["नए घर की बहुत बधाई!", "नए घर में सुख, शांति और समृद्धि रहे।", "जल्द ही मिलने आएँगे!"],
     corporate: ["ज़रूर आएँगे!", "निमंत्रण के लिए धन्यवाद।", "इस उपलब्धि की बधाई!"],
   },
+  meals: { breakfast: "नाश्ता", brunch: "ब्रंच", lunch: "दोपहर का भोजन", hightea: "हाई टी", snacks: "जलपान", supper: "रात्रि भोज", dinner: "रात्रि भोज", hightea_dinner: "हाई टी और रात्रि भोज" },
+
   guest: {
     eyebrow: { engagement: "वादे के इस जश्न में", aqiqah: "नन्हे मेहमान के स्वागत में", babyShower: "एक नन्हा मेहमान आने वाला है", housewarming: "नए घर की खुशी में", corporate: "आप सादर आमंत्रित हैं" },
     corporate: { wishesTitle: "आयोजक को संदेश भेजें", wishesSubtitle: "एक छोटा सा संदेश लिखें, यह सीधे व्हाट्सऐप पर पहुँचेगा।", sendWishes: "व्हाट्सऐप पर संदेश भेजें", yourWish: "आपका संदेश", compliments: "आयोजक" },
     swipeUp: "खोलने के लिए ऊपर स्वाइप करें",
     swipe: "स्वाइप करें", celebrations: "समारोह", happeningNow: "अभी चल रहा है", concluded: "यह समारोह संपन्न हो चुका है",
+    meal: "भोजन", mealLine: "{meal} की व्यवस्था रहेगी",
     pageOf: "पेज {n} / {total}", goTo: "पेज {n} पर जाएँ",
     rsvpTitle: "क्या आप पधारेंगे?", rsvpSubtitle: "मेज़बानों को बताएँ। आपका जवाब व्हाट्सऐप पर उन तक पहुँचेगा।",
     rsvpYes: "सहर्ष स्वीकार", rsvpNo: "खेद सहित अस्वीकार", rsvpCount: "मेहमानों की संख्या", rsvpEvents: "कौन से समारोह?",

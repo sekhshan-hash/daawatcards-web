@@ -12,7 +12,7 @@ const FinalSections = ({ card, t, tpl, guestName, guestId, preview, onReplay, wi
   const blessing = blessingText(t, card);
   return (
     <>
-      {withIntro && card.photos?.[1] && <section className="gc-section"><Reveal><CardPhoto path={card.photos[1]} variant="feature" testId="card-feature-photo" /></Reveal></section>}
+      {withIntro && card.photos?.[1] && <section className="gc-section"><Reveal><CardPhoto path={card.photos[1]} fit={card.photo_fit?.feature} variant="feature" testId="card-feature-photo" /></Reveal></section>}
       {withIntro && blessing && <section className="gc-section"><Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal></section>}
       <WishesSection card={card} event={wishEvent(card)} guestName={guestName} guestId={guestId} t={t} preview={preview} />
       <FooterSection card={card} t={t} tpl={tpl} onReplay={onReplay} />

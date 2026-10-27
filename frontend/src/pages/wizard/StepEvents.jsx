@@ -5,12 +5,13 @@ import { getTemplate } from "@/templates/registry";
 import { SCHEME_IDS, autoScheme, schemeSwatch } from "@/templates/eventColors";
 import { Field, StepTitle } from "./Steps";
 import { WordingEditor } from "./WordingEditor";
+import { MEALS, mealLine } from "@/lib/meals";
 import { weddingSuggestions } from "@/i18n/traditions";
 import { t, makeT } from "@/i18n";
 
 export const blankEvent = (name, id) => ({
   event_id: id, name, date: "", time: "18:00", end_time: "", venue_name: "", venue_address: "", map_link: "", dress_code: "", custom_text: "", photo: "", color: "",
-  header_hidden: false, wording: null, dua: null, closing: null, concluded: null, rsvp_line: "",
+  header_hidden: false, wording: null, dua: null, closing: null, concluded: null, rsvp_line: "", meal: "none", meal_custom: "", meal_line: "",
 });
 
 const nextId = (events) => `e${Math.max(0, ...events.map((e) => parseInt(e.event_id.slice(1), 10) || 0)) + 1}`;
@@ -31,10 +32,36 @@ const ColorPicker = ({ ev, index, tpl, onChange }) => {
   };
   return (
     <Field label={t("wizard.eventColor")} hint={value === "" ? t("wizard.colorAutoHint", { name: t(`colors.${auto}`) }) : t(`colors.${value}`)}>
-      <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 py-1.5 sm:flex-wrap" data-testid={`wizard-event-${index}-colors`}>
+      <div className="flex flex-wrap gap-2.5 py-1.5" data-testid={`wizard-event-${index}-colors`}>
         <Swatch id="" label={t("colors.auto")} />
         <Swatch id="template" label={t("colors.template")} />
         {SCHEME_IDS.map((id) => <Swatch key={id} id={id} label={t(`colors.${id}`)} />)}
+      </div>
+    </Field>
+  );
+};
+
+const MealField = ({ ev, index, lang, onChange }) => {
+  const ct = makeT(lang);
+  const meal = ev.meal || "none";
+  const line = mealLine(ev, ct);
+  return (
+    <Field label={t("wizard.meal")}>
+      <div className="space-y-2" data-testid={`wizard-event-${index}-meal`}>
+        <select value={meal} onChange={(e) => onChange({ meal: e.target.value })} className="field-select h-12 w-full" data-testid={`wizard-event-${index}-meal-select`}>
+          {MEALS.map((m) => <option key={m} value={m}>{t(`meals.${m}`)}</option>)}
+        </select>
+        {meal === "custom" && (
+          <Input className="h-12 rounded-xl text-base" maxLength={60} value={ev.meal_custom || ""} onChange={(e) => onChange({ meal_custom: e.target.value })}
+            placeholder={t("wizard.mealCustom")} data-testid={`wizard-event-${index}-meal-custom-input`} />
+        )}
+        {meal !== "none" && (
+          <div>
+            <p className="mb-1 text-xs text-muted-foreground">{t("wizard.mealLine")}</p>
+            <Input className="h-12 rounded-xl text-base" maxLength={140} dir="auto" value={ev.meal_line || line}
+              onChange={(e) => onChange({ meal_line: e.target.value === mealLine({ ...ev, meal_line: "" }, ct) ? "" : e.target.value })} data-testid={`wizard-event-${index}-meal-line-input`} />
+          </div>
+        )}
       </div>
     </Field>
   );
@@ -70,6 +97,7 @@ const EventEditor = ({ ev, index, eventType, lang, tpl, multi, card, onChange, o
           <Field label={`${L.mapLink} (${L.optional})`}><Input className="h-12 rounded-xl text-base" placeholder="https://maps.app.goo.gl/…" maxLength={500} {...bind("map_link", "url")} /></Field>
           <Field label={`${L.dress} (${L.optional})`}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("dress_code")} /></Field>
         </div>
+        <MealField ev={ev} index={index} lang={lang} onChange={onChange} />
         <Field label={`${L.custom} (${L.optional})`}><Textarea className="rounded-xl text-base" maxLength={1000} {...bind("custom_text")} /></Field>
         <WordingEditor card={card} ev={ev} index={index} onChange={onChange} />
       </div>

@@ -8,6 +8,7 @@ const enMore = {
     boardroom: { name: "Boardroom", desc: "Navy and white, clean lines. A thin line draws across, then an elegant fade-up." },
   },
   music: { lullaby: "Lullaby" },
+  meals: { none: "None", breakfast: "Breakfast", brunch: "Brunch", lunch: "Lunch", hightea: "High Tea", snacks: "Snacks / Refreshments", supper: "Supper", dinner: "Dinner", hightea_dinner: "High Tea & Dinner", custom: "Custom" },
   colors: {
     auto: "Auto", template: "Template colours", emerald: "Mehndi green", marigold: "Haldi yellow", magenta: "Sangeet magenta",
     midnight: "Midnight blue", crimson: "Crimson", peacock: "Peacock teal", coral: "Coral", lavender: "Lavender", champagne: "Champagne", blush: "Blush pink",
@@ -67,6 +68,7 @@ const enMore = {
     corporate: { wishesTitle: "Send a note to the organiser", wishesSubtitle: "Share a quick note. It goes straight to the organiser on WhatsApp.", sendWishes: "Send note on WhatsApp", yourWish: "Your note", compliments: "Hosted by" },
     swipeUp: "Swipe up to reveal",
     swipe: "Swipe", celebrations: "The celebrations", happeningNow: "Happening now", concluded: "This event has concluded",
+    meal: "Meal", mealLine: "{meal} to follow",
     pageOf: "Page {n} of {total}", goTo: "Go to page {n}",
     rsvpTitle: "Will you join us?", rsvpSubtitle: "Let the hosts know. Your reply goes to them on WhatsApp.",
     rsvpYes: "Joyfully accept", rsvpNo: "Regretfully decline", rsvpCount: "Number of guests", rsvpEvents: "Which events?",
@@ -99,6 +101,12 @@ const enMore = {
     scripts: { latin: "English", deva: "Hindi", arabic: "Urdu / Arabic", guru: "Punjabi", other: "Other" },
     sizeS: "Small", sizeM: "Medium", sizeL: "Large", colorGold: "Theme gold", colorWhite: "White", clearCustom: "Clear custom line",
     headerPerEvent: "Use a different header line for each event",
+    stepOf: "Step {n} of {total}: {name}", jumpStep: "Jump to step",
+    meal: "Meal / food served", mealCustom: "Your meal name (e.g. Dawat-e-Walima Dinner)", mealLine: "Line on the card",
+    adjust: "Adjust", adjustTitle: "Adjust photo", adjustHint: "Drag to move, pinch or use the slider to zoom. The preview shows exactly how it looks on the card.",
+    shape: "Shape", zoom: "Zoom", photoStyle: "Photo style", done: "Done",
+    shapes: { full: "Show full photo", portrait: "Portrait 4:5", square: "Square", wide: "Wide 16:9", arch: "Arch", circle: "Circle" },
+    styles: { framed: "Framed", blended: "Blended" },
     introTitle: "Invitation title on the first screen", introTitleHint: "Shown above \"Specially for\" on the opening screen and in the WhatsApp preview.",
     family: "Family block", familyHint: "Printed-card style family line on the cover. Leave parts blank to skip them.",
     familyFields: {

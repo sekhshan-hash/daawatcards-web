@@ -20,6 +20,14 @@
 
 .wizard-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: flex; justify-content: space-between; gap: 12px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); background: rgba(15,11,21,.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid hsl(var(--border)); }
 @media (min-width: 1024px) { .wizard-nav { position: static; padding: 32px 0 0; background: none; border: 0; backdrop-filter: none; } }
+/* Host pages never scroll sideways: grids shrink to the screen and fields stay inside their cards. */
+.host-app, .host-app * { box-sizing: border-box; }
+.host-app { overflow-x: clip; }
+.host-app .grid:not([class*="grid-cols"]) { grid-template-columns: minmax(0, 1fr); }
+.host-app .grid > *, .host-app .flex > .flex-1 { min-width: 0; }
+.host-app input, .host-app select, .host-app textarea { max-width: 100%; min-width: 0; }
+.host-app input[type="date"], .host-app input[type="time"] { width: 100%; -webkit-appearance: none; appearance: none; }
+@media (max-width: 639px) { .host-app main, .host-app header > div { padding-left: 16px; padding-right: 16px; } }
 
 .phone-frame { position: relative; width: 340px; max-width: 100%; height: 690px; margin: 0 auto; border-radius: 46px; padding: 10px; background: #1d1628; box-shadow: 0 0 0 1px #3a2f4d, 0 40px 80px rgba(0,0,0,.55), 0 0 120px rgba(230,183,86,.08); }
 .phone-screen { position: relative; height: 100%; width: 100%; border-radius: 36px; overflow: hidden; background: #000; transform: translateZ(0); }

@@ -49,11 +49,12 @@ const gcalStamp = (ms) => new Date(ms).toISOString().replace(/[-:]/g, "").replac
 
 export const venueLine = (ev) => [ev.venue_name, ev.venue_address].filter(Boolean).join(", ");
 
-export const googleCalendarUrl = (card, ev) => {
+export const googleCalendarUrl = (card, ev, extra = "") => {
   const s = eventStartMs(ev, card.timezone);
   if (Number.isNaN(s)) return "";
   const e = eventEndMs(ev, card.timezone);
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${enc(`${ev.name} - ${namesLine(card)}`)}&dates=${gcalStamp(s)}/${gcalStamp(e)}&details=${enc(card.title || "")}&location=${enc(venueLine(ev))}`;
+  const details = [card.title, extra].filter(Boolean).join("\n");
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${enc(`${ev.name} - ${namesLine(card)}`)}&dates=${gcalStamp(s)}/${gcalStamp(e)}&details=${enc(details)}&location=${enc(venueLine(ev))}`;
 };
 
 export const directionsUrl = (ev) =>

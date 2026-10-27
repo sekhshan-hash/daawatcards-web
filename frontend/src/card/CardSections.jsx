@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CalendarPlus, ChevronDown, Clock, MapPin, Navigation, RotateCcw, Shirt, CalendarDays } from "lucide-react";
+import { CalendarPlus, ChevronDown, Clock, MapPin, Navigation, RotateCcw, Shirt, CalendarDays, UtensilsCrossed } from "lucide-react";
 import { BRAND } from "@/config/brand";
 import { COUPLE_TYPES, blessingText, tCorp } from "@/i18n";
 import { useInView } from "@/hooks/useMedia";
@@ -7,6 +7,7 @@ import { directionsUrl, eventStartMs, eventStatus, formatLongDate, formatShortDa
 import { icsUrl } from "@/lib/links";
 import { eventConcluded, familyText } from "@/i18n/traditions";
 import { CardPhoto } from "./CardPhoto";
+import { mealLine } from "@/lib/meals";
 import { FitText } from "./FitText";
 import { ClosingLine, EventDua, EventWording, FamilyBlock, HeaderLine } from "./Wording";
 
@@ -25,7 +26,7 @@ export const TitleSection = ({ card, event, t, tpl, single, cover = false, event
     <section className={`gc-title-screen ${single ? "is-single" : ""} ${cover ? "is-cover" : ""} ${card.photos?.[0] ? "has-photo" : ""}`} data-testid="card-title-section">
       <Frame />
       <HeaderLine card={card} testId="card-cover-header-line" />
-      <CardPhoto path={card.photos?.[0]} variant="hero" testId="card-hero-photo" />
+      <CardPhoto path={card.photos?.[0]} fit={card.photo_fit?.hero} variant="hero" testId="card-hero-photo" />
       <FamilyBlock card={card} />
       {!familyText(card) && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
       {couple ? (
@@ -55,7 +56,9 @@ export const TitleSection = ({ card, event, t, tpl, single, cover = false, event
         </ul>
       ) : (
         <>
-          <p className="gc-chip" data-testid="card-title-event-chip">{event.name}{event.date ? ` · ${formatShortDate(event.date, card.language)}` : ""}</p>
+          <p className="gc-chip" data-testid="card-title-event-chip">
+            {[!card.title && event.name, formatShortDate(event.date, card.language), formatTime(event.time, card.language)].filter(Boolean).join(" · ")}
+          </p>
           <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
         </>
       )}
@@ -79,17 +82,18 @@ export const DetailsSection = ({ card, event, t, page = false }) => {
     <section className="gc-section" data-testid="card-details-section">
       {page && <HeaderLine card={card} ev={event} testId="card-event-header-line" />}
       {!page && card.invitation_text && <Reveal><p className="gc-invite" data-testid="card-invitation-text">{card.invitation_text}</p></Reveal>}
-      {!page && card.photos?.[1] && <Reveal><CardPhoto path={card.photos[1]} variant="feature" testId="card-feature-photo" /></Reveal>}
+      {!page && card.photos?.[1] && <Reveal><CardPhoto path={card.photos[1]} fit={card.photo_fit?.feature} variant="feature" testId="card-feature-photo" /></Reveal>}
       {!page && blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
       <Reveal><EventWording card={card} ev={event} /></Reveal>
       <Reveal>
         <div className="gc-panel">
-          <CardPhoto path={event.photo} variant="event" testId="card-event-photo" />
+          <CardPhoto path={event.photo} fit={event.photo_fit} variant="event" testId="card-event-photo" />
           <p className="gc-eyebrow">{t("guest.eventLabel")}</p>
           <h2 className="gc-heading" data-testid="card-event-name">{event.name}</h2>
           <div className="gc-rows">
             <Row icon={CalendarDays} label={t("guest.date")} value={formatLongDate(event.date, card.language) || "—"} testId="card-event-date" />
             <Row icon={Clock} label={t("guest.time")} value={time || "—"} testId="card-event-time" />
+            {mealLine(event, t) && <Row icon={UtensilsCrossed} label={t("guest.meal")} value={mealLine(event, t)} testId="card-event-meal" />}
             {event.dress_code && <Row icon={Shirt} label={t("guest.dressCode")} value={event.dress_code} testId="card-event-dress-code" />}
           </div>
           {event.custom_text && <p className="gc-note" data-testid="card-event-custom-text">{event.custom_text}</p>}
@@ -151,7 +155,7 @@ export const CountdownSection = ({ card, event, t }) => {
 
 export const VenueSection = ({ card, event, t, preview }) => {
   const [open, setOpen] = useState(false);
-  const gcal = googleCalendarUrl(card, event);
+  const gcal = googleCalendarUrl(card, event, mealLine(event, t));
   const over = eventStatus(event, card.timezone) === "over";
   return (
     <section className="gc-section" data-testid="card-venue-section">

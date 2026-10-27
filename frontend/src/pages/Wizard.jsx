@@ -24,12 +24,12 @@ const defaultCard = (type, lang = "en", tradition = "neutral") => {
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
     title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
-    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "",
+    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {},
     events: names.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
@@ -150,7 +150,18 @@ export default function Wizard() {
     <HostShell>
       <Link to={card.card_id ? `/cards/${card.card_id}` : "/dashboard"} className="text-sm text-muted-foreground hover:text-foreground">← {t("dashboard.title")}</Link>
       <h1 className="mt-3 font-display text-3xl text-foreground sm:text-4xl">{card.card_id ? t("wizard.editTitle") : t("wizard.newTitle")}</h1>
-      <ol className="mt-8 flex gap-2 overflow-x-auto pb-2" data-testid="wizard-progress">
+      <div className="mt-6 sm:hidden" data-testid="wizard-progress-mobile">
+        <div className="flex items-center justify-between gap-3">
+          <p className="min-w-0 flex-1 text-sm font-semibold text-foreground" data-testid="wizard-progress-label">{t("wizard.stepOf", { n: step + 1, total: steps.length, name: steps[step] })}</p>
+          <select value={step} onChange={(e) => goTo(Number(e.target.value))} aria-label={t("wizard.jumpStep")} className="field-select shrink-0 text-sm" style={{ width: 132, height: 40 }} data-testid="wizard-step-select">
+            {steps.map((s, i) => <option key={s} value={i}>{i + 1}. {s}</option>)}
+          </select>
+        </div>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary">
+          <div className="h-full rounded-full bg-gold transition-[width] duration-500" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
+        </div>
+      </div>
+      <ol className="mt-8 hidden gap-2 overflow-x-auto pb-2 sm:flex" data-testid="wizard-progress">
         {steps.map((s, i) => (
           <li key={s}>
             <button type="button" onClick={() => goTo(i)} data-testid={`wizard-step-tab-${i}`}

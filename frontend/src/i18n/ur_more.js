@@ -34,11 +34,14 @@ const urMore = {
     housewarming: ["نئے گھر کی بہت مبارکباد!", "نئے گھر میں سکون اور برکت ہو۔", "جلد ملنے آئیں گے!"],
     corporate: ["ضرور آئیں گے!", "دعوت کا شکریہ۔", "اس کامیابی پر مبارکباد!"],
   },
+  meals: { breakfast: "ناشتہ", brunch: "برنچ", lunch: "ظہرانہ", hightea: "ہائی ٹی", snacks: "ریفریشمنٹ", supper: "عشائیہ", dinner: "عشائیہ", hightea_dinner: "ہائی ٹی اور عشائیہ" },
+
   guest: {
     eyebrow: { engagement: "وعدے کی اس خوشی میں", aqiqah: "ننھے مہمان کے استقبال میں", babyShower: "ایک ننھا مہمان آنے والا ہے", housewarming: "نئے گھر کی خوشی میں", corporate: "آپ کو مدعو کیا جاتا ہے" },
     corporate: { wishesTitle: "منتظم کو پیغام بھیجیں", wishesSubtitle: "ایک مختصر پیغام لکھیں، یہ سیدھا واٹس ایپ پر پہنچے گا۔", sendWishes: "واٹس ایپ پر پیغام بھیجیں", yourWish: "آپ کا پیغام", compliments: "میزبان" },
     swipeUp: "کھولنے کے لیے اوپر سوائپ کریں",
     swipe: "سوائپ کریں", celebrations: "تقریبات", happeningNow: "ابھی جاری ہے", concluded: "یہ تقریب اختتام پذیر ہو چکی ہے",
+    meal: "طعام", mealLine: "{meal} کا اہتمام ہوگا",
     pageOf: "صفحہ {n} / {total}", goTo: "صفحہ {n} پر جائیں",
     rsvpTitle: "کیا آپ تشریف لائیں گے؟", rsvpSubtitle: "میزبانوں کو بتائیں۔ آپ کا جواب واٹس ایپ پر ان تک پہنچے گا۔",
     rsvpYes: "بخوشی قبول", rsvpNo: "معذرت کے ساتھ انکار", rsvpCount: "مہمانوں کی تعداد", rsvpEvents: "کون سی تقریبات؟",

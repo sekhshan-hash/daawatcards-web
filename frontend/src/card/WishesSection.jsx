@@ -31,7 +31,7 @@ export const WishesSection = ({ card, event, guestName, guestId, t, preview }) =
     <section className="gc-section" data-testid="card-wishes-section">
       <Reveal>
         <div className="gc-panel">
-          <CardPhoto path={card.wishes_photo} variant="wishes" testId="card-wishes-photo" />
+          <CardPhoto path={card.wishes_photo} fit={card.photo_fit?.wishes} variant="wishes" testId="card-wishes-photo" />
           <h2 className="gc-heading gc-center">{tCorp(t, card, "wishesTitle")}</h2>
           <p className="gc-muted gc-center">{tCorp(t, card, "wishesSubtitle")}</p>
           <label className="gc-label" htmlFor="wish-name">{t("guest.yourName")}</label>
