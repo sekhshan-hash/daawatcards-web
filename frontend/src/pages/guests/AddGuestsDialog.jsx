@@ -1,31 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BookUser, FileUp, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { api, errMsg } from "@/lib/api";
-import { parseFile, parseLines, pickContacts, supportsContacts } from "@/lib/guestImport";
+import { cleanPhone, parseFile, parseLines, pickContacts, supportsContacts } from "@/lib/guestImport";
 import { EventChips } from "./shared";
 import { t } from "@/i18n";
 
-const ReviewList = ({ rows, setRows, onAdd, busy }) => {
+const keyOf = (r) => cleanPhone(r.phone) || r.name.trim().toLowerCase();
+
+const ReviewList = ({ rows, setRows, onAdd, busy, existingKeys, merge, setMerge }) => {
   const set = (i, patch) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const dups = rows.filter((r) => existingKeys.has(keyOf(r))).length;
   return (
     <div className="mt-5 space-y-3" data-testid="add-guests-review">
       <p className="text-sm text-muted-foreground">{t("guests.review")}</p>
       <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {rows.map((r, i) => (
-          <div key={i} className="flex flex-col gap-2 rounded-xl border border-border/60 p-2 sm:flex-row sm:border-0 sm:p-0" data-testid={`review-row-${i}`}>
+          <div key={i} className="flex flex-col gap-2 rounded-xl border border-border/60 p-2 sm:flex-row sm:flex-wrap sm:border-0 sm:p-0" data-testid={`review-row-${i}`}>
             <Input value={r.name} onChange={(e) => set(i, { name: e.target.value })} dir="auto" className="h-11 flex-1 rounded-xl" aria-label={t("guests.name")} data-testid={`review-row-${i}-name`} />
             <div className="flex gap-2">
               <Input value={r.phone} onChange={(e) => set(i, { phone: e.target.value })} className="h-11 flex-1 rounded-xl sm:w-36" inputMode="tel" aria-label={t("guests.phone")} data-testid={`review-row-${i}-phone`} />
               <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground hover:text-rose" aria-label="Remove" data-testid={`review-row-${i}-remove`}><X size={15} /></button>
             </div>
+            {existingKeys.has(keyOf(r)) && <p className="w-full text-xs text-amber-300" data-testid={`review-row-${i}-dup`}>{t("guests.dupHint")}</p>}
           </div>
         ))}
       </div>
+      {dups > 0 && (
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3 text-sm">
+          {t("guests.dupMerge")}
+          <Switch checked={merge} onCheckedChange={setMerge} data-testid="add-guests-merge-switch" />
+        </label>
+      )}
       <button type="button" onClick={onAdd} disabled={busy || !rows.length} className="btn-gold w-full" data-testid="add-guests-confirm-button">
         {t("guests.addMany", { count: rows.filter((r) => r.name.trim()).length })}
       </button>
@@ -33,8 +44,10 @@ const ReviewList = ({ rows, setRows, onAdd, busy }) => {
   );
 };
 
-export const AddGuestsDialog = ({ open, onOpenChange, card, onAdded }) => {
+export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, onMerged }) => {
   const [rows, setRows] = useState([]);
+  const [merge, setMerge] = useState(false);
+  const existingKeys = useMemo(() => new Set(existing.map((g) => g.phone || g.name.toLowerCase())), [existing]);
   const [eventIds, setEventIds] = useState(card.events.map((e) => e.event_id));
   const [one, setOne] = useState({ name: "", phone: "" });
   const [paste, setPaste] = useState("");
@@ -46,9 +59,10 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, onAdded }) => {
   const submit = async (list) => {
     setBusy(true);
     try {
-      const { data } = await api.post(`/cards/${card.card_id}/guests/bulk`, { guests: list.map((r) => ({ name: r.name, phone: r.phone, event_ids: eventIds })) });
-      toast.success(t("guests.added", data));
+      const { data } = await api.post(`/cards/${card.card_id}/guests/bulk`, { guests: list.map((r) => ({ name: r.name, phone: r.phone, event_ids: eventIds })), on_duplicate: merge ? "merge" : "skip" });
+      toast.success(t(data.merged ? "guests.addedMerged" : "guests.added", data));
       onAdded(data.guests);
+      if (data.merged) onMerged();
       return true;
     } catch (e) {
       toast.error(errMsg(e));
@@ -69,7 +83,13 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, onAdded }) => {
       onOpenChange(false);
     }
   };
-  const load = (list) => (list.length ? setRows((r) => [...r, ...list]) : toast.error(t("guests.nothingFound")));
+  const load = (list) => {
+    if (!list.length) return toast.error(t("guests.nothingFound"));
+    const seen = new Set(rows.map(keyOf));
+    const fresh = list.filter((r) => !seen.has(keyOf(r)) && seen.add(keyOf(r)));
+    if (fresh.length < list.length) toast(t("guests.reviewDeduped", { count: list.length - fresh.length }));
+    setRows([...rows, ...fresh]);
+  };
   const onFile = async (e) => {
     const f = e.target.files?.[0];
     e.target.value = "";
@@ -117,7 +137,7 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, onAdded }) => {
             {supportsContacts() && <button type="button" onClick={onContacts} className="btn-outline mt-3 w-full" data-testid="add-guests-contacts-button"><BookUser size={16} /> {t("guests.contactsPick")}</button>}
           </TabsContent>
         </Tabs>
-        {rows.length > 0 && <ReviewList rows={rows} setRows={setRows} onAdd={addRows} busy={busy} />}
+        {rows.length > 0 && <ReviewList rows={rows} setRows={setRows} onAdd={addRows} busy={busy} existingKeys={existingKeys} merge={merge} setMerge={setMerge} />}
       </DialogContent>
     </Dialog>
   );

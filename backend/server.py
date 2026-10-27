@@ -138,6 +138,24 @@ class GuestIn(BaseModel):
 
 class GuestBulkIn(BaseModel):
     guests: List[GuestIn] = Field(min_length=1, max_length=1000)
+    on_duplicate: Literal["skip", "merge"] = "skip"
+
+
+class GuestIdsIn(BaseModel):
+    guest_ids: List[str] = Field(min_length=1, max_length=2000)
+
+
+class GuestRename(BaseModel):
+    guest_id: str
+    name: str = Field(min_length=1, max_length=80)
+
+
+class GuestRenameIn(BaseModel):
+    guests: List[GuestRename] = Field(min_length=1, max_length=2000)
+
+
+class InviteTemplateIn(BaseModel):
+    template: str = Field(default="", max_length=2000)
 
 
 class OpenIn(BaseModel):
@@ -457,23 +475,62 @@ async def list_guests(card_id: str, user: dict = Depends(current_user)):
 @api.post("/cards/{card_id}/guests/bulk")
 async def add_guests(card_id: str, body: GuestBulkIn, user: dict = Depends(current_user)):
     card = await owned_card(card_id, user)
-    existing = await db.guests.find({"card_id": card_id}, {"_id": 0, "name": 1, "phone": 1}).to_list(5000)
-    seen = {g["phone"] or g["name"].lower() for g in existing}
-    docs, skipped = [], 0
+    existing = await db.guests.find({"card_id": card_id}, {"_id": 0, "guest_id": 1, "name": 1, "phone": 1}).to_list(5000)
+    seen = {g["phone"] or g["name"].lower(): g["guest_id"] for g in existing}
+    docs, skipped, merged = [], 0, 0
     for g in body.guests:
         name = re.sub(r"\s+", " ", g.name.strip())
         phone = clean_phone(g.phone)
         key = phone or name.lower()
-        if not name or key in seen:
+        if not name:
             skipped += 1
             continue
-        seen.add(key)
+        if key in seen:
+            if body.on_duplicate == "merge" and seen[key]:
+                await db.guests.update_one({"card_id": card_id, "guest_id": seen[key]}, {"$set": {"name": name}})
+                merged += 1
+            else:
+                skipped += 1
+            continue
+        seen[key] = None
         docs.append({"guest_id": uuid.uuid4().hex[:10], "card_id": card_id, "name": name, "phone": phone,
                      "event_ids": guest_events(card, g.event_ids), "sent_at": None, "opened_at": None,
                      "open_count": 0, "created_at": now().isoformat()})
     if docs:
         await db.guests.insert_many([dict(d) for d in docs])
-    return {"added": len(docs), "skipped": skipped, "guests": docs}
+    return {"added": len(docs), "skipped": skipped, "merged": merged, "guests": docs}
+
+
+@api.post("/cards/{card_id}/guests/bulk-delete")
+async def bulk_delete_guests(card_id: str, body: GuestIdsIn, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    res = await db.guests.delete_many({"card_id": card_id, "guest_id": {"$in": body.guest_ids}})
+    return {"deleted": res.deleted_count}
+
+
+@api.post("/cards/{card_id}/guests/bulk-rename")
+async def bulk_rename_guests(card_id: str, body: GuestRenameIn, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    for g in body.guests:
+        await db.guests.update_one({"card_id": card_id, "guest_id": g.guest_id},
+                                   {"$set": {"name": re.sub(r"\s+", " ", g.name.strip())}})
+    return await db.guests.find({"card_id": card_id}, {"_id": 0}).sort("created_at", 1).to_list(5000)
+
+
+@api.put("/cards/{card_id}/invite-template")
+async def set_invite_template(card_id: str, body: InviteTemplateIn, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    await db.cards.update_one({"card_id": card_id}, {"$set": {"invite_template": body.template.strip()}})
+    return await owned_card(card_id, user)
+
+
+@api.delete("/cards/{card_id}/guests/{guest_id}/sent")
+async def undo_sent(card_id: str, guest_id: str, user: dict = Depends(current_user)):
+    await owned_card(card_id, user)
+    res = await db.guests.update_one({"card_id": card_id, "guest_id": guest_id}, {"$set": {"sent_at": None}})
+    if not res.matched_count:
+        raise HTTPException(404, "Guest not found")
+    return await db.guests.find_one({"guest_id": guest_id}, {"_id": 0})
 
 
 @api.put("/cards/{card_id}/guests/{guest_id}")

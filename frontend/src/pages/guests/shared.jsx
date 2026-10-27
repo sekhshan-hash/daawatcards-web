@@ -11,14 +11,22 @@ const invitedEvents = (card, g) => {
 
 export const guestLink = (card, g) => shareUrl(card.slug, invitedEvents(card, g)[0].event_id, g.name, g.guest_id);
 
-export const inviteMessage = (card, g) => {
-  const ct = makeT(card.language);
+export const PLACEHOLDERS = ["guest", "event", "names", "date", "link"];
+
+export const defaultTemplate = (card) =>
+  makeT(card.language)("whatsapp.invite", Object.fromEntries(PLACEHOLDERS.map((k) => [k, `{${k}}`])));
+
+export const fillTemplate = (card, g, template = card.invite_template || defaultTemplate(card)) => {
   const evs = invitedEvents(card, g);
-  return ct("whatsapp.invite", {
+  const vars = {
     guest: g.name, event: evs.map((e) => e.name).join(", "), names: namesLine(card),
     date: formatLongDate(evs[0].date, card.language), link: guestLink(card, g),
-  });
+  };
+  const text = template.replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m);
+  return template.includes("{link}") ? text : `${text}\n\n${vars.link}`;
 };
+
+export const inviteMessage = (card, g) => fillTemplate(card, g);
 
 export const guestWaLink = (card, g) => waLink(g.phone, inviteMessage(card, g));
 

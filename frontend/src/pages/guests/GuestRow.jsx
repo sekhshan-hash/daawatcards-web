@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { Copy, MessageCircle, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { api, errMsg } from "@/lib/api";
@@ -34,11 +35,14 @@ const GuestEditor = ({ card, guest, onSaved, onCancel }) => {
   );
 };
 
-export const GuestRow = ({ card, guest, onChange, onDelete }) => {
+const sentTime = (iso) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+
+export const GuestRow = ({ card, guest, onChange, onDelete, selected, onSelect }) => {
   const [editing, setEditing] = useState(false);
   if (editing) return <GuestEditor card={card} guest={guest} onCancel={() => setEditing(false)} onSaved={(g) => { onChange(g); setEditing(false); }} />;
 
   const markSent = () => api.post(`/cards/${card.card_id}/guests/${guest.guest_id}/sent`).then((r) => onChange(r.data)).catch(() => {});
+  const undoSent = () => api.delete(`/cards/${card.card_id}/guests/${guest.guest_id}/sent`).then((r) => onChange(r.data)).catch((e) => toast.error(errMsg(e)));
   const copy = async () => {
     await copyText(guestLink(card, guest));
     toast.success(t("common.copied"));
@@ -55,16 +59,21 @@ export const GuestRow = ({ card, guest, onChange, onDelete }) => {
   const events = card.events.length > 1 ? card.events.filter((e) => guest.event_ids.includes(e.event_id)).map((e) => e.name).join(" · ") : "";
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 sm:flex-row sm:items-center" data-testid={`guest-row-${guest.guest_id}`}>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate font-semibold text-foreground" dir="auto" data-testid="guest-row-name">{guest.name}</p>
-          <StatusPill status={statusOf(guest)} />
+    <div className={`flex flex-col gap-3 rounded-2xl border bg-card px-4 py-3.5 transition-colors sm:flex-row sm:items-center ${selected ? "border-gold/70 bg-gold/5" : "border-border"}`} data-testid={`guest-row-${guest.guest_id}`}>
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <Checkbox checked={selected} onCheckedChange={() => onSelect(guest.guest_id)} aria-label={t("guests.select")} data-testid={`guest-select-${guest.guest_id}`} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate font-semibold text-foreground" dir="auto" data-testid="guest-row-name">{guest.name}</p>
+            <StatusPill status={statusOf(guest)} />
+            {guest.sent_at && <span className="text-[11px] text-muted-foreground" data-testid="guest-row-sent-time">{sentTime(guest.sent_at)}</span>}
+          </div>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground" data-testid="guest-row-phone">{[guest.phone || t("guests.noNumber"), events].filter(Boolean).join("  ·  ")}</p>
         </div>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{[guest.phone, events].filter(Boolean).join("  ·  ") || "—"}</p>
       </div>
       <div className="flex shrink-0 gap-2">
         <a href={guestWaLink(card, guest)} target="_blank" rel="noreferrer" onClick={markSent} className="btn-chip border-emerald-500/50 text-emerald-300" data-testid={`guest-whatsapp-${guest.guest_id}`}><MessageCircle size={14} /> WhatsApp</a>
+        {statusOf(guest) === "sent" && <button type="button" onClick={undoSent} className="btn-chip" aria-label={t("guests.undoSent")} title={t("guests.undoSent")} data-testid={`guest-undo-sent-${guest.guest_id}`}><RotateCcw size={14} /></button>}
         <button type="button" onClick={copy} className="btn-chip" aria-label={t("common.copy")} data-testid={`guest-copy-${guest.guest_id}`}><Copy size={14} /></button>
         <button type="button" onClick={() => setEditing(true)} className="btn-chip" aria-label={t("guests.edit")} data-testid={`guest-edit-${guest.guest_id}`}><Pencil size={14} /></button>
         <AlertDialog>
