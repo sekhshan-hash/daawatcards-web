@@ -100,8 +100,19 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Tested: iteration_11 (backend 186/187 + fixes: card-detail publish, inert, toast, labels, gallery label strip)
 - Pending: payment checkbox (payments not built yet); Gmail keys
 
-## Backlog
+## Implemented (Iteration 12: plans, mock Razorpay, admin dashboard) — 2026-10
+- Plans per card: free | paid | paid_without_payment (backend/billing.py effective_plan, guest_limit). New cards free; pre-existing cards migrated to paid_without_payment "launch grant" (migrate_plans at startup). Free: max free_guest_limit guests (402 on bulk add), watermark flag on public card JSON + corner on OG image; card/Watermark.jsx diagonal text + banner (pointer-events none)
+- Payments (PAYMENT_MODE=mock|test|live, default mock = MOCKED): server order (11682 paise), mock sheet / Razorpay checkout.js, HMAC verify, /api/webhooks/razorpay (raw-body signature, amount check, idempotent), payments collection with mode, invoice numbers DW-YYYY-NNNNN, receipt page + PDF (PIL). Keys: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET
+- UI: plan badges + Upgrade (dashboard, guest list "x / 2 guests used", wizard publish), /cards/:id/upgrade, /receipt/:orderId, PlansTable on pricing
+- Admin /admin tabs: overview, users (account grant/revoke), cards (grant/revoke/disable/delete), free-card events, revenue (mock excluded, CSV), support (new/called/closed + notes), settings (price, GST, free limit, GSTIN, grievance, extra admin emails), audit log
+- Landing hero demo buttons removed; welcome screen renders under intro (no cover flash)
+- Tested: iteration_12 (25/25 plan/billing tests after fixes)
+- Round 2 (next): admin email+password login (hashed, lockout, optional 2FA, one-time setup), design-preference charts; update 5 older regression tests that assume unlimited guests; Gmail app password (16 letters) still needed
+
 
 
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider
+
+## Backlog
+- See Round 2 above; P1 real Razorpay keys (PAYMENT_MODE=test/live)

@@ -200,6 +200,9 @@ def build_billing_router(db, current_user, now, owned_card, admin_user):
         event = json.loads(raw)
         ent = event.get("payload", {}).get("payment", {}).get("entity", {})
         if event.get("event") == "payment.captured" and ent.get("order_id"):
+            p = await db.payments.find_one({"order_id": ent["order_id"]}, {"_id": 0, "total": 1, "currency": 1})
+            if not p or ent.get("amount") != p["total"] or ent.get("currency", "INR") != p["currency"]:
+                raise HTTPException(400, "Amount mismatch")
             await mark_paid(ent["order_id"], ent.get("id", ""), "webhook")
         elif event.get("event") == "payment.failed" and ent.get("order_id"):
             await db.payments.update_one({"order_id": ent["order_id"], "status": "created"}, {"$set": {"status": "failed"}})
@@ -257,12 +260,20 @@ def build_billing_router(db, current_user, now, owned_card, admin_user):
 
     @r.get("/admin/cards")
     async def admin_cards(plan: str = "", _: dict = Depends(admin_user)):
-        flt = {"plan": plan} if plan else {}
-        cards = await db.cards.find(flt, {"_id": 0, "card_id": 1, "slug": 1, "primary_name": 1, "secondary_name": 1, "plan": 1, "template": 1,
-                                          "event_type": 1, "created_at": 1, "owner_id": 1, "status": 1, "disabled": 1, "grant": 1, "events": 1}).sort("created_at", -1).to_list(1000)
+        cards = await db.cards.find({}, {"_id": 0, "card_id": 1, "slug": 1, "primary_name": 1, "secondary_name": 1, "plan": 1, "template": 1,
+                                         "event_type": 1, "created_at": 1, "owner_id": 1, "status": 1, "disabled": 1, "grant": 1, "events": 1}).sort("created_at", -1).to_list(2000)
         emails = {u["user_id"]: u.get("email") async for u in db.users.find({}, {"_id": 0, "user_id": 1, "email": 1})}
-        return [{**c, "plan": c.get("plan", "free"), "owner_email": emails.get(c["owner_id"], c["owner_id"]),
+        acct = {u["user_id"] async for u in db.users.find({"account_grant": {"$ne": None}}, {"_id": 0, "user_id": 1, "account_grant": 1})
+                if grant_active(u.get("account_grant"), now())}
+
+        def eff(c):
+            p = c.get("plan", "free")
+            if p == "paid_without_payment" and not grant_active(c.get("grant") or {"until": ""}, now()):
+                p = "free"
+            return "paid_without_payment" if p == "free" and c["owner_id"] in acct else p
+        rows = [{**c, "plan": eff(c), "owner_email": emails.get(c["owner_id"], c["owner_id"]),
                  "dates": sorted(e["date"] for e in c.pop("events", []) if e.get("date"))} for c in cards]
+        return [r for r in rows if not plan or r["plan"] == plan]
 
     @r.get("/admin/free-events")
     async def free_events(_: dict = Depends(admin_user)):
@@ -294,13 +305,15 @@ def build_billing_router(db, current_user, now, owned_card, admin_user):
 
     @r.patch("/admin/cards/{card_id}")
     async def disable_card(card_id: str, body: CardAdminIn, admin: dict = Depends(admin_user)):
-        await db.cards.update_one({"card_id": card_id}, {"$set": {"disabled": body.disabled}})
+        if not (await db.cards.update_one({"card_id": card_id}, {"$set": {"disabled": body.disabled}})).matched_count:
+            raise HTTPException(404, "Card not found")
         await audit(admin, "disable_card" if body.disabled else "enable_card", card_id)
         return {"ok": True}
 
     @r.delete("/admin/cards/{card_id}")
     async def delete_card(card_id: str, admin: dict = Depends(admin_user)):
-        await db.cards.delete_one({"card_id": card_id})
+        if not (await db.cards.delete_one({"card_id": card_id})).deleted_count:
+            raise HTTPException(404, "Card not found")
         await db.guests.delete_many({"card_id": card_id})
         await audit(admin, "delete_card", card_id)
         return {"ok": True}

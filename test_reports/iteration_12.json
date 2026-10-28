@@ -1,0 +1,51 @@
+{
+  "summary": "Tested per-card plans (free / paid / paid_without_payment), mock Razorpay billing, the webhook, invoices, admin dashboard APIs and UI, guest card watermark, upgrade and receipt pages, pricing, landing and the welcome blink fix. New pytest file test_iteration12_plans_billing_admin.py: 24 of 25 pass. The one failure is a real bug: an expired card grant is ignored on the public card and the OG image. All requested UI flows work. One visible UI bug: the 'Simulate failure' button in the mock checkout cannot be seen (no background, white text on white). 5 older regression tests fail only because new cards now start free with a 2-guest limit (an expected change in behaviour); the tests need updating.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/public/cards/{slug} and /api/og/{slug}/{ev}.png", "issue": "public_card() reads the card with projection {'grant': 0}. effective_plan() then sees no grant and treats it as {'until': ''}, which counts as always active. So a card-level paid_without_payment grant with a past 'until' date still shows no watermark on the public card and OG image, while /api/billing/cards/{id} correctly says 'free'. Guest-limit checks are correct because owned_card loads the full doc. Fix: drop 'grant' from the projection, compute the plan, then pop 'grant' before returning. Reproduced by test_expired_grant_public_watermark."},
+      {"endpoint": "GET /api/cards/{id} (used by the Wizard)", "issue": "Returns the stored plan, not the effective plan. For a user with an account-level grant, or a card whose grant has expired, the Wizard preview shows the wrong watermark and wrong wizard-free-plan-note, because Wizard uses card.plan. GET /api/cards (the list) does use effective_plan."},
+      {"endpoint": "POST /api/webhooks/razorpay", "issue": "Does not check that entity.amount and currency match the stored order total before marking the payment paid. Add this before switching to live mode."},
+      {"endpoint": "PATCH/DELETE /api/admin/cards/{id}", "issue": "Returns {ok:true} and writes an audit entry even when the card_id does not exist. Should return 404."},
+      {"endpoint": "GET /api/admin/free-events", "issue": "Lists cards whose stored plan is 'free', even when the owner has an active account grant (so they behave as paid). /api/admin/cards?plan= also filters on the stored plan, not the effective one."},
+      {"endpoint": "PATCH /api/admin/callbacks/{id}", "issue": "The status value 'done' was renamed to 'closed', so old clients sending 'done' now get 422. The frontend maps legacy 'done' records correctly."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Upgrade.jsx MockCheckout", "issue": "The 'Simulate failure' button is invisible: an empty gap between 'Simulate success' and 'Cancel'. className 'bg-rose-600' does not exist because the Tailwind config overrides 'rose' with a single brand colour, so the result is white text on a white sheet. The click still works. Use bg-red-600 or a custom colour.", "selector": "[data-testid='mock-checkout-failure']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin Revenue / grant dialog", "issues": ["admin-revenue-start, admin-revenue-end and grant-until-input use the browser's native <input type=date> instead of the shadcn Calendar/Popover", "The revenue chart is an empty box when there is no real revenue. Needs an empty-state message."]},
+      {"screen": "Admin Overview", "issues": ["The first bar chart (user categories) has no caption, legend or labels, so the bars are meaningless without hovering. The second chart has a caption only below it."]},
+      {"screen": "Admin Cards", "issues": ["Rows with long meta text wrap the action buttons below the text while other rows keep them inline, which makes alignment inconsistent", "Delete uses window.confirm instead of a styled AlertDialog"]},
+      {"screen": "Dashboard", "issues": ["The 'Upgrade this card' button (upgrade-button-*) is bigger and taller than the neighbouring Share/Edit/View buttons in the same row"]},
+      {"screen": "Pricing page", "issues": ["The text says 'The card shows a small Daawat watermark' but the plans-table says 'Large watermark'"]},
+      {"screen": "Wizard publish step / Upgrade", "issues": ["wizard-free-plan-note hard-codes '2 people' and 'Rs. 99', so it ignores admin settings (free_guest_limit, price_paise)", "A stale 'Please tick I agree…' toast stays visible after navigating to the success and receipt views"]},
+      {"screen": "Admin Support", "issues": ["A request with no time slot shows the raw text 'site.times.undefined'. Add a fallback."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration12_plans_billing_admin.py", "/app/test_reports/pytest/pytest_results.xml", "/app/test_reports/pytest/iter12.xml"],
+  "action_items": [
+    "Fix public_card(): compute effective_plan with the 'grant' field loaded, then pop it, so an expired grant shows the watermark on the guest card and OG image",
+    "Fix the invisible 'Simulate failure' button (bg-rose-600 does not exist with the custom rose colour)",
+    "Return the effective plan from GET /api/cards/{id}, or have the Wizard use /api/billing/cards/{id}, so the preview watermark and free note match the account grant or expiry",
+    "Update outdated regression tests that add more than 2 guests to new (now free) cards: test_guests_wishes_uploads::test_bulk_normalise_dedupe_events, test_iteration4_guests_send::TestBulkMerge::test_skip_then_merge, TestBulkOps::test_rename_sent_undo_delete and test_bulk_delete_empty (for example, grant the card through the admin API in setup)",
+    "Optional: check the webhook amount against the order total, return 404 for unknown cards in admin PATCH/DELETE, use the shadcn date picker in admin, label the overview charts, and align the pricing copy with 'Large watermark'"
+  ],
+  "critical_code_review_comments": [
+    "billing.py public-card plan logic depends on the grant field, but server.public_card projects it out (see the bug above)",
+    "mark_paid increments the invoice counter before the conditional update. Concurrent verify and webhook calls for the same order can burn an invoice number (a gap in the GST invoice sequence). Increment only after a successful update, or use findOneAndUpdate on the payment first.",
+    "revoke_card ignores mock captured payments (mode != mock filter). In mock mode, a mock-paid card that gets granted and then revoked becomes free. This is acceptable but should be documented.",
+    "Admin Support save() updates local rows even when the PATCH fails"
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration12_plans_billing_admin.py", "/app/backend/tests/test_iteration11_site_auth_terms.py (callback status 'done'->'closed'; CardDetail publish test now sends agreed_terms like the fixed CardDetail.jsx)"],
+  "success_rate": {"backend": "96% (24/25 new tests; full suite 204 passed, 8 failed before the iteration11 test updates, of which 4 were outdated guest-limit tests, 3 were iteration11 tests (fixed) and 1 is the real expired-grant bug)", "frontend": "95% (all requested flows pass; 1 visual bug)"},
+  "test_credentials": "Used /app/memory/test_credentials.md: Bearer/cookie test_session_host (test-host-1) and test_session_admin",
+  "seed_data_creation": "Cards owned by test-host-1: 'Daawat & RSVP' (slug daawat-rsvp, card_2bbd17a86a60), now PAID through the mock UI checkout, with guests TEST_G1 and TEST_G2; 'TEST Admin & Grant' (slug test-admin-grant, card_76e6fe90ab9a), FREE and published with future dates (Nov/Dec 2026), shows in Free-card events. 4 mock captured payments exist (DW-2026-00001..00004). Settings restored to free_guest_limit 2. Account grant on test-host-1 revoked.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Server date is around 2026-10-28, so events dated earlier in 2026 show as concluded. Use slug test-admin-grant for free/watermark UI tests, or create a new card as test-host-1 (new cards are free). Guest card flow: intro-skip-button, then welcome-continue-button. Scratch canvas is on the hub cover. Mock checkout: upgrade-agree-terms-checkbox, upgrade-pay-button, mock-checkout-success / mock-checkout-failure. Run pytest with -n0 if module fixtures conflict under xdist.",
+  "rca of the issue": "Expired grant: server.public_card() calls db.cards.find_one(..., {'_id':0,'grant':0}), then effective_plan(card). With plan=='paid_without_payment' and no grant key, effective_plan uses the default {'until': ''}, so grant_active() returns True. To reproduce: POST /api/admin/cards/{id}/grant {note:'x', until:'2020-01-01'}, then GET /api/public/cards/{slug} returns watermark:false, while GET /api/billing/cards/{id} returns plan:'free'. Invisible button: Tailwind theme 'rose' is a single colour, so the 'rose-600' shade is never generated."
+}

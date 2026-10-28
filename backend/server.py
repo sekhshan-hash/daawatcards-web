@@ -503,7 +503,8 @@ async def create_card(body: CardIn, user: dict = Depends(current_user)):
 
 @api.get("/cards/{card_id}")
 async def get_card(card_id: str, user: dict = Depends(current_user)):
-    return await owned_card(card_id, user)
+    card = await owned_card(card_id, user)
+    return {**card, "plan": await effective_plan(db, card, now())}
 
 
 @api.put("/cards/{card_id}")
@@ -678,11 +679,12 @@ async def get_file(path: str):
 
 # ---------- Public (guests) ----------
 async def public_card(slug):
-    card = await db.cards.find_one({"slug": slug, "status": "published", "disabled": {"$ne": True}}, {"_id": 0, "grant": 0})
+    card = await db.cards.find_one({"slug": slug, "status": "published", "disabled": {"$ne": True}}, {"_id": 0})
     if not card:
         raise HTTPException(404, "Invitation not found")
     card["watermark"] = await effective_plan(db, card, now()) == "free"
     card.pop("owner_id", None)
+    card.pop("grant", None)
     return card
 
 

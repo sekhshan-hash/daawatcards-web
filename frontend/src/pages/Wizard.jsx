@@ -75,6 +75,8 @@ export default function Wizard() {
   const preTpl = TEMPLATES[params.get("template")] ? params.get("template") : null;
   const [card, setCard] = useState(cardId ? null : defaultCard(TEMPLATES[preTpl]?.eventTypes[0] || "wedding", "en", "neutral", preTpl));
   const [agreed, setAgreed] = useState(false);
+  const [cfg, setCfg] = useState(null);
+  useEffect(() => { api.get("/billing/config").then((r) => setCfg(r.data)).catch(() => {}); }, []);
   const [step, setStep] = useState(0);
   const [eventId, setEventId] = useState("");
   const [focus, setFocus] = useState(null);
@@ -168,7 +170,7 @@ export default function Wizard() {
         </button>
         {card.card_id && <UpgradeButton cardId={card.card_id} plan={card.plan || "free"} className="btn-outline" testId="wizard-upgrade-button" />}
       </div>
-      {!isPaid(card.plan || "free") && <p className="mt-3 text-xs text-muted-foreground" data-testid="wizard-free-plan-note">Free plan: send to up to 2 people, with a Daawat watermark. Upgrade any time for Rs. 99 + GST.</p>}
+      {!isPaid(card.plan || "free") && <p className="mt-3 text-xs text-muted-foreground" data-testid="wizard-free-plan-note">Free plan: send to up to {cfg?.free_guest_limit ?? 2} people, with a Daawat watermark. Upgrade any time for Rs. {((cfg?.price.base ?? 9900) / 100).toFixed(0)} + GST.</p>}
     </>,
   ][step];
 

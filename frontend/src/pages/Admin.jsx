@@ -79,7 +79,7 @@ const Support = () => {
               ))}
             </div>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">{t(`site.times.${r.time}`)} · {new Date(r.created_at).toLocaleString("en-IN")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{r.time ? t(`site.times.${r.time}`) : "Any time"} · {new Date(r.created_at).toLocaleString("en-IN")}</p>
           {r.message && <p className="mt-2 text-sm text-foreground">{r.message}</p>}
           <Input defaultValue={r.notes || ""} placeholder="Notes" onBlur={(e) => e.target.value !== (r.notes || "") && save(r, { notes: e.target.value })} className="mt-3 h-10 rounded-xl text-sm" data-testid={`admin-request-notes-${r.request_id}`} />
         </li>

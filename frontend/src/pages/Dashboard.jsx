@@ -33,7 +33,7 @@ const CardRow = ({ card }) => {
       <div className="flex flex-wrap gap-2">
         <Link to={`/cards/${card.card_id}`} className="btn-chip" data-testid={`dashboard-manage-${card.card_id}`}><Share2 size={14} /> {t("common.manage")}</Link>
         <Link to={`/cards/${card.card_id}/edit`} className="btn-chip" data-testid={`dashboard-edit-${card.card_id}`}><Pencil size={14} /> {t("common.edit")}</Link>
-        <UpgradeButton cardId={card.card_id} plan={card.plan} className="btn-outline" testId={`upgrade-button-${card.card_id}`} />
+        <UpgradeButton cardId={card.card_id} plan={card.plan} className="btn-chip" testId={`upgrade-button-${card.card_id}`} />
         {card.status === "published" && (
           <a href={guestPath(card.slug, null)} target="_blank" rel="noreferrer" className="btn-chip" data-testid={`dashboard-view-${card.card_id}`}><ExternalLink size={14} /> {t("common.view")}</a>
         )}

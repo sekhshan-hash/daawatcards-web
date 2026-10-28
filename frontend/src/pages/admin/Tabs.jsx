@@ -15,6 +15,7 @@ export const Overview = () => {
         <Stat label="Total users" value={d.users} testId="admin-stat-users" />
         {Object.entries(CAT).map(([k, l]) => <Stat key={k} label={`${l} users`} value={d.categories[k]} testId={`admin-stat-users-${k}`} />)}
       </div>
+      <p className="text-sm text-muted-foreground">Users by plan: Free · Paid · Paid (without payment)</p>
       <Bars rows={Object.entries(CAT).map(([k, l]) => ({ period: l, n: d.categories[k] }))} testId="admin-chart-categories" />
       <p className="text-sm text-muted-foreground">New users per day (last 30 days)</p>
       <Bars rows={d.new_users} label="day" testId="admin-chart-new-users" />
@@ -133,7 +134,7 @@ export const Revenue = () => {
             <Stat label="Paid (without payment) cards" value={d.paid_without_payment_cards} testId="admin-revenue-pwp" />
           </div>
           <div className="flex gap-2">{["daily", "monthly", "yearly"].map((k) => <button key={k} type="button" onClick={() => setView(k)} className={`rounded-full border px-4 py-1.5 text-xs ${view === k ? "border-gold text-gold" : "border-border text-muted-foreground"}`} data-testid={`admin-revenue-${k}`}>{k}</button>)}</div>
-          <Bars rows={d[view]} value="total" fmt={inr} testId="admin-revenue-chart" />
+          {d[view].length ? <Bars rows={d[view]} value="total" fmt={inr} testId="admin-revenue-chart" /> : <p className="rounded-2xl border border-border p-6 text-sm text-muted-foreground" data-testid="admin-revenue-empty">No real revenue in this period yet. Mock payments are never counted.</p>}
           <ul className="divide-y divide-border rounded-2xl border border-border text-sm" data-testid="admin-payments-list">
             {d.payments.map((p) => (
               <li key={p.order_id} className="flex flex-wrap justify-between gap-2 p-3">

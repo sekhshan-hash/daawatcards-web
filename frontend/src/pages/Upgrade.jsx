@@ -25,7 +25,7 @@ const MockSheet = ({ order, onResult, onClose }) => (
       <p className="mt-1 text-xs text-slate-500">Order {order.order_id}</p>
       <div className="mt-6 grid gap-2">
         <button type="button" onClick={() => onResult("success")} className="h-12 rounded-xl bg-emerald-600 font-semibold text-white" data-testid="mock-checkout-success">Simulate success</button>
-        <button type="button" onClick={() => onResult("failure")} className="h-12 rounded-xl bg-rose-600 font-semibold text-white" data-testid="mock-checkout-failure">Simulate failure</button>
+        <button type="button" onClick={() => onResult("failure")} className="h-12 rounded-xl bg-red-600 font-semibold text-white" data-testid="mock-checkout-failure">Simulate failure</button>
         <button type="button" onClick={onClose} className="h-11 text-sm text-slate-500" data-testid="mock-checkout-close">Cancel</button>
       </div>
     </div>

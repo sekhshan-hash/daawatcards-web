@@ -111,16 +111,16 @@ class TestCallback:
         assert len(mine) == 1 and mine[0]["status"] == "new" and mine[0]["time"] == "evening"
         assert "_id" not in mine[0] and "ip" not in mine[0]
         rid = mine[0]["request_id"]
-        p = requests.patch(f"{API}/admin/callbacks/{rid}", headers=ADMIN, json={"status": "done"})
+        p = requests.patch(f"{API}/admin/callbacks/{rid}", headers=ADMIN, json={"status": "closed"})
         assert p.status_code == 200
         again = [c for c in requests.get(f"{API}/admin/callbacks", headers=ADMIN).json() if c["request_id"] == rid]
-        assert again[0]["status"] == "done"
+        assert again[0]["status"] == "closed"
 
     def test_list_forbidden_host(self):
         assert requests.get(f"{API}/admin/callbacks", headers=HOST).status_code == 403
 
     def test_patch_unknown(self):
-        assert requests.patch(f"{API}/admin/callbacks/nope", headers=ADMIN, json={"status": "done"}).status_code == 404
+        assert requests.patch(f"{API}/admin/callbacks/nope", headers=ADMIN, json={"status": "closed"}).status_code == 404
 
     @pytest.mark.parametrize("bad", ["12345", "5123456789", "98765432101", "abcdefghij"])
     def test_invalid_mobile(self, bad):
@@ -192,5 +192,5 @@ class TestTerms:
         c = requests.post(f"{API}/cards", headers=HOST, json=_card()).json()
         self.created.append(c["card_id"])
         full = requests.get(f"{API}/cards/{c['card_id']}", headers=HOST).json()
-        r = requests.put(f"{API}/cards/{c['card_id']}", headers=HOST, json={**full, "status": "published"})
+        r = requests.put(f"{API}/cards/{c['card_id']}", headers=HOST, json={**full, "status": "published", "agreed_terms": True})
         assert r.status_code == 200, f"CardDetail publish path rejected: {r.status_code} {r.text}"

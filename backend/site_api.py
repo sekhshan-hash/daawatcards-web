@@ -75,7 +75,7 @@ REFUND = """1. Free plan. The Free plan costs nothing, so there is nothing to re
 
 7. Contact. {company}, {address}, {email}."""
 
-PRICING = """Free plan: Rs. 0. Create a card and send it to up to two people. The card shows a small Daawat watermark.
+PRICING = """Free plan: Rs. 0. Create a card and send it to up to two people. The card shows a large Daawat watermark.
 
 Paid plan: Rs. 99 plus applicable GST, per card, one-time. Send to any number of guests and remove the watermark for that card.
 
