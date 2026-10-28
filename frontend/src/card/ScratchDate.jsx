@@ -71,7 +71,7 @@ export const ScratchDate = ({ card, event, t }) => {
   const up = () => { drawing.current = false; };
 
   return (
-    <section className="gc-section gc-center" data-testid="scratch-date-section">
+    <section className="gc-section gc-center gc-scratch-section" data-testid="scratch-date-section">
       <p className="gc-eyebrow">{t("guest.saveTheDate")}</p>
       <div className={`gc-scratch ${revealed ? "is-revealed" : ""}`} data-testid="scratch-date-card">
         <div className="gc-scratch-date" aria-hidden={!revealed} data-testid="scratch-date-value">{formatLongDate(event.date, card.language) || "—"}</div>

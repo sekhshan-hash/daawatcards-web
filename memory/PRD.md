@@ -83,6 +83,14 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Leftover RSVP copy removed from landing/wizard/dashboard strings
 - Tested: iteration_9, backend 158/158, frontend 100%; contrast fix for "View details" applied afterwards
 
+## Implemented (Iteration 10: timeline cover, welcome screen, scratch date) — 2026-06
+- Event pages: duplicate blessing (Bismillah) removed; meal shown as a plain line + dress code + note merged into the event box
+- Full Welcome screen after the intro (card/WelcomeScreen.jsx): "Welcome", guest name, host note card.welcome_text (wizard Details step, default per language), "Open the invitation"
+- Scratch-to-reveal first event date on every template (card/ScratchDate.jsx): canvas scratch, reveals at ~45%, "Reveal the date" fallback, hidden again each visit; on the cover above the timeline and on single-event pages after the title
+- Cover timeline (Hub.jsx Timeline): gold centre line, diamond markers, alternating entries (single column when the card is under 360px), whole entry tappable, Concluded / Next up tags, 280ms reveal. Original SVG line art per event kind (card/EventArt.jsx) + second-script names for Hindi/Urdu cards; card.timeline_art switch in the wizard Template step; large art at the top of each event page
+- Self-tested with screenshots (welcome, scratch, timeline at 412 and 340px, event page). Backend pytest 164/165 (1 flaky guest-dedupe test passes on its own). The full testing_agent run was cut off and has NOT verified this iteration
+
 ## Backlog
+
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider

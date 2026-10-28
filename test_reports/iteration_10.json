@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 10 (welcome screen, scratch date, vertical timeline, event art). Backend: the new test_iteration10_welcome_timeline.py has 7 tests. The full suite passed 165/165. welcome_text and timeline_art persist on POST/PUT/GET and in the public endpoint. The defaults are '' and true. 401 characters and a non-bool timeline_art give 422. Frontend at 412x860 on demo-shahnawaz-farah: intro skip goes to the welcome screen (Welcome, Ali Khan, the default note, Open the invitation) and then the cover. Replay shows intro, then welcome, then cover again. Direct /e4 goes intro, welcome, then the Walima page. Scratching with the mouse reveals the date (is-revealed set, page scrollTop unchanged), and the date is Wednesday, 9 December 2026. The reveal button also works, and the card is hidden again after reload. The timeline has e1..e4 in order, alternating left/right, with the right art kinds (haldi/baraat/nikah/walima) and Next up on e1, with no horizontal overflow. A tap opens /e3?to=Ali+Khan. The event page has event-page-art (nikah), no card-blessing, prev reading 'Previous event', and next/prev nav. Back-all returns to the cover at the same scroll (994 before and after). The wishes link scrolls to the wishes section. No page errors. NOT TESTED (ran out of time): the Concluded tag with a past event, the 340px single-column layout, the second-script name (faraz has only one event, named in Urdu, so it has no timeline; the test needs an Urdu/Hindi card with Latin event names), the zara single-event scratch card, the wizard timeline-art switch and welcome text input, and the regression checks (effects, 1440 column, landing/Watch intro).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ScratchDate (cover)", "issue": "The scratch card is only about 120px wide, not up to 320px. The date shows clipped as 'WEDNESD / 9 DECEME / 2026', and the canvas hint 'Scratch to reveal the date' is cut off. RCA: .gc-section has margin:0 auto inside the flex-column .gc-hub-page/.gc-view-inner. Auto margins stop the flex item from stretching, so the section shrinks to the width of the 'Save the date' eyebrow (165px), and .gc-scratch width:100% follows it. Fix: add width:100% (or align-self:stretch) to the scratch section, e.g. give it a class .gc-scratch-section {width:100%}. This probably affects SinglePage too.", "selector": "[data-testid=scratch-date-section]", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Event page countdown (past events)", "issues": ["en_more.js guest has 'concluded' twice: 'This event has concluded' on line 70 and 'Concluded' on line 75. The later one wins, so CountdownSection (CardSections.jsx:118) now shows only 'Concluded'. Use a separate key such as concludedTag for the timeline tag. Check the hi/ur files for the same problem."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration10_welcome_timeline.py", "/app/test_reports/pytest/pytest_results_it10.xml"],
+  "action_items": [
+    "Fix the scratch card width (it is clipped at about 120px) by making the scratch section full width",
+    "Split the duplicate guest.concluded i18n key so the countdown keeps 'This event has concluded'"
+  ],
+  "critical_code_review_comments": [
+    "ScratchDate repaints the canvas on window resize, but it does not watch container size. That is fine for now.",
+    "Duplicate object key 'concluded' in en_more.js (and likely in hi_more/ur_more)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration10_welcome_timeline.py"],
+  "success_rate": {"backend": "100% (165/165)", "frontend": "about 90% of the flows tested (the scratch layout bug); several flows were not tested"},
+  "seed_data_creation": "Tests create and delete their own TEST_ cards. /tmp/test.jpg and /tmp/test.png were created if missing.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Opening a card: intro-skip-button, then welcome-continue-button. Still to test: a card with a past-dated event (timeline-concluded), a 340px viewport, an Urdu/Hindi card with Latin event names (timeline-second-*), /i/zara-turns-7/e1 scratch, the wizard wizard-timeline-art-switch and wizard-welcome-text-input in the preview, and the regression checks."
+}
