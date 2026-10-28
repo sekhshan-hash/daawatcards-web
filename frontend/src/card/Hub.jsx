@@ -1,5 +1,4 @@
 import { ArrowLeft, ArrowRight, ChevronDown, Shirt, UtensilsCrossed } from "lucide-react";
-import { blessingText } from "@/i18n";
 import { introTitle } from "@/i18n/traditions";
 import { eventScheme, schemeDot } from "@/templates/eventColors";
 import { formatLongDate, formatTime } from "@/lib/eventTime";
@@ -71,7 +70,6 @@ const EventNav = ({ card, events, index, t, onOpen, onWishes }) => {
 };
 
 export const EventPage = ({ card, ev, events, t, preview, onOpen, onWishes }) => {
-  const blessing = blessingText(t, card);
   const index = events.findIndex((e) => e.event_id === ev.event_id);
   const meal = mealLine(ev, t);
   return (
@@ -82,7 +80,6 @@ export const EventPage = ({ card, ev, events, t, preview, onOpen, onWishes }) =>
       </header>
       <section className="gc-section gc-center">
         <HeaderLine card={card} ev={ev} testId="card-event-header-line" />
-        {blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
         <Reveal><EventWording card={card} ev={ev} /></Reveal>
         <Reveal>
           <div className="gc-panel">
@@ -90,24 +87,14 @@ export const EventPage = ({ card, ev, events, t, preview, onOpen, onWishes }) =>
             <h2 className="gc-heading gc-event-title" data-testid="card-event-name">{ev.name}</h2>
             <p className="gc-event-when" data-testid="card-event-date">{formatLongDate(ev.date, card.language) || "—"}</p>
             <p className="gc-muted" data-testid="card-event-time">{timeRange(ev, card.language) || "—"}</p>
+            {meal && <p className="gc-event-meal" data-testid="card-event-meal"><UtensilsCrossed size={15} /> {meal}</p>}
+            {ev.dress_code && <div className="gc-rows gc-event-extra"><Row icon={Shirt} label={t("guest.dressCode")} value={ev.dress_code} testId="card-event-dress-code" /></div>}
+            {ev.custom_text && <p className="gc-note" data-testid="card-event-custom-text">{ev.custom_text}</p>}
           </div>
         </Reveal>
       </section>
       <CountdownSection card={card} event={ev} t={t} />
       <VenueSection card={card} event={ev} t={t} preview={preview} />
-      {(meal || ev.dress_code || ev.custom_text) && (
-        <section className="gc-section">
-          <Reveal>
-            <div className="gc-panel">
-              <div className="gc-rows">
-                {meal && <Row icon={UtensilsCrossed} label={t("guest.meal")} value={meal} testId="card-event-meal" />}
-                {ev.dress_code && <Row icon={Shirt} label={t("guest.dressCode")} value={ev.dress_code} testId="card-event-dress-code" />}
-              </div>
-              {ev.custom_text && <p className="gc-note" data-testid="card-event-custom-text">{ev.custom_text}</p>}
-            </div>
-          </Reveal>
-        </section>
-      )}
       <ClosingSection card={card} event={ev} />
       <EventNav card={card} events={events} index={index} t={t} onOpen={onOpen} onWishes={onWishes} />
     </div>

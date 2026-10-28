@@ -46,6 +46,8 @@
 .gc-event-page .gc-header-line { margin-top: 4px; }
 .gc-event-title { font-size: 30px; color: var(--accent); }
 .gc-event-when { font-size: 18px; color: var(--text); margin-top: 4px; }
+.gc-event-meal { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 15px; color: var(--text); }
+.gc-event-extra { margin-top: 14px; text-align: start; }
 
 .gc-event-nav { display: grid; justify-items: center; gap: 14px; padding-top: 8px; }
 .gc-event-nav-row { width: 100%; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
