@@ -15,9 +15,9 @@ const Tile = ({ tpl, onOpen, onUse }) => {
         style={{ background: `linear-gradient(160deg, ${tpl.swatch[1] || tpl.swatch[0]}, ${tpl.swatch[0]})` }} data-testid={`style-tile-${tpl.id}-open`}>
         {img && <img src={`/templates/${tpl.id}.jpg`} alt={t(`templates.${tpl.id}.name`)} loading="lazy" decoding="async" onError={() => setImg(false)}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
+        <span className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent" />
         <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100"><Eye size={16} /></span>
-        <span className="absolute inset-x-0 bottom-0 p-4">
+        <span className="absolute inset-x-0 bottom-0 bg-black/75 p-4 backdrop-blur-sm">
           <span className="block font-display text-xl text-white">{t(`templates.${tpl.id}.name`)}</span>
           <span className="mt-2 flex flex-wrap gap-1.5">
             {tpl.eventTypes.map((e) => <span key={e} className="rounded-full border border-white/30 bg-black/30 px-2.5 py-0.5 text-[11px] text-white/90">{t(`eventTypes.${e}`)}</span>)}

@@ -39,7 +39,7 @@ export const PublicShell = ({ children }) => {
   const { user } = useAuth();
   return (
     <div className="host-app flex min-h-screen flex-col">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-6">
+      <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-5 py-6">
         <BrandMark />
         <Link to={user ? "/dashboard" : "/login"} className="rounded-full border border-border px-5 py-2.5 text-sm transition-colors hover:bg-secondary" data-testid="public-login-link">
           {user ? t("dashboard.title") : t("site.login")}

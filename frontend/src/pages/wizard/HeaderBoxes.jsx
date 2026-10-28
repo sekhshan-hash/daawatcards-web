@@ -93,7 +93,7 @@ export const CustomHeaderBox = ({ value, onChange, testId }) => {
         {active && <span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-semibold text-gold" data-testid={`${testId}-active-badge`}>{t("wizard.usingCustom")}</span>}
         <ChevronDown size={18} className={`shrink-0 text-muted-foreground transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
       </button>
-      <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open ? "1fr" : "0fr" }} inert={open ? undefined : ""} data-testid={`${testId}-panel`}>
+      <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open ? "1fr" : "0fr" }} inert={!open} data-testid={`${testId}-panel`}>
         <div className="overflow-hidden">
           <div className="space-y-3 px-4 pb-4">
             <p className="text-xs text-muted-foreground">{t("wizard.customHeaderHint")}</p>

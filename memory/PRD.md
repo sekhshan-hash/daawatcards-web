@@ -90,7 +90,18 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Cover timeline (Hub.jsx Timeline): gold centre line, diamond markers, alternating entries (single column when the card is under 360px), whole entry tappable, Concluded / Next up tags, 280ms reveal. Original SVG line art per event kind (card/EventArt.jsx) + second-script names for Hindi/Urdu cards; card.timeline_art switch in the wizard Template step; large art at the top of each event page
 - Self-tested with screenshots (welcome, scratch, timeline at 412 and 340px, event page). Backend pytest 164/165 (1 flaky guest-dedupe test passes on its own). The full testing_agent run was cut off and has NOT verified this iteration
 
+## Implemented (Iteration 11: Google-only login, legal pages, contact, style gallery) — 2026-10
+- Wizard "Custom header line (optional)" box collapses (auto-opens when it has text, "Using custom line" badge)
+- Date once: chip under names removed; scratch box reveals "Weekday, D Month YYYY · time"
+- Login: Google only (Emergent-managed) via AuthContext.login(next); phone/OTP removed (otp_providers.py deleted, otp_codes dropped); sessions 400 days; ADMIN_EMAIL=info.daawatcards@gmail.com gets is_admin; former phone-account cards moved to the admin (on admin login + startup)
+- Landing "Choose your style": all TEMPLATE_LIST tiles (scroll-snap, arrows on desktop), static previews /public/templates/{id}.jpg (gradient fallback for new templates), preview modal, "Use this style" → Google login → /create?template=id
+- /terms, /privacy, /refund, /pricing (text in backend/site_api.py DEFAULTS, editable in /admin Settings, {company}/{address}/{email} placeholders), footer on public pages; AgreeTerms checkbox before first publish (wizard + card detail); backend 422 without agreed_terms
+- /contact: company, mailto, address, hours, call-back form (Indian mobile validation, honeypot + 2.5s timing, 3/number/day + 10/IP/day), saved to db.callbacks, admin Support list, Gmail SMTP alert via mailer.py (GMAIL_USER, GMAIL_APP_PASSWORD)
+- Tested: iteration_11 (backend 186/187 + fixes: card-detail publish, inert, toast, labels, gallery label strip)
+- Pending: payment checkbox (payments not built yet); Gmail keys
+
 ## Backlog
+
 
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider

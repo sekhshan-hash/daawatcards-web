@@ -140,7 +140,7 @@ export default function Wizard() {
     payload.agreed_terms = card.status === "published" || agreed;
     try {
       const { data } = card.card_id ? await api.put(`/cards/${card.card_id}`, payload) : await api.post("/cards", payload);
-      toast.success(status === "published" ? t("wizard.publishedToast") : t("wizard.saved"));
+      toast.success(status === "published" && card.status !== "published" ? t("wizard.publishedToast") : t("wizard.saved"));
       navigate(`/cards/${data.card_id}`);
     } catch (e) {
       toast.error(errMsg(e));

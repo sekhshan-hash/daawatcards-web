@@ -48,8 +48,10 @@ const CallbackForm = () => {
   return (
     <form onSubmit={submit} className="space-y-4 rounded-2xl border border-border p-6" data-testid="callback-form">
       <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground"><PhoneCall size={18} className="text-gold" /> {t("site.cbTitle")}</h2>
-      <Input required maxLength={80} placeholder={t("site.cbName")} value={f.name} onChange={set("name")} className="h-12 rounded-xl" data-testid="callback-name-input" />
-      <Input required type="tel" inputMode="tel" maxLength={16} placeholder={t("site.cbMobile")} value={f.mobile} onChange={set("mobile")} className="h-12 rounded-xl" data-testid="callback-mobile-input" />
+      <label className="block"><span className="mb-1.5 block text-xs uppercase tracking-widest text-muted-foreground">{t("site.cbName")}</span>
+        <Input required maxLength={80} value={f.name} onChange={set("name")} className="h-12 rounded-xl" data-testid="callback-name-input" /></label>
+      <label className="block"><span className="mb-1.5 block text-xs uppercase tracking-widest text-muted-foreground">{t("site.cbMobile")}</span>
+        <Input required type="tel" inputMode="tel" maxLength={16} placeholder="98765 43210" value={f.mobile} onChange={set("mobile")} className="h-12 rounded-xl" data-testid="callback-mobile-input" /></label>
       <div>
         <p className="mb-2 text-sm text-muted-foreground">{t("site.cbTime")}</p>
         <div className="flex flex-wrap gap-2" data-testid="callback-time">
@@ -61,7 +63,8 @@ const CallbackForm = () => {
           ))}
         </div>
       </div>
-      <Textarea maxLength={500} placeholder={t("site.cbMessage")} value={f.message} onChange={set("message")} className="min-h-24 rounded-xl" data-testid="callback-message-input" />
+      <label className="block"><span className="mb-1.5 block text-xs uppercase tracking-widest text-muted-foreground">{t("site.cbMessage")}</span>
+        <Textarea maxLength={500} value={f.message} onChange={set("message")} className="min-h-24 rounded-xl" data-testid="callback-message-input" /></label>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" value={f.website} onChange={set("website")} className="hidden" aria-hidden="true" />
       <button type="submit" disabled={busy} className="btn-gold w-full" data-testid="callback-submit-button">{t("site.cbSubmit")}</button>
     </form>

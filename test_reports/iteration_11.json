@@ -1,0 +1,47 @@
+{
+  "summary": "Iteration 11 tested end to end, backend and frontend. Backend: 186 of 187 tests pass and 4 obsolete OTP tests are skipped. All legacy test files were migrated to a conftest shim. The new test file covers Google-only auth, /api/site, admin settings, call-back support (validation, honeypot, timing check, rate limit) and the terms check before publish. Frontend checks that work: Google-only /login and its redirect; the landing style gallery (7 tiles, lazy images, scroll snap, arrows on desktop and none on mobile, preview modal, 'Use this style' going to Google when logged out or to /create?template=X with the template pre-selected when logged in); the /terms, /privacy, /refund and /pricing pages; /contact with its form; admin Support and Settings (editing the address updates /contact and /terms) and the redirect of hosts away from /admin; the wizard custom header box (collapsed by default, smooth 0.3s open, 'Using custom line' badge, auto-open when editing); the agree-terms checkbox before publish; the scratch date on the guest card, with no date under the names; and regression of the hub, timeline, event pages and effects toggle. Found 1 real HIGH bug: the Publish button on the Card detail page always fails with 422.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "PUT /api/cards/{id} via CardDetail.jsx publish()", "issue": "The draft card's Publish button (card-detail-publish-button) sends {...card, status:'published'}. That card came from GET, so agreed_terms is false (default). The backend require_terms() returns 422 'Please agree to the Terms and Privacy Policy before publishing', so a draft can never be published from the Card detail page. Reproduced in the UI (error toast) and in pytest test_carddetail_style_publish_of_draft.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/support/callback", "issue": "The per-IP limit (10 per day) reads the FIRST X-Forwarded-For value, which the client controls. A random X-Forwarded-For header gets past the IP limit (confirmed in tests). The per-number limit of 3 still works. Use the last trusted hop, or the ingress real-IP header."},
+      {"endpoint": "PUT /api/admin/settings", "issue": "It stores the full default legal texts in Mongo on the first save. After that, changes to the TERMS/PRIVACY constants in code never reach the site. This is fine if intended, but worth knowing."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "CardDetail publish", "issue": "Publishing a draft from the card detail page always shows the error toast (see the backend critical issue). Fix: show the AgreeTerms checkbox there and send agreed_terms:true, or send the user to the wizard Preview step.", "selector": "[data-testid='card-detail-publish-button']", "priority": "HIGH"},
+      {"component": "CustomHeaderBox (HeaderBoxes.jsx line 96)", "issue": "inert={open ? undefined : \"\"}: React 19 treats an empty string as false (console warning 'Received an empty string for a boolean attribute inert'). So the collapsed panel is NOT inert, and keyboard Tab can focus the hidden inputs. Use inert={!open}.", "selector": "[data-testid='wizard-header-custom-panel']", "priority": "LOW"},
+      {"component": "Wizard save of an already-published card", "issue": "'Save changes' on a published card shows the toast 'Your card is live!' instead of a 'Changes saved' message.", "selector": "[data-testid='wizard-publish-button']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Landing style gallery", "issues": ["On light templates (Modern Minimal, Rose Gold), the white tile name overlaps the card body text and is hard to read. Use a stronger bottom gradient or a solid label strip."]},
+      {"screen": "Legal and Contact pages", "issues": ["The header logo sits on the wide container (x=330) while the content column starts at about x=487, so they look misaligned on desktop."]},
+      {"screen": "Contact form", "issues": ["The Name and Mobile fields use placeholders only, with no visible labels. Once filled, nothing shows what each field is."]},
+      {"screen": "AgreeTerms", "issues": ["The checkbox is drawn as a circle and looks like a radio button."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration11_site_auth_terms.py", "/app/backend/tests/conftest.py", "/app/test_reports/pytest/pytest_results_it11.xml"],
+  "action_items": [
+    "Fix CardDetail.jsx publish(): it must send agreed_terms:true after the user ticks an AgreeTerms checkbox on that page, or send the user to /cards/{id}/edit at the Preview step. At the moment, publishing from Card detail always returns 422.",
+    "HeaderBoxes.jsx CustomHeaderBox: change inert={open ? undefined : \"\"} to inert={!open} (React 19).",
+    "Optional: in site_api.py, do not trust the first X-Forwarded-For value for the per-IP limit.",
+    "Optional: show a 'Changes saved' toast when saving an already-published card.",
+    "Update /app/auth_testing.md: it still describes Phone OTP login, which was removed."
+  ],
+  "critical_code_review_comments": [
+    "require_terms runs on every PUT with status 'published', so every client path that re-saves a published card must send agreed_terms. The Wizard does this; CardDetail does not. The backend could instead accept the publish if the existing card is already published or has agreed_terms stored.",
+    "The CallbackIn honeypot and timing check silently return {ok:true}. That is good, but there is no log line, so admins cannot see blocked bot traffic.",
+    "server.py is 837 lines, over the 700-line guideline. Consider moving the auth and cards routes into routers, as was done for site_api.py."
+  ],
+  "updated_files": ["/app/backend/tests/conftest.py (new: OTP-login shim plus auto agreed_terms for legacy tests, cleanup of TEST_user_*)", "/app/backend/tests/test_iteration11_site_auth_terms.py (new)"],
+  "success_rate": {"backend": "99.5% (186/187; 4 obsolete OTP tests skipped)", "frontend": "about 95% (all requested flows pass; the CardDetail publish path is broken)"},
+  "test_credentials": "test_session_host (test.host@example.com) and test_session_admin (info.daawatcards@gmail.com) from /app/memory/test_credentials.md both worked.",
+  "seed_data_creation": "Test cards and TEST_Caller call-back requests were deleted. Admin settings were restored (address '[address]'), but a settings document now exists in db.settings with key 'site'.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "conftest.py turns old /api/auth/otp/* calls into new Google-style TEST_user_* sessions created directly in Mongo, and adds agreed_terms:true to published card payloads. Send the header X-No-Shim to bypass this. Call-back tests use a random X-Forwarded-For to avoid the 10-per-day IP limit. Guest card flow: intro-skip-button, then welcome-continue-button (the welcome screen also appears on direct /e2 links). Retest the CardDetail publish fix (pytest test_carddetail_style_publish_of_draft and the UI card-detail-publish-button).",
+  "rca of the issue": "CardDetail.jsx line 79 builds the PUT body from the GET card. A draft has agreed_terms false, and server.require_terms rejects status=published unless agreed_terms is true. Reproduce: create a draft, open /cards/{id} and click Publish, and an error toast appears. Mitigation: add AgreeTerms on CardDetail and send agreed_terms:true, or let require_terms skip the check when the existing card already has agreed_terms or is already published."
+}

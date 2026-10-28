@@ -161,7 +161,7 @@ def build_site_router(db, current_user, now):
         if not mobile:
             raise HTTPException(422, "Enter a valid 10-digit Indian mobile number")
         since = (now() - timedelta(days=1)).isoformat()
-        ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "")).split(",")[0].strip()
+        ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "")).split(",")[-1].strip()
         if await db.callbacks.count_documents({"mobile": mobile, "created_at": {"$gte": since}}) >= 3:
             raise HTTPException(429, "You have already sent 3 requests today. We will call you soon.")
         if ip and await db.callbacks.count_documents({"ip": ip, "created_at": {"$gte": since}}) >= 10:

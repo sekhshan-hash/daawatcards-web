@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { AgreeTerms } from "@/components/site/AgreeTerms";
 import { Copy, ExternalLink, MessageCircle, Pencil, Trash2, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { api, errMsg } from "@/lib/api";
@@ -74,9 +75,11 @@ export default function CardDetail() {
     api.get(`/cards/${cardId}/wishes`).then((r) => setWishes(r.data)).catch(() => {});
   }, [cardId, navigate]);
 
+  const [agreed, setAgreed] = useState(false);
   const publish = async () => {
+    if (!agreed) return toast.error(t("site.agreeFirst"));
     try {
-      const { data } = await api.put(`/cards/${cardId}`, { ...card, status: "published" });
+      const { data } = await api.put(`/cards/${cardId}`, { ...card, status: "published", agreed_terms: true });
       setCard(data);
       toast.success(t("detail.published"));
     } catch (e) { toast.error(errMsg(e)); }
@@ -106,6 +109,7 @@ export default function CardDetail() {
           <button type="button" onClick={remove} className="btn-outline text-rose" data-testid="card-detail-delete-button"><Trash2 size={15} /></button>
         </div>
       </div>
+      {card.status !== "published" && <div className="max-w-xl"><AgreeTerms checked={agreed} onChange={setAgreed} testId="card-detail-agree-terms" /></div>}
 
       <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_1fr] [&>*]:min-w-0">
         <LinkMaker card={card} />
