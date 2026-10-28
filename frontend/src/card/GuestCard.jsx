@@ -10,6 +10,7 @@ import { SinglePage } from "./CardPages";
 import { CoverPage, EventPage } from "./Hub";
 import { mainPhoto } from "./CardPhoto";
 import { Fireworks } from "./Fireworks";
+import { WelcomeScreen } from "./WelcomeScreen";
 import { useVibration } from "./useVibration";
 import { IntroPhotoContext, IntroTitleContext } from "@/templates/more/common";
 import { introTitle } from "@/i18n/traditions";
@@ -139,7 +140,7 @@ export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, g
   const handleSkip = () => {
     vibrate.open();
     startMusic();
-    setPhase("card");
+    setPhase("welcome");
   };
   const replay = () => {
     coverScroll.current = 0;
@@ -180,7 +181,7 @@ export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, g
   return (
     <div ref={root} className={`gc-root ${tpl.className} ${reduced ? "is-reduced" : ""} ${multi ? "has-schemes is-hub" : ""} ${showFx ? "has-fx" : ""}`} style={vars}
       dir={dirFor(lang)} lang={lang} data-scheme={scheme} data-page={pageKey} data-testid="guest-card">
-      <div ref={scroller} key={pageKey} className={`gc-scroller gc-view ${direction} ${phase === "intro" ? "is-locked" : ""}`} data-testid="card-view">
+      <div ref={scroller} key={pageKey} className={`gc-scroller gc-view ${direction} ${phase !== "card" ? "is-locked" : ""}`} data-testid="card-view">
         <div className="gc-view-inner">{page}</div>
       </div>
       {showFx && (reduced ? <div className="gc-fx gc-fx-static" aria-hidden="true" data-testid="fireworks-static" />
@@ -190,10 +191,11 @@ export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, g
       {phase === "intro" && (
         <IntroTitleContext.Provider value={introTitle(fullCard)}>
           <IntroPhotoContext.Provider value={photo?.place === "intro" ? photo : null}>
-            <Intro guestName={name} t={t} reduced={reduced} onOpen={handleOpen} onDone={() => setPhase("card")} onSkip={handleSkip} />
+            <Intro guestName={name} t={t} reduced={reduced} onOpen={handleOpen} onDone={() => setPhase("welcome")} onSkip={handleSkip} />
           </IntroPhotoContext.Provider>
         </IntroTitleContext.Provider>
       )}
+      {phase === "welcome" && <WelcomeScreen card={card} name={name} t={t} tpl={tpl} onContinue={() => setPhase("card")} />}
       {phase === "card" && !controlled && (
         <div className="gc-corner-btns">
           {effects.fireworks && (

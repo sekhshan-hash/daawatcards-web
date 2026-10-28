@@ -191,6 +191,10 @@ const EffectsField = ({ card, update }) => {
               </button>
             ))}
           </div>
+          <label className="flex items-center justify-between gap-3 border-t border-border pt-3 text-sm">
+            <span>{t("wizard.timelineArt")}<span className="mt-0.5 block text-xs text-muted-foreground">{t("wizard.timelineArtHint")}</span></span>
+            <Switch checked={card.timeline_art !== false} onCheckedChange={(v) => update({ timeline_art: v })} data-testid="wizard-timeline-art-switch" />
+          </label>
         </div>
       </Field>
     </div>
@@ -258,6 +262,10 @@ export const StepDetails = ({ card, update, onLanguage }) => {
           </Field>
         )}
         <Field label={L.invitation}><Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} {...bind("invitation_text")} /></Field>
+        <Field label={t("wizard.welcomeText")} hint={t("wizard.welcomeTextHint")}>
+          <Textarea className="min-h-20 rounded-xl text-base" maxLength={400} dir="auto" value={card.welcome_text || ""} placeholder={ct("guest.welcomeNote")}
+            onChange={(e) => update({ welcome_text: e.target.value })} data-testid="wizard-welcome-text-input" />
+        </Field>
         <Field label={L.blessing}>
           <div className="flex flex-wrap gap-2">
             {t(`blessingOptions.${card.event_type}`).map((k) => (

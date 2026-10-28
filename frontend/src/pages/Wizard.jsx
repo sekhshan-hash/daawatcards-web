@@ -34,12 +34,12 @@ const defaultCard = (type, lang = "en", tradition = "neutral") => {
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
     title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
-    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", hub_heading: "", effects: DEFAULT_EFFECTS,
+    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", hub_heading: "", effects: DEFAULT_EFFECTS, welcome_text: "", timeline_art: true,
     events: names.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit", "photo_place", "hub_heading", "effects"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit", "photo_place", "hub_heading", "effects", "welcome_text", "timeline_art"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
@@ -78,7 +78,7 @@ export default function Wizard() {
 
   useEffect(() => {
     if (!cardId) return;
-    api.get(`/cards/${cardId}`).then((r) => setCard({ tradition: "neutral", header_key: "", header_per_event: false, intro_title: "", hub_heading: "", effects: DEFAULT_EFFECTS, ...r.data, ...singlePhoto(r.data),
+    api.get(`/cards/${cardId}`).then((r) => setCard({ tradition: "neutral", header_key: "", header_per_event: false, intro_title: "", hub_heading: "", effects: DEFAULT_EFFECTS, welcome_text: "", timeline_art: true, ...r.data, ...singlePhoto(r.data),
       custom_header: { ...BLANK_HEADER, ...(r.data.custom_header || {}) }, family: { ...BLANK_FAMILY, ...(r.data.family || {}) } })).catch(() => navigate("/dashboard"));
   }, [cardId, navigate]);
 

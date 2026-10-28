@@ -196,6 +196,8 @@ class CardIn(BaseModel):
     photo_fit: Dict[Literal["hero", "feature", "wishes"], PhotoFit] = Field(default_factory=dict)
     photo_place: str = Field(default="", pattern=r"^(|cover|intro|wishes|event:[A-Za-z0-9_-]{1,20})$")
     hub_heading: str = Field(default="", max_length=80)
+    welcome_text: str = Field(default="", max_length=400)
+    timeline_art: bool = True
     effects: EffectsIn = Field(default_factory=EffectsIn)
 
     @field_validator("event_type")
