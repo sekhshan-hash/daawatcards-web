@@ -86,6 +86,7 @@ Payments are processed securely by Razorpay. See our Refund & Cancellation Polic
 DEFAULTS = {
     "company": "Save money solutions", "address": "[address]", "email": SUPPORT_EMAIL,
     "hours": "Monday to Saturday, 10:00 am to 6:00 pm IST", "updated": "28 October 2026",
+    "gstin": "", "grievance": "", "admin_emails": "", "price_paise": 9900, "gst_rate": 18.0, "free_guest_limit": 2,
     "terms": TERMS, "privacy": PRIVACY, "refund": REFUND, "pricing": PRICING,
 }
 PAGES = ("terms", "privacy", "refund", "pricing")
@@ -101,6 +102,12 @@ class SettingsIn(BaseModel):
     privacy: str = Field(min_length=1, max_length=20000)
     refund: str = Field(min_length=1, max_length=20000)
     pricing: str = Field(min_length=1, max_length=20000)
+    gstin: str = Field(default="", max_length=20)
+    grievance: str = Field(default="", max_length=400)
+    admin_emails: str = Field(default="", max_length=600)
+    price_paise: int = Field(default=9900, ge=100, le=10000000)
+    gst_rate: float = Field(default=18.0, ge=0, le=40)
+    free_guest_limit: int = Field(default=2, ge=0, le=100)
 
 
 class CallbackIn(BaseModel):
@@ -113,7 +120,8 @@ class CallbackIn(BaseModel):
 
 
 class CallbackStatusIn(BaseModel):
-    status: Literal["new", "done"]
+    status: Literal["new", "called", "closed"]
+    notes: str = Field(default="", max_length=1000)
 
 
 def indian_mobile(raw):
@@ -142,7 +150,7 @@ def build_site_router(db, current_user, now):
         s = await settings()
         fill = {"company": s["company"], "address": s["address"], "email": s["email"]}
         pages = {p: s[p].replace("{company}", fill["company"]).replace("{address}", fill["address"]).replace("{email}", fill["email"]) for p in PAGES}
-        return {**{k: s[k] for k in ("company", "address", "email", "hours", "updated")}, "pages": pages}
+        return {**{k: s[k] for k in ("company", "address", "email", "hours", "updated", "gstin", "grievance")}, "pages": pages}
 
     @router.get("/admin/settings")
     async def get_settings(_: dict = Depends(admin_user)):
@@ -181,7 +189,7 @@ def build_site_router(db, current_user, now):
 
     @router.patch("/admin/callbacks/{request_id}")
     async def set_callback(request_id: str, body: CallbackStatusIn, _: dict = Depends(admin_user)):
-        r = await db.callbacks.update_one({"request_id": request_id}, {"$set": {"status": body.status}})
+        r = await db.callbacks.update_one({"request_id": request_id}, {"$set": body.model_dump()})
         if not r.matched_count:
             raise HTTPException(404, "Request not found")
         return {"ok": True}

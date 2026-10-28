@@ -50,8 +50,6 @@ export default function Landing() {
           <p className="mt-6 max-w-lg text-base text-muted-foreground md:text-lg">{t("landing.subtitle")}</p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link to={start} className="btn-gold" data-testid="landing-create-card-button">{t("landing.ctaCreate")} <ArrowRight size={17} /></Link>
-            <Link to={guestPath("demo-shahnawaz-farah", null, "Honoured Guest")} className="btn-outline" data-testid="landing-demo-wedding-link">{t("landing.ctaDemo")}</Link>
-            <Link to={guestPath("zara-turns-7", "e1", "Little Explorer")} className="btn-outline" data-testid="landing-demo-birthday-link">{t("landing.ctaDemoBirthday")}</Link>
           </div>
         </div>
         {desktop && <LivePreview />}

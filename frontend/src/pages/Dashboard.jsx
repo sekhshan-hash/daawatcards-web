@@ -7,6 +7,7 @@ import { namesLine } from "@/lib/eventTime";
 import { useAuth } from "@/context/AuthContext";
 import { HostShell } from "@/components/host/HostShell";
 import { getTemplate } from "@/templates/registry";
+import { PlanBadge, UpgradeButton } from "@/components/plans/Plans";
 import { t } from "@/i18n";
 
 const StatusPill = ({ status }) => (
@@ -24,6 +25,7 @@ const CardRow = ({ card }) => {
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="truncate text-lg font-semibold text-foreground">{namesLine(card)}</h3>
           <StatusPill status={card.status} />
+          <PlanBadge plan={card.plan} testId={`plan-badge-${card.card_id}`} />
         </div>
         <p className="mt-1 truncate text-sm text-muted-foreground">{t(`eventTypes.${card.event_type}`)} · {t(`templates.${card.template}.name`)} · {card.events.length === 1 ? t("dashboard.event") : t("dashboard.events", { count: card.events.length })}</p>
         <p className="mt-1 text-xs text-muted-foreground">{t("dashboard.stats", card.stats)}</p>
@@ -31,6 +33,7 @@ const CardRow = ({ card }) => {
       <div className="flex flex-wrap gap-2">
         <Link to={`/cards/${card.card_id}`} className="btn-chip" data-testid={`dashboard-manage-${card.card_id}`}><Share2 size={14} /> {t("common.manage")}</Link>
         <Link to={`/cards/${card.card_id}/edit`} className="btn-chip" data-testid={`dashboard-edit-${card.card_id}`}><Pencil size={14} /> {t("common.edit")}</Link>
+        <UpgradeButton cardId={card.card_id} plan={card.plan} className="btn-outline" testId={`upgrade-button-${card.card_id}`} />
         {card.status === "published" && (
           <a href={guestPath(card.slug, null)} target="_blank" rel="noreferrer" className="btn-chip" data-testid={`dashboard-view-${card.card_id}`}><ExternalLink size={14} /> {t("common.view")}</a>
         )}

@@ -25,6 +25,7 @@ load_dotenv(ROOT_DIR / ".env")
 
 from og_image import event_scheme, render_og  # noqa: E402
 from site_api import build_site_router  # noqa: E402
+from billing import build_billing_router, effective_plan, guest_limit, migrate_plans  # noqa: E402
 from seed import DEMO_CARDS  # noqa: E402
 from storage import STORAGE_PREFIX, get_object, init_storage, put_object  # noqa: E402
 
@@ -415,7 +416,9 @@ async def google_session(body: GoogleSessionIn, response: Response):
     if r.status_code != 200:
         raise HTTPException(401, "Google sign-in failed")
     data = r.json()
-    is_admin = data["email"].lower() == ADMIN_EMAIL
+    site = await db.settings.find_one({"key": "site"}, {"_id": 0, "admin_emails": 1}) or {}
+    extra = {e.strip().lower() for e in site.get("admin_emails", "").split(",") if e.strip()}
+    is_admin = data["email"].lower() in {ADMIN_EMAIL, *extra}
     user = await db.users.find_one({"email": data["email"], "auth_provider": "google"}, {"_id": 0})
     if user:
         await db.users.update_one({"user_id": user["user_id"]},
@@ -429,6 +432,12 @@ async def google_session(body: GoogleSessionIn, response: Response):
         await adopt_phone_cards(user["user_id"])
     await create_session(user["user_id"], response, data["session_token"])
     return await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+
+
+async def admin_user(user: dict = Depends(current_user)):
+    if not user.get("is_admin"):
+        raise HTTPException(403, "Admins only")
+    return user
 
 
 @api.get("/auth/me")
@@ -469,6 +478,7 @@ async def list_cards(user: dict = Depends(current_user)):
     for c in cards:
         g = guests.get(c["card_id"], {})
         c["stats"] = {"guests": g.get("guests", 0), "opened": g.get("opened", 0), "wishes": wishes.get(c["card_id"], 0)}
+        c["plan"] = await effective_plan(db, c, now())
     return cards
 
 
@@ -485,7 +495,7 @@ async def create_card(body: CardIn, user: dict = Depends(current_user)):
     base = slugify("-".join(filter(None, [body.primary_name, body.secondary_name if body.event_type in COUPLE_TYPES else ""])))
     doc = {**body.model_dump(), "events": assign_event_ids(body.events),
            "card_id": f"card_{uuid.uuid4().hex[:12]}", "slug": await unique_slug(base),
-           "owner_id": user["user_id"], "created_at": ts, "updated_at": ts}
+           "owner_id": user["user_id"], "plan": "free", "created_at": ts, "updated_at": ts}
     await db.cards.insert_one(doc)
     doc.pop("_id", None)
     return doc
@@ -538,6 +548,7 @@ async def list_guests(card_id: str, user: dict = Depends(current_user)):
 async def add_guests(card_id: str, body: GuestBulkIn, user: dict = Depends(current_user)):
     card = await owned_card(card_id, user)
     existing = await db.guests.find({"card_id": card_id}, {"_id": 0, "guest_id": 1, "name": 1, "phone": 1}).to_list(5000)
+    cap = await guest_limit(db, card, now())
     seen = {g["phone"] or g["name"].lower(): g["guest_id"] for g in existing}
     docs, skipped, merged = [], 0, 0
     for g in body.guests:
@@ -554,6 +565,8 @@ async def add_guests(card_id: str, body: GuestBulkIn, user: dict = Depends(curre
             else:
                 skipped += 1
             continue
+        if cap is not None and len(existing) + len(docs) >= cap:
+            raise HTTPException(402, f"Free cards can be sent to {cap} people. Upgrade this card to add more guests.")
         seen[key] = None
         docs.append({"guest_id": uuid.uuid4().hex[:10], "card_id": card_id, "name": name, "phone": phone,
                      "event_ids": guest_events(card, g.event_ids), "sent_at": None, "opened_at": None,
@@ -665,9 +678,11 @@ async def get_file(path: str):
 
 # ---------- Public (guests) ----------
 async def public_card(slug):
-    card = await db.cards.find_one({"slug": slug, "status": "published"}, {"_id": 0, "owner_id": 0})
+    card = await db.cards.find_one({"slug": slug, "status": "published", "disabled": {"$ne": True}}, {"_id": 0, "grant": 0})
     if not card:
         raise HTTPException(404, "Invitation not found")
+    card["watermark"] = await effective_plan(db, card, now()) == "free"
+    card.pop("owner_id", None)
     return card
 
 
@@ -751,7 +766,7 @@ async def og_image(slug: str, event_id: str):
     png = await asyncio.to_thread(
         render_og, card["template"], EYEBROWS.get(card.get("language", "en"), EYEBROWS["en"])[card["event_type"]], names_line(card),
         ev["name"], f"{date_s}  ·  {time_s}", ", ".join(filter(None, [ev["venue_name"], ev["venue_address"]]))[:80],
-        BRAND_NAME, photo, event_scheme(card, ev),
+        BRAND_NAME, photo, event_scheme(card, ev), card["watermark"],
     )
     return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})
 
@@ -770,7 +785,7 @@ async def share_page(slug: str, event_id: str, request: Request, to: str = "", g
     if to:
         title = f"{INVITED.get(card.get('language', 'en'), INVITED['en']).format(to=to)} {title}"
     desc = " · ".join(filter(None, [f"{date_s} at {time_s}", meal_name(ev, card.get("language", "en")), ev["venue_name"]]))
-    version = hashlib.md5(f"{card['updated_at']}{event_scheme(card, ev)}".encode()).hexdigest()[:8]
+    version = hashlib.md5(f"{card['updated_at']}{event_scheme(card, ev)}{card['watermark']}".encode()).hexdigest()[:8]
     image = f"{base}/api/og/{slug}/{ev['event_id']}.png?v={version}"
     e = html.escape
     page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -799,6 +814,7 @@ async def root():
 
 app.include_router(api)
 app.include_router(build_site_router(db, current_user, now))
+app.include_router(build_billing_router(db, current_user, now, owned_card, admin_user))
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -824,11 +840,13 @@ async def startup():
     await db.user_sessions.create_index("session_token", unique=True)
     await db.callbacks.create_index([("mobile", 1), ("created_at", -1)])
     await db.otp_codes.drop()
+    await db.payments.create_index("order_id", unique=True)
     admin = await db.users.find_one({"email": ADMIN_EMAIL, "auth_provider": "google"}, {"_id": 0, "user_id": 1})
     if admin:
         await adopt_phone_cards(admin["user_id"])
     for card in DEMO_CARDS:
         await db.cards.replace_one({"card_id": card["card_id"]}, card, upsert=True)
+    await migrate_plans(db)
     logger.info("Demo cards seeded")
 
 

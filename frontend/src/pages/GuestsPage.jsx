@@ -14,6 +14,8 @@ import { MessageDialog } from "./guests/MessageDialog";
 import { SendQueueDialog } from "./guests/SendQueueDialog";
 import { guestLink, statusOf } from "./guests/shared";
 import { t } from "@/i18n";
+import { toast } from "sonner";
+import { UpgradeButton, isPaid } from "@/components/plans/Plans";
 
 const exportCsv = (card, guests) => {
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -35,7 +37,10 @@ export default function GuestsPage() {
   const { cardId } = useParams();
   const navigate = useNavigate();
   const [card, setCard] = useState(null);
+  const [bill, setBill] = useState(null);
   const [guests, setGuests] = useState([]);
+  useEffect(() => { api.get(`/billing/cards/${cardId}`).then((r) => setBill(r.data)).catch(() => {}); }, [cardId, guests.length]);
+  const atLimit = bill && !isPaid(bill.plan) && guests.length >= bill.limit;
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [selected, setSelected] = useState(new Set());
@@ -78,6 +83,12 @@ export default function GuestsPage() {
       <h1 className="mt-3 font-display text-4xl text-foreground sm:text-5xl" data-testid="guests-page-title">{t("guests.title")}</h1>
       <p className="mt-2 text-muted-foreground">{t("guests.subtitle")}</p>
       {card.status !== "published" && <p className="mt-4 rounded-xl bg-rose/10 px-4 py-3 text-sm text-rose" data-testid="guests-draft-warning">{t("detail.draftWarning")}</p>}
+      {bill && !isPaid(bill.plan) && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3" data-testid="guests-plan-usage">
+          <p className="text-sm text-foreground"><strong data-testid="guests-usage-count">{guests.length} / {bill.limit} guests used</strong> on the Free plan. Upgrade for unlimited guests, contacts import, CSV and no watermark.</p>
+          <UpgradeButton cardId={cardId} plan={bill.plan} testId="guests-upgrade-button" />
+        </div>
+      )}
 
       <div className="mt-8 flex flex-wrap gap-2">
         <Stat label={t("guests.total", { count: guests.length })} testId="guests-stat-total" />
@@ -86,7 +97,7 @@ export default function GuestsPage() {
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <button type="button" onClick={() => setAddOpen(true)} className="btn-gold" data-testid="guests-add-button"><UserPlus size={16} /> {t("guests.add")}</button>
+        <button type="button" onClick={() => (atLimit ? toast.error(`Free cards can be sent to ${bill.limit} people. Upgrade this card to add more guests.`, { action: { label: "Upgrade this card", onClick: () => navigate(`/cards/${cardId}/upgrade`) } }) : setAddOpen(true))} className="btn-gold" data-testid="guests-add-button"><UserPlus size={16} /> {t("guests.add")}</button>
         <button type="button" onClick={() => setQueue(guests)} disabled={!guests.length} className="btn-outline" data-testid="guests-send-all-button"><MessageCircle size={16} /> {t("guests.sendAll")}</button>
         <button type="button" onClick={() => setMsgOpen(true)} className="btn-outline" data-testid="guests-message-button"><PenLine size={16} /> {t("guests.message")}</button>
         <button type="button" onClick={() => exportCsv(card, guests)} disabled={!guests.length} className="btn-outline" data-testid="guests-export-button"><Download size={16} /> {t("guests.exportCsv")}</button>

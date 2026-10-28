@@ -15,6 +15,7 @@ import { weddingDefaults } from "@/i18n/traditions";
 import { BLANK_HEADER } from "./wizard/HeaderBoxes";
 import { mainPhoto } from "@/card/CardPhoto";
 import { AgreeTerms } from "@/components/site/AgreeTerms";
+import { UpgradeButton, isPaid } from "@/components/plans/Plans";
 
 const DEFAULT_EFFECTS = { fireworks: true, vibration: true, intensity: "medium" };
 
@@ -52,7 +53,7 @@ const Preview = ({ card, eventId, focus, setEventId }) => {
   const [key, setKey] = useState(0);
   return (
     <div>
-      <PhoneFrame><GuestCard key={key} card={card} eventId={eventId || null} focus={focus} preview /></PhoneFrame>
+      <PhoneFrame><GuestCard key={key} card={card} eventId={eventId || null} focus={focus} preview watermark={!isPaid(card.plan || "free")} /></PhoneFrame>
       <div className="mt-4 flex items-center justify-center gap-3">
         {card.events.length > 1 && (
           <select value={eventId} onChange={(e) => setEventId(e.target.value)} className="field-select h-10 w-auto" aria-label={t("wizard.previewEvent")} data-testid="wizard-preview-event-select">
@@ -165,7 +166,9 @@ export default function Wizard() {
         <button type="button" disabled={busy} onClick={() => save("published")} className="btn-gold" data-testid="wizard-publish-button">
           {card.status === "published" ? t("wizard.saveChanges") : t("wizard.publish")}
         </button>
+        {card.card_id && <UpgradeButton cardId={card.card_id} plan={card.plan || "free"} className="btn-outline" testId="wizard-upgrade-button" />}
       </div>
+      {!isPaid(card.plan || "free") && <p className="mt-3 text-xs text-muted-foreground" data-testid="wizard-free-plan-note">Free plan: send to up to 2 people, with a Daawat watermark. Upgrade any time for Rs. 99 + GST.</p>}
     </>,
   ][step];
 

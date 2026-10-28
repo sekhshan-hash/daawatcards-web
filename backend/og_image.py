@@ -172,7 +172,7 @@ def _party_border(d):
         d.ellipse([x - r, y - r, x + r, y + r], fill=_rgb(PARTY[i % 4]))
 
 
-def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand, photo=None, scheme=None):
+def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand, photo=None, scheme=None, watermark=False):
     s = _with_scheme(STYLES.get(template, STYLES["wedding-royal"]), scheme)
     img = Image.new("RGB", (W, H), s["bg"])
     d = ImageDraw.Draw(img)
@@ -203,6 +203,10 @@ def render_og(template, eyebrow, names, event_line, date_line, venue_line, brand
     if venue_line:
         c(518, venue_line, _fit(d, venue_line, s["body_font"], 26, maxw), _rgb(s["muted"]))
     c(H - 58, brand, _font(s["eyebrow_font"], 20), _rgb(s["muted"]))
+
+    if watermark:
+        d.rounded_rectangle([W - 400, H - 84, W - 24, H - 24], radius=30, fill=(0, 0, 0))
+        d.text((W - 212, H - 54), "Made with Daawat", font=_font(s["body_font"], 28), fill=(255, 255, 255), anchor="mm")
 
     buf = io.BytesIO()
     img.save(buf, "PNG", optimize=True)

@@ -14,6 +14,8 @@ import GuestCardPage from "@/pages/GuestCardPage";
 import LegalPage from "@/pages/LegalPage";
 import Contact from "@/pages/Contact";
 import Admin from "@/pages/Admin";
+import Upgrade from "@/pages/Upgrade";
+import Receipt from "@/pages/Receipt";
 import { BRAND } from "@/config/brand";
 
 document.title = `${BRAND.name} · Cinematic Invitations`;
@@ -51,6 +53,8 @@ function App() {
           <Route path="/pricing" element={<LegalPage page="pricing" />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={guard(<Admin />)} />
+          <Route path="/cards/:cardId/upgrade" element={guard(<Upgrade />)} />
+          <Route path="/receipt/:orderId" element={guard(<Receipt />)} />
           <Route path="*" element={<Landing />} />
         </Route>
       </Routes>

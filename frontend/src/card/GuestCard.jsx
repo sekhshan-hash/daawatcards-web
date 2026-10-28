@@ -11,6 +11,7 @@ import { CoverPage, EventPage } from "./Hub";
 import { mainPhoto } from "./CardPhoto";
 import { Fireworks } from "./Fireworks";
 import { WelcomeScreen } from "./WelcomeScreen";
+import { Watermark } from "./Watermark";
 import { useVibration } from "./useVibration";
 import { IntroPhotoContext, IntroTitleContext } from "@/templates/more/common";
 import { introTitle } from "@/i18n/traditions";
@@ -31,7 +32,7 @@ const readFx = (card) => {
 };
 
 // eventId = the open event page (null = cover). With onNavigate the parent owns it (real URLs); otherwise it is local (previews).
-export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, guestName = "", guestId = "", eventIds, preview = false, soundOn }) => {
+export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, guestName = "", guestId = "", eventIds, preview = false, soundOn, watermark }) => {
   const tpl = getTemplate(fullCard.template);
   const lang = fullCard.language || "en";
   const t = useMemo(() => makeT(lang), [lang]);
@@ -195,7 +196,8 @@ export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, g
           </IntroPhotoContext.Provider>
         </IntroTitleContext.Provider>
       )}
-      {phase === "welcome" && <WelcomeScreen card={card} name={name} t={t} tpl={tpl} onContinue={() => setPhase("card")} />}
+      {phase !== "card" && <WelcomeScreen card={card} name={name} t={t} tpl={tpl} onContinue={() => setPhase("card")} />}
+      {(watermark ?? fullCard.watermark) && <Watermark />}
       {phase === "card" && !controlled && (
         <div className="gc-corner-btns">
           {effects.fireworks && (

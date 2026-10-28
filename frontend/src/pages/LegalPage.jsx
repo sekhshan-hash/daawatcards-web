@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "@/lib/api";
+import { PlansTable } from "@/components/plans/Plans";
 import { PublicShell, useSite } from "@/components/site/SiteShell";
 import { t } from "@/i18n";
 
@@ -17,10 +20,13 @@ const Para = ({ text, i }) => {
 export default function LegalPage({ page }) {
   const site = useSite();
   const body = site?.pages?.[page] || "";
+  const [cfg, setCfg] = useState(null);
+  useEffect(() => { if (page === "pricing") api.get("/billing/config").then((r) => setCfg(r.data)).catch(() => {}); }, [page]);
   return (
     <PublicShell>
       <h1 className="font-display text-4xl text-foreground sm:text-5xl" data-testid="legal-title">{t(`site.titles.${page}`)}</h1>
       {page !== "pricing" && site?.updated && <p className="mt-3 text-sm text-muted-foreground" data-testid="legal-updated">{t("site.lastUpdated", { date: site.updated })}</p>}
+      {page === "pricing" && <div className="mt-10"><PlansTable price={cfg?.price} freeLimit={cfg?.free_guest_limit} /></div>}
       <div className="mt-10 space-y-5 text-base" data-testid={`legal-body-${page}`}>
         {site ? body.split(/\n\s*\n/).map((p, i) => <Para key={i} i={i} text={p.trim()} />) : <div className="loader-ring" />}
       </div>

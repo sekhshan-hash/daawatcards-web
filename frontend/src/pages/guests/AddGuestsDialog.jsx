@@ -65,7 +65,7 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
       if (data.merged) onMerged();
       return true;
     } catch (e) {
-      toast.error(errMsg(e));
+      toast.error(errMsg(e), e?.response?.status === 402 ? { action: { label: "Upgrade this card", onClick: () => window.location.assign(`/cards/${card.card_id}/upgrade`) } } : undefined);
       return false;
     } finally {
       setBusy(false);
