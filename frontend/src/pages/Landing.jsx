@@ -9,7 +9,8 @@ import { BrandMark, PhoneFrame } from "@/components/host/HostShell";
 import { GuestCard } from "@/card/GuestCard";
 import { TEMPLATES } from "@/templates/registry";
 import { t } from "@/i18n";
-import { BRAND } from "@/config/brand";
+import { StyleGallery } from "@/components/site/StyleGallery";
+import { SiteFooter } from "@/components/site/SiteShell";
 
 const DEMOS = [
   { slug: "demo-shahnawaz-farah", tpl: "wedding-royal", guest: "Honoured Guest", img: "https://images.unsplash.com/photo-1722952934708-749c22eb2e58?crop=entropy&cs=srgb&fm=jpg&q=80&w=900" },
@@ -56,6 +57,8 @@ export default function Landing() {
         {desktop && <LivePreview />}
       </section>
 
+      <StyleGallery />
+
       <section className="border-y border-border/60 bg-card/40">
         <div className="mx-auto max-w-6xl px-5 py-20">
           <h2 className="font-display text-2xl text-foreground sm:text-3xl">{t("landing.howTitle")}</h2>
@@ -88,9 +91,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-border/60 py-10 text-center text-sm text-muted-foreground">
-        {BRAND.name} · {t("landing.footer")}
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

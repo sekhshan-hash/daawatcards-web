@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { formatLongDate } from "@/lib/eventTime";
+import { formatLongDate, formatTime } from "@/lib/eventTime";
 
 const read = (el, name) => getComputedStyle(el).getPropertyValue(name).trim();
 
@@ -74,7 +74,9 @@ export const ScratchDate = ({ card, event, t }) => {
     <section className="gc-section gc-center gc-scratch-section" data-testid="scratch-date-section">
       <p className="gc-eyebrow">{t("guest.saveTheDate")}</p>
       <div className={`gc-scratch ${revealed ? "is-revealed" : ""}`} data-testid="scratch-date-card">
-        <div className="gc-scratch-date" aria-hidden={!revealed} data-testid="scratch-date-value">{formatLongDate(event.date, card.language) || "—"}</div>
+        <div className="gc-scratch-date" aria-hidden={!revealed} data-testid="scratch-date-value">
+          {[formatLongDate(event.date, card.language), formatTime(event.time, card.language)].filter(Boolean).join(" · ") || "—"}
+        </div>
         <canvas ref={canvas} className="gc-scratch-cover" onPointerDown={down} onPointerMove={scratch} onPointerUp={up} onPointerCancel={up}
           role="button" tabIndex={revealed ? -1 : 0} aria-label={t("guest.tapReveal")} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setRevealed(true)}
           data-testid="scratch-date-canvas" />

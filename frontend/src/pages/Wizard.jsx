@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
 import { api, errMsg } from "@/lib/api";
@@ -14,6 +14,7 @@ import { t, makeT } from "@/i18n";
 import { weddingDefaults } from "@/i18n/traditions";
 import { BLANK_HEADER } from "./wizard/HeaderBoxes";
 import { mainPhoto } from "@/card/CardPhoto";
+import { AgreeTerms } from "@/components/site/AgreeTerms";
 
 const DEFAULT_EFFECTS = { fireworks: true, vibration: true, intensity: "medium" };
 
@@ -26,9 +27,9 @@ const singlePhoto = (c) => {
 
 const BLANK_FAMILY = { groom_family: "", bride_family: "", groom_parents: "", bride_parents: "", groom_grandparents: "", bride_grandparents: "", host_side: "groom", hidden: false };
 
-const defaultCard = (type, lang = "en", tradition = "neutral") => {
+export const defaultCard = (type, lang = "en", tradition = "neutral", tplId = null) => {
   const d = makeT(lang)(`defaults.${type}`);
-  const template = TEMPLATE_LIST.find((tp) => tp.eventTypes.includes(type))?.id || "wedding-royal";
+  const template = (tplId && TEMPLATES[tplId] ? tplId : null) || TEMPLATE_LIST.find((tp) => tp.eventTypes.includes(type))?.id || "wedding-royal";
   const names = (type === "wedding" && weddingDefaults(tradition)) || d.events;
   return {
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
@@ -69,7 +70,10 @@ export default function Wizard() {
   const { cardId } = useParams();
   const navigate = useNavigate();
   const desktop = useMediaQuery("(min-width: 1024px)");
-  const [card, setCard] = useState(cardId ? null : defaultCard("wedding"));
+  const [params] = useSearchParams();
+  const preTpl = TEMPLATES[params.get("template")] ? params.get("template") : null;
+  const [card, setCard] = useState(cardId ? null : defaultCard(TEMPLATES[preTpl]?.eventTypes[0] || "wedding", "en", "neutral", preTpl));
+  const [agreed, setAgreed] = useState(false);
   const [step, setStep] = useState(0);
   const [eventId, setEventId] = useState("");
   const [focus, setFocus] = useState(null);
@@ -87,7 +91,7 @@ export default function Wizard() {
   const onType = (type) => {
     if (type === card.event_type) return;
     if (card.card_id) return update({ event_type: type, blessing_key: t(`defaults.${type}`).blessing });
-    setCard({ ...defaultCard(type, card.language, card.tradition), heading_font: card.heading_font, photos: card.photos, photo_fit: card.photo_fit, wishes_photo: card.wishes_photo, effects: card.effects, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp, family: card.family });
+    setCard({ ...defaultCard(type, card.language, card.tradition, preTpl), heading_font: card.heading_font, photos: card.photos, photo_fit: card.photo_fit, wishes_photo: card.wishes_photo, effects: card.effects, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp, family: card.family });
     setEventId("");
   };
   const onTradition = (tradition) => {
@@ -129,9 +133,11 @@ export default function Wizard() {
   const save = async (status) => {
     const err = validate(card, 6);
     if (err) return toast.error(err);
+    if (status === "published" && card.status !== "published" && !agreed) return toast.error(t("site.agreeFirst"));
     setBusy(true);
     const payload = Object.fromEntries(FIELDS.map((k) => [k, card[k]]));
     payload.status = status;
+    payload.agreed_terms = card.status === "published" || agreed;
     try {
       const { data } = card.card_id ? await api.put(`/cards/${card.card_id}`, payload) : await api.post("/cards", payload);
       toast.success(status === "published" ? t("wizard.publishedToast") : t("wizard.saved"));
@@ -153,6 +159,7 @@ export default function Wizard() {
       <StepTitle hint={t("wizard.previewHint")}>{t("wizard.previewTitle")}</StepTitle>
       <p className="mb-6 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-gold" data-testid="wizard-wording-check-publish">{t("wizard.wordingCheck")}</p>
       {!desktop && <Preview card={card} eventId={previewEventId} focus={focus} setEventId={setEventId} />}
+      {card.status !== "published" && <AgreeTerms checked={agreed} onChange={setAgreed} />}
       <div className="mt-8 flex flex-wrap gap-3">
         {card.status !== "published" && <button type="button" disabled={busy} onClick={() => save("draft")} className="btn-outline" data-testid="wizard-save-draft-button">{t("wizard.saveDraft")}</button>}
         <button type="button" disabled={busy} onClick={() => save("published")} className="btn-gold" data-testid="wizard-publish-button">

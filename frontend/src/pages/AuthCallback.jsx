@@ -18,13 +18,14 @@ export default function AuthCallback() {
     api.post("/auth/google/session", { session_id: sessionId })
       .then(({ data }) => {
         setUser(data);
-        navigate("/dashboard", { replace: true, state: { user: data } });
+        const target = ["/", "/login"].includes(location.pathname) ? "/dashboard" : location.pathname + location.search;
+        navigate(target, { replace: true, state: { user: data } });
       })
       .catch(() => {
         toast.error(t("auth.failed"));
         navigate("/login", { replace: true });
       });
-  }, [location.hash, navigate, setUser]);
+  }, [location.hash, location.pathname, location.search, navigate, setUser]);
 
   return <div className="grid min-h-screen place-items-center text-muted-foreground" data-testid="auth-callback">{t("auth.signingIn")}</div>;
 }

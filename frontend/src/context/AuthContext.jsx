@@ -3,6 +3,13 @@ import { api } from "@/lib/api";
 
 const AuthContext = createContext(null);
 
+// Sign-in provider: Emergent-managed Google. Swap this function to change providers; `next` is where the host lands.
+const googleLogin = (next = "/dashboard") => {
+  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+  const redirectUrl = window.location.origin + next;
+  window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +39,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  return <AuthContext.Provider value={{ user, setUser, loading, refresh, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, setUser, loading, refresh, logout, login: googleLogin }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

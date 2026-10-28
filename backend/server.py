@@ -24,7 +24,7 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
 from og_image import event_scheme, render_og  # noqa: E402
-from otp_providers import get_otp_provider  # noqa: E402
+from site_api import build_site_router  # noqa: E402
 from seed import DEMO_CARDS  # noqa: E402
 from storage import STORAGE_PREFIX, get_object, init_storage, put_object  # noqa: E402
 
@@ -38,7 +38,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("invites")
 
 EMERGENT_SESSION_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
-SESSION_DAYS = 7
+SESSION_DAYS = 400
+ADMIN_EMAIL = os.environ["ADMIN_EMAIL"].lower()
 EVENT_TYPES = {"wedding", "birthday", "engagement", "aqiqah", "babyShower", "housewarming", "corporate"}
 TEMPLATES = {"wedding-royal", "birthday-playful", "modern-minimal", "rose-gold", "little-star", "warm-hearth", "boardroom"}
 MUSIC = {"none", "royal-raag", "party-pop", "music-box", "lullaby"}
@@ -183,6 +184,7 @@ class CardIn(BaseModel):
     host_whatsapp: str = Field(default="", max_length=20)
     timezone: str = Field(default="+05:30", pattern=r"^[+-]\d{2}:\d{2}$")
     status: Literal["draft", "published"] = "draft"
+    agreed_terms: bool = False
     heading_font: Literal["default", "cinzel", "playfair", "greatvibes", "fredoka", "rozha"] = "default"
     events: List[EventItem] = Field(min_length=1, max_length=10)
     photos: List[str] = Field(default_factory=list, max_length=2)
@@ -265,16 +267,6 @@ class GoogleSessionIn(BaseModel):
     session_id: str
 
 
-class OtpRequestIn(BaseModel):
-    phone: str
-
-
-class OtpVerifyIn(BaseModel):
-    phone: str
-    code: str = Field(min_length=4, max_length=8)
-    name: str = Field(default="", max_length=60)
-
-
 # ---------- Helpers ----------
 def slugify(s):
     s = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
@@ -309,10 +301,15 @@ def names_line(card):
     return card["primary_name"]
 
 
-def check_photos(body: CardIn, user):
+def card_photos(card):
+    return [*card.get("photos", []), card.get("wishes_photo", ""), *[e.get("photo", "") for e in card.get("events", [])]]
+
+
+def check_photos(body: CardIn, user, existing=None):
     prefix = f"{STORAGE_PREFIX}/uploads/{user['user_id']}/"
+    kept = set(card_photos(existing or {}))
     paths = [*body.photos, body.wishes_photo, *[e.photo for e in body.events]]
-    if any(p and not p.startswith(prefix) for p in paths):
+    if any(p and not p.startswith(prefix) and p not in kept for p in paths):
         raise HTTPException(422, "Invalid photo")
 
 
@@ -403,6 +400,14 @@ async def current_user(request: Request) -> dict:
     return user
 
 
+async def adopt_phone_cards(admin_id):
+    """Phone login was removed: cards of former phone accounts move to the admin account."""
+    phone_ids = [u["user_id"] async for u in db.users.find({"auth_provider": "phone"}, {"_id": 0, "user_id": 1})]
+    if phone_ids:
+        await db.cards.update_many({"owner_id": {"$in": phone_ids}}, {"$set": {"owner_id": admin_id}})
+        await db.user_sessions.delete_many({"user_id": {"$in": phone_ids}})
+
+
 @api.post("/auth/google/session")
 async def google_session(body: GoogleSessionIn, response: Response):
     r = await asyncio.to_thread(requests.get, EMERGENT_SESSION_URL,
@@ -410,69 +415,20 @@ async def google_session(body: GoogleSessionIn, response: Response):
     if r.status_code != 200:
         raise HTTPException(401, "Google sign-in failed")
     data = r.json()
+    is_admin = data["email"].lower() == ADMIN_EMAIL
     user = await db.users.find_one({"email": data["email"], "auth_provider": "google"}, {"_id": 0})
     if user:
         await db.users.update_one({"user_id": user["user_id"]},
-                                  {"$set": {"name": data.get("name", ""), "picture": data.get("picture", "")}})
+                                  {"$set": {"name": data.get("name", ""), "picture": data.get("picture", ""), "is_admin": is_admin}})
     else:
         user = {"user_id": f"user_{uuid.uuid4().hex[:12]}", "auth_provider": "google", "email": data["email"],
-                "phone": None, "name": data.get("name", ""), "picture": data.get("picture", ""),
+                "name": data.get("name", ""), "picture": data.get("picture", ""), "is_admin": is_admin,
                 "created_at": now().isoformat()}
         await db.users.insert_one(dict(user))
+    if is_admin:
+        await adopt_phone_cards(user["user_id"])
     await create_session(user["user_id"], response, data["session_token"])
     return await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
-
-
-def normalize_phone(raw):
-    digits = re.sub(r"\D", "", raw)
-    if len(digits) == 10:
-        digits = "91" + digits
-    if not 11 <= len(digits) <= 15:
-        raise HTTPException(422, "Enter a valid phone number")
-    return "+" + digits
-
-
-def code_hash(phone, code):
-    return hashlib.sha256(f"{phone}:{code}".encode()).hexdigest()
-
-
-@api.post("/auth/otp/request")
-async def otp_request(body: OtpRequestIn):
-    phone = normalize_phone(body.phone)
-    provider = get_otp_provider()
-    code = provider.generate_code()
-    await db.otp_codes.replace_one({"phone": phone}, {
-        "phone": phone, "code_hash": code_hash(phone, code),
-        "expires_at": now() + timedelta(minutes=10), "attempts": 0,
-    }, upsert=True)
-    await provider.send(phone, code)
-    resp = {"sent": True, "phone": phone, "channel": provider.channel, "mocked": provider.is_mock}
-    if provider.is_mock:
-        resp["dev_code"] = code
-    return resp
-
-
-@api.post("/auth/otp/verify")
-async def otp_verify(body: OtpVerifyIn, response: Response):
-    phone = normalize_phone(body.phone)
-    rec = await db.otp_codes.find_one({"phone": phone}, {"_id": 0})
-    exp = rec["expires_at"].replace(tzinfo=timezone.utc) if rec and rec["expires_at"].tzinfo is None else (rec or {}).get("expires_at")
-    if not rec or exp < now():
-        raise HTTPException(400, "Code expired. Please request a new one.")
-    if rec["attempts"] >= 5:
-        raise HTTPException(429, "Too many attempts. Please request a new code.")
-    if rec["code_hash"] != code_hash(phone, body.code.strip()):
-        await db.otp_codes.update_one({"phone": phone}, {"$inc": {"attempts": 1}})
-        raise HTTPException(400, "Incorrect code")
-    await db.otp_codes.delete_one({"phone": phone})
-    user = await db.users.find_one({"phone": phone, "auth_provider": "phone"}, {"_id": 0})
-    if not user:
-        user = {"user_id": f"user_{uuid.uuid4().hex[:12]}", "auth_provider": "phone", "email": None,
-                "phone": phone, "name": body.name.strip() or "Host", "picture": "",
-                "created_at": now().isoformat()}
-        await db.users.insert_one(dict(user))
-    await create_session(user["user_id"], response)
-    return user
 
 
 @api.get("/auth/me")
@@ -516,9 +472,15 @@ async def list_cards(user: dict = Depends(current_user)):
     return cards
 
 
+def require_terms(body: CardIn):
+    if body.status == "published" and not body.agreed_terms:
+        raise HTTPException(422, "Please agree to the Terms and Privacy Policy before publishing")
+
+
 @api.post("/cards")
 async def create_card(body: CardIn, user: dict = Depends(current_user)):
     check_photos(body, user)
+    require_terms(body)
     ts = now().isoformat()
     base = slugify("-".join(filter(None, [body.primary_name, body.secondary_name if body.event_type in COUPLE_TYPES else ""])))
     doc = {**body.model_dump(), "events": assign_event_ids(body.events),
@@ -536,8 +498,9 @@ async def get_card(card_id: str, user: dict = Depends(current_user)):
 
 @api.put("/cards/{card_id}")
 async def update_card(card_id: str, body: CardIn, user: dict = Depends(current_user)):
-    await owned_card(card_id, user)
-    check_photos(body, user)
+    existing = await owned_card(card_id, user)
+    check_photos(body, user, existing)
+    require_terms(body)
     update = {**body.model_dump(), "events": assign_event_ids(body.events), "updated_at": now().isoformat()}
     await db.cards.update_one({"card_id": card_id}, {"$set": update})
     return await owned_card(card_id, user)
@@ -835,6 +798,7 @@ async def root():
 
 
 app.include_router(api)
+app.include_router(build_site_router(db, current_user, now))
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -858,6 +822,11 @@ async def startup():
         logger.error(f"Storage init failed: {e}")
     await db.users.create_index("user_id", unique=True)
     await db.user_sessions.create_index("session_token", unique=True)
+    await db.callbacks.create_index([("mobile", 1), ("created_at", -1)])
+    await db.otp_codes.drop()
+    admin = await db.users.find_one({"email": ADMIN_EMAIL, "auth_provider": "google"}, {"_id": 0, "user_id": 1})
+    if admin:
+        await adopt_phone_cards(admin["user_id"])
     for card in DEMO_CARDS:
         await db.cards.replace_one({"card_id": card["card_id"]}, card, upsert=True)
     logger.info("Demo cards seeded")

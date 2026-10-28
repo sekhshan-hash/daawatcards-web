@@ -78,16 +78,25 @@ const Seg = ({ options, value, onChange, testId }) => (
   </div>
 );
 
-// Box 2: the host's own header line; replaces Box 1 whenever it has text.
+// Box 2: the host's own header line; replaces Box 1 whenever it has text. Collapsed unless it already has text.
 export const CustomHeaderBox = ({ value, onChange, testId }) => {
   const v = { ...BLANK_HEADER, ...(value || {}) };
   const set = (patch) => onChange({ ...v, ...patch });
+  const active = !!v.text.trim();
+  const [open, setOpen] = useState(active);
+  useEffect(() => { if (active) setOpen(true); }, [active]);
   return (
-    <div className="space-y-3 rounded-2xl border border-border p-4" data-testid={testId}>
-      <div>
-        <p className="text-sm font-semibold text-foreground">{t("wizard.customHeader")}</p>
-        <p className="text-xs text-muted-foreground">{t("wizard.customHeaderHint")}</p>
-      </div>
+    <div className={`rounded-2xl border transition-colors ${open ? "border-gold/40" : "border-border"}`} data-testid={testId}>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} data-testid={`${testId}-toggle`}
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left">
+        <span className="flex-1 text-sm font-semibold text-foreground">{t("wizard.customHeaderTitle")}</span>
+        {active && <span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-semibold text-gold" data-testid={`${testId}-active-badge`}>{t("wizard.usingCustom")}</span>}
+        <ChevronDown size={18} className={`shrink-0 text-muted-foreground transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+      </button>
+      <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open ? "1fr" : "0fr" }} inert={open ? undefined : ""} data-testid={`${testId}-panel`}>
+        <div className="overflow-hidden">
+          <div className="space-y-3 px-4 pb-4">
+            <p className="text-xs text-muted-foreground">{t("wizard.customHeaderHint")}</p>
       <Input value={v.text} onChange={(e) => set({ text: e.target.value })} maxLength={120} dir={dirOf(v.script)}
         className={`h-12 rounded-xl text-base ${scriptCls(v.script)}`} placeholder={t("wizard.customHeaderPlaceholder")} data-testid={`${testId}-text-input`} />
       <Seg options={SCRIPTS.map((s) => [s, t(`wizard.scripts.${s}`)])} value={v.script} onChange={(s) => set({ script: s })} testId={`${testId}-script`} />
@@ -99,6 +108,9 @@ export const CustomHeaderBox = ({ value, onChange, testId }) => {
       {v.text.trim() && (
         <button type="button" onClick={() => onChange({ ...BLANK_HEADER })} className="btn-chip text-rose" data-testid={`${testId}-clear`}><X size={14} /> {t("wizard.clearCustom")}</button>
       )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

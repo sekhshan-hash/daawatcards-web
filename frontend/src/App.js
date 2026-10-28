@@ -11,6 +11,9 @@ import Wizard from "@/pages/Wizard";
 import CardDetail from "@/pages/CardDetail";
 import GuestsPage from "@/pages/GuestsPage";
 import GuestCardPage from "@/pages/GuestCardPage";
+import LegalPage from "@/pages/LegalPage";
+import Contact from "@/pages/Contact";
+import Admin from "@/pages/Admin";
 import { BRAND } from "@/config/brand";
 
 document.title = `${BRAND.name} · Cinematic Invitations`;
@@ -42,6 +45,12 @@ function App() {
           <Route path="/cards/:cardId" element={guard(<CardDetail />)} />
           <Route path="/cards/:cardId/guests" element={guard(<GuestsPage />)} />
           <Route path="/cards/:cardId/edit" element={guard(<Wizard />)} />
+          <Route path="/terms" element={<LegalPage page="terms" />} />
+          <Route path="/privacy" element={<LegalPage page="privacy" />} />
+          <Route path="/refund" element={<LegalPage page="refund" />} />
+          <Route path="/pricing" element={<LegalPage page="pricing" />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={guard(<Admin />)} />
           <Route path="*" element={<Landing />} />
         </Route>
       </Routes>

@@ -15,7 +15,7 @@ const SAMPLE = {
 
 const inDays = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 
-const sampleCard = (card, tpl) => {
+export const sampleCard = (card, tpl) => {
   const lang = card.language || "en";
   const s = SAMPLE[lang] || SAMPLE.en;
   const couple = COUPLE_TYPES.includes(card.event_type);

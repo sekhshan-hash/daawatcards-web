@@ -3,7 +3,7 @@ import { CalendarPlus, ChevronDown, Clock, MapPin, Navigation, RotateCcw, Shirt,
 import { BRAND } from "@/config/brand";
 import { COUPLE_TYPES, blessingText, tCorp } from "@/i18n";
 import { useInView } from "@/hooks/useMedia";
-import { directionsUrl, eventStartMs, eventStatus, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
+import { directionsUrl, eventStartMs, eventStatus, formatLongDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
 import { icsUrl } from "@/lib/links";
 import { cardHeader, eventConcluded, familyText } from "@/i18n/traditions";
 import { PlacedPhoto, mainPhoto } from "./CardPhoto";
@@ -45,9 +45,7 @@ export const TitleSection = ({ card, event, t, tpl, single }) => {
       <CoupleNames card={card} tpl={tpl} />
       <Divider />
       {card.title && <p className="gc-title" data-testid="card-event-title">{card.title}</p>}
-      <p className="gc-chip" data-testid="card-title-event-chip">
-        {[!card.title && event.name, formatShortDate(event.date, card.language), formatTime(event.time, card.language)].filter(Boolean).join(" · ")}
-      </p>
+      {!card.title && <p className="gc-chip" data-testid="card-title-event-chip">{event.name}</p>}
       <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
     </section>
   );

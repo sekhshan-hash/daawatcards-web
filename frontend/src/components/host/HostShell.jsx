@@ -16,7 +16,7 @@ export const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   if (loading) return <FullLoader />;
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   return children;
 };
 
@@ -33,7 +33,9 @@ export const HostShell = ({ children }) => {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
           <BrandMark to="/dashboard" />
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:inline" data-testid="header-user-name">{user?.name || user?.phone}</span>
+            {user?.is_admin && <Link to="/admin" className="text-sm text-gold hover:underline" data-testid="header-admin-link">{t("site.admin")}</Link>}
+            {user?.picture && <img src={user.picture} alt="" referrerPolicy="no-referrer" className="h-8 w-8 rounded-full border border-border object-cover" data-testid="header-user-picture" />}
+            <span className="hidden text-sm text-muted-foreground sm:inline" data-testid="header-user-name">{user?.name || user?.email}</span>
             <button type="button" onClick={out} className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm transition-colors hover:bg-secondary" data-testid="logout-button">
               <LogOut size={15} /> {t("common.logout")}
             </button>
