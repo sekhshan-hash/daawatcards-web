@@ -1,4 +1,5 @@
 import { Plus, Trash2, Wand2 } from "lucide-react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getTemplate } from "@/templates/registry";
@@ -108,7 +109,11 @@ const EventEditor = ({ ev, index, eventType, lang, tpl, multi, card, onChange, o
 export const StepEvents = ({ card, update }) => {
   const setEvent = (i, patch) => update({ events: card.events.map((e, j) => (j === i ? { ...e, ...patch } : e)) });
   const add = () => update({ events: [...card.events, blankEvent("", nextId(card.events))] });
-  const remove = (i) => update({ events: card.events.filter((_, j) => j !== i) });
+  const remove = (i) => {
+    const moved = card.photo_place === `event:${card.events[i].event_id}`;
+    update({ events: card.events.filter((_, j) => j !== i), ...(moved ? { photo_place: "cover" } : {}) });
+    if (moved) toast.info(t("wizard.photoMoved"));
+  };
   return (
     <>
       <StepTitle hint={t("wizard.eventsHint")}>{t("wizard.eventsTitle")}</StepTitle>

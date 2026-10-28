@@ -162,6 +162,12 @@ class FamilyIn(BaseModel):
     hidden: bool = False
 
 
+class EffectsIn(BaseModel):
+    fireworks: bool = True
+    vibration: bool = True
+    intensity: Literal["low", "medium", "high"] = "medium"
+
+
 class CardIn(BaseModel):
     event_type: str
     template: str
@@ -188,6 +194,9 @@ class CardIn(BaseModel):
     header_per_event: bool = False
     intro_title: str = Field(default="", max_length=80)
     photo_fit: Dict[Literal["hero", "feature", "wishes"], PhotoFit] = Field(default_factory=dict)
+    photo_place: str = Field(default="", pattern=r"^(|cover|intro|wishes|event:[A-Za-z0-9_-]{1,20})$")
+    hub_heading: str = Field(default="", max_length=80)
+    effects: EffectsIn = Field(default_factory=EffectsIn)
 
     @field_validator("event_type")
     @classmethod
@@ -789,7 +798,8 @@ async def share_page(slug: str, event_id: str, request: Request, to: str = "", g
     base = public_base(request)
     to = to.strip()[:80]
     params = {k: v for k, v in {"to": to, "g": g.strip()[:20]}.items() if v}
-    target = f"{base}/i/{slug}/{ev['event_id']}" + (f"?{urlencode(params)}" if params else "")
+    path = f"/i/{slug}" if event_id == "cover" else f"/i/{slug}/{ev['event_id']}"
+    target = f"{base}{path}" + (f"?{urlencode(params)}" if params else "")
     date_s, time_s = display_date(ev)
     title = f"{intro_title(card)} · {names_line(card)}"
     if to:

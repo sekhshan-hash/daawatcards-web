@@ -3,9 +3,9 @@ import { toast } from "sonner";
 import { Crop, ImagePlus, Trash2 } from "lucide-react";
 import { errMsg } from "@/lib/api";
 import { photoUrl, uploadPhoto } from "@/lib/upload";
-import { photoFit } from "@/card/CardPhoto";
+import { mainPhoto, photoFit } from "@/card/CardPhoto";
 import { PhotoAdjust, faceFocus } from "./PhotoAdjust";
-import { StepTitle } from "./Steps";
+import { Field, StepTitle } from "./Steps";
 import { t } from "@/i18n";
 
 export const PhotoSlot = ({ label, hint, value, onChange, testId, tall, card, variant, fit, onFit }) => {
@@ -56,26 +56,39 @@ export const PhotoSlot = ({ label, hint, value, onChange, testId, tall, card, va
   );
 };
 
-export const StepPhotos = ({ card, update }) => {
-  const photos = [card.photos?.[0] || "", card.photos?.[1] || ""];
-  const fitOf = (k) => card.photo_fit?.[k];
-  const fits = (k, f) => (f ? { photo_fit: { ...(card.photo_fit || {}), [k]: f } } : {});
-  const setPhoto = (i, v, f) => update({ photos: photos.map((p, j) => (j === i ? v : p)), ...fits(i ? "feature" : "hero", f) });
-  const setEventPhoto = (i, patch) => update({ events: card.events.map((e, j) => (j === i ? { ...e, ...patch } : e)) });
-  const setFit = (k) => (f) => update(fits(k, f));
-  const common = { card };
+const VARIANT = { cover: "hero", intro: "intro", wishes: "wishes" };
+
+export const StepPhotos = ({ card, update, onPlace, onSkip }) => {
+  const path = card.photos?.[0] || "";
+  const place = mainPhoto({ ...card, photo_place: card.photo_place || "cover" })?.place || "cover";
+  const variant = VARIANT[place] || "event";
+  const setPhoto = (v, f) => update({ photos: [v, card.photos?.[1] || ""], photo_place: card.photo_place || "cover", ...(f ? { photo_fit: { ...(card.photo_fit || {}), hero: f } } : {}) });
+  const setFit = (f) => update({ photo_fit: { ...(card.photo_fit || {}), hero: f } });
+  const choose = (p) => {
+    update({ photo_place: p });
+    onPlace(p);
+  };
   return (
     <>
       <StepTitle hint={t("wizard.photosHint")}>{t("wizard.photosTitle")}</StepTitle>
-      <div className="grid grid-cols-1 gap-3">
-        <PhotoSlot {...common} tall variant="hero" fit={fitOf("hero")} onFit={setFit("hero")} label={t("wizard.photo1")} hint={t("wizard.photo1Hint")} value={photos[0]} onChange={(v, f) => setPhoto(0, v, f)} testId="wizard-photo-hero" />
-        <PhotoSlot {...common} tall variant="feature" fit={fitOf("feature")} onFit={setFit("feature")} label={t("wizard.photo2")} hint={t("wizard.photo2Hint")} value={photos[1]} onChange={(v, f) => setPhoto(1, v, f)} testId="wizard-photo-feature" />
-        {card.events.map((ev, i) => (
-          <PhotoSlot {...common} key={ev.event_id} variant="event" fit={ev.photo_fit} onFit={(f) => setEventPhoto(i, { photo_fit: f })}
-            label={t("wizard.eventPhoto", { event: ev.name || ev.event_id })} hint={t("wizard.eventPhotoHint")}
-            value={ev.photo || ""} onChange={(v, f) => setEventPhoto(i, { photo: v, ...(f ? { photo_fit: f } : {}) })} testId={`wizard-photo-event-${i}`} />
-        ))}
-        <PhotoSlot {...common} tall variant="wishes" fit={fitOf("wishes")} onFit={setFit("wishes")} label={t("wizard.wishesPhoto")} hint={t("wizard.wishesPhotoHint")} value={card.wishes_photo || ""} onChange={(v, f) => update({ wishes_photo: v, ...fits("wishes", f) })} testId="wizard-photo-wishes" />
+      <div className="grid grid-cols-1 gap-4">
+        <PhotoSlot card={card} tall variant={variant} fit={card.photo_fit?.hero} onFit={setFit} label={t("wizard.photoSingle")} hint={t("wizard.photoSingleHint")}
+          value={path} onChange={setPhoto} testId="wizard-photo-main" />
+        {path ? (
+          <Field label={t("wizard.showOn")}>
+            <select value={place} onChange={(e) => choose(e.target.value)} className="field-select" data-testid="wizard-photo-place-select">
+              <option value="cover">{t("wizard.placeCover")}</option>
+              <option value="intro">{t("wizard.placeIntro")}</option>
+              {card.events.map((ev) => <option key={ev.event_id} value={`event:${ev.event_id}`}>{ev.name || ev.event_id}</option>)}
+              <option value="wishes">{t("wizard.placeWishes")}</option>
+            </select>
+          </Field>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border p-4" data-testid="wizard-photo-empty">
+            <p className="text-sm text-muted-foreground">{t("wizard.photoSkipped")}</p>
+            <button type="button" onClick={onSkip} className="btn-outline mt-3" data-testid="wizard-photo-skip-button">{t("wizard.skipPhoto")}</button>
+          </div>
+        )}
       </div>
     </>
   );

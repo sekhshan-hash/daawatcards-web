@@ -18,11 +18,10 @@ const DEMOS = [
 
 const LivePreview = () => {
   const [card, setCard] = useState(null);
-  const [eventId, setEventId] = useState("e2");
   useEffect(() => { api.get("/public/cards/demo-shahnawaz-farah").then((r) => setCard(r.data)).catch(() => {}); }, []);
   return (
     <div className="relative">
-      <PhoneFrame>{card ? <GuestCard card={card} eventId={eventId} guestName="Honoured Guest" onSelectEvent={setEventId} /> : <div className="h-full bg-[#2B070C]" />}</PhoneFrame>
+      <PhoneFrame>{card ? <GuestCard card={card} guestName="Honoured Guest" /> : <div className="h-full bg-[#2B070C]" />}</PhoneFrame>
       <p className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground"><Sparkles size={14} className="text-gold" /> {t("landing.tryHint")}</p>
     </div>
   );
@@ -50,7 +49,7 @@ export default function Landing() {
           <p className="mt-6 max-w-lg text-base text-muted-foreground md:text-lg">{t("landing.subtitle")}</p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link to={start} className="btn-gold" data-testid="landing-create-card-button">{t("landing.ctaCreate")} <ArrowRight size={17} /></Link>
-            <Link to={guestPath("demo-shahnawaz-farah", "e1", "Honoured Guest")} className="btn-outline" data-testid="landing-demo-wedding-link">{t("landing.ctaDemo")}</Link>
+            <Link to={guestPath("demo-shahnawaz-farah", null, "Honoured Guest")} className="btn-outline" data-testid="landing-demo-wedding-link">{t("landing.ctaDemo")}</Link>
             <Link to={guestPath("zara-turns-7", "e1", "Little Explorer")} className="btn-outline" data-testid="landing-demo-birthday-link">{t("landing.ctaDemoBirthday")}</Link>
           </div>
         </div>
@@ -76,7 +75,7 @@ export default function Landing() {
         <h2 className="font-display text-2xl text-foreground sm:text-3xl">{t("landing.templatesTitle")}</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {DEMOS.map((d) => (
-            <Link key={d.slug} to={guestPath(d.slug, "e1", d.guest)} className="group relative block h-80 overflow-hidden rounded-3xl border border-border" data-testid={`landing-template-${d.tpl}`}>
+            <Link key={d.slug} to={guestPath(d.slug, null, d.guest)} className="group relative block h-80 overflow-hidden rounded-3xl border border-border" data-testid={`landing-template-${d.tpl}`}>
               <img src={d.img} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${TEMPLATES[d.tpl].swatch[0]} 15%, transparent 85%)` }} />
               <div className="absolute bottom-0 p-7">

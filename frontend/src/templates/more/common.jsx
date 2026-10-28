@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { FitText } from "@/card/FitText";
+import { CardPhoto } from "@/card/CardPhoto";
 
 export const useOpen = (onOpen, onDone, reduced, ms) => {
   const [opening, setOpening] = useState(false);
@@ -20,10 +21,17 @@ export const IntroShell = ({ className, opening, onSkip, t, children, ...rest })
 );
 
 export const IntroTitleContext = createContext("");
+export const IntroPhotoContext = createContext(null);
 
 export const IntroTitle = () => {
   const title = useContext(IntroTitleContext);
-  return title ? <FitText className="intro-title" maxLines={2} dir="auto" data-testid="intro-invitation-title">{title}</FitText> : null;
+  const photo = useContext(IntroPhotoContext);
+  return (
+    <>
+      {photo && <CardPhoto path={photo.path} fit={photo.fit} variant="intro" testId="intro-photo" />}
+      {title ? <FitText className="intro-title" maxLines={2} dir="auto" data-testid="intro-invitation-title">{title}</FitText> : null}
+    </>
+  );
 };
 
 export const IntroName = ({ t, guestName }) => (

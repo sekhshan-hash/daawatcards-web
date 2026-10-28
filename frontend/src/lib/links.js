@@ -8,7 +8,7 @@ const query = (name, guestId) => {
   return s ? `?${s}` : "";
 };
 
-export const guestPath = (slug, eventId, name, guestId) => `/i/${slug}/${eventId}${query(name, guestId)}`;
+export const guestPath = (slug, eventId, name, guestId) => `/i/${slug}${eventId ? `/${eventId}` : ""}${query(name, guestId)}`;
 
 // Share links go through the backend so WhatsApp gets per-event preview tags, then redirect to guestPath.
 export const shareUrl = (slug, eventId, name, guestId) => `${BACKEND_URL}/api/s/${slug}/${eventId}${query(name, guestId)}`;

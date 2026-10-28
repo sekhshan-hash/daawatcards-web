@@ -11,11 +11,12 @@ import { t, makeT } from "@/i18n";
 
 const LinkMaker = ({ card }) => {
   const [name, setName] = useState("");
-  const [eventId, setEventId] = useState(card.events[0].event_id);
-  const ev = card.events.find((e) => e.event_id === eventId);
+  const multi = card.events.length > 1;
+  const [eventId, setEventId] = useState(multi ? "cover" : card.events[0].event_id);
+  const ev = card.events.find((e) => e.event_id === eventId) || card.events[0];
   const link = shareUrl(card.slug, eventId, name);
   const ct = makeT(card.language);
-  const message = ct("whatsapp.invite", { guest: name.trim() || ct("guest.specialGuest"), event: ev.name, names: namesLine(card), date: formatLongDate(ev.date, card.language), link });
+  const message = ct("whatsapp.invite", { guest: name.trim() || ct("guest.specialGuest"), event: eventId === "cover" ? card.events.map((e) => e.name).join(", ") : ev.name, names: namesLine(card), date: formatLongDate(ev.date, card.language), link });
   const copy = async () => { await copyText(link); toast.success(t("common.copied")); };
 
   return (
@@ -31,6 +32,7 @@ const LinkMaker = ({ card }) => {
         <div>
           <label className="field-label" htmlFor="lm-event">{t("detail.event")}</label>
           <select id="lm-event" value={eventId} onChange={(e) => setEventId(e.target.value)} className="field-select" data-testid="link-maker-event-select">
+            {multi && <option value="cover">{t("detail.allEvents")}</option>}
             {card.events.map((e) => <option key={e.event_id} value={e.event_id}>{e.name}</option>)}
           </select>
         </div>

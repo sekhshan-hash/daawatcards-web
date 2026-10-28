@@ -219,6 +219,7 @@ const en = {
     hello: "Hello, {name}",
   },
   detail: {
+    allEvents: "All events (cover)",
     linkMaker: "Personal link maker",
     linkMakerHint: "Type a guest's name to create their personal invitation link.",
     guestName: "Guest name",

@@ -6,7 +6,7 @@ import { useInView } from "@/hooks/useMedia";
 import { directionsUrl, eventStartMs, eventStatus, formatLongDate, formatShortDate, formatTime, googleCalendarUrl, namesLine } from "@/lib/eventTime";
 import { icsUrl } from "@/lib/links";
 import { cardHeader, eventConcluded, familyText } from "@/i18n/traditions";
-import { CardPhoto } from "./CardPhoto";
+import { PlacedPhoto, mainPhoto } from "./CardPhoto";
 import { mealLine } from "@/lib/meals";
 import { FitText } from "./FitText";
 import { ClosingLine, EventDua, EventWording, FamilyBlock, HeaderLine } from "./Wording";
@@ -18,57 +18,44 @@ export const Reveal = ({ children, className = "" }) => {
 
 
 
-export const TitleSection = ({ card, event, t, tpl, single, cover = false, events = [], onJump }) => {
+export const CoupleNames = ({ card, tpl }) => (COUPLE_TYPES.includes(card.event_type) && card.secondary_name ? (
+  <FitText as="h1" className="gc-names is-couple is-stacked" maxLines={5} data-testid="card-names">
+    <span className="gc-name-line">{card.primary_name}</span>
+    <span className="gc-amp">&amp;</span>
+    <span className="gc-name-line">{card.secondary_name}</span>
+  </FitText>
+) : (
+  <>
+    <FitText as="h1" className="gc-names" data-testid="card-names">{tpl.renderName ? tpl.renderName(card.primary_name) : card.primary_name}</FitText>
+    {card.secondary_name && <p className="gc-subname">{card.secondary_name}</p>}
+  </>
+));
+
+export const TitleSection = ({ card, event, t, tpl, single }) => {
   const couple = COUPLE_TYPES.includes(card.event_type) && card.secondary_name;
   const Frame = tpl.Frame;
   const Divider = tpl.Divider;
   return (
-    <section className={`gc-title-screen ${single ? "is-single" : ""} ${cover ? "is-cover" : ""} ${card.photos?.[0] ? "has-photo" : ""}`} data-testid="card-title-section">
+    <section className={`gc-title-screen ${single ? "is-single" : ""} ${mainPhoto(card)?.place === "cover" ? "has-photo" : ""}`} data-testid="card-title-section">
       <Frame />
       <HeaderLine card={card} testId="card-cover-header-line" />
-      <CardPhoto path={card.photos?.[0]} fit={card.photo_fit?.hero} variant="hero" testId="card-hero-photo" />
+      <PlacedPhoto card={card} place="cover" variant="hero" testId="card-hero-photo" />
       <FamilyBlock card={card} />
       {!familyText(card) && !(couple && cardHeader(card)?.id === "together") && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
-      {couple ? (
-        <FitText as="h1" className="gc-names is-couple is-stacked" maxLines={5} data-testid="card-names">
-          <span className="gc-name-line">{card.primary_name}</span>
-          <span className="gc-amp">&amp;</span>
-          <span className="gc-name-line">{card.secondary_name}</span>
-        </FitText>
-      ) : (
-        <>
-          <FitText as="h1" className="gc-names" data-testid="card-names">{tpl.renderName ? tpl.renderName(card.primary_name) : card.primary_name}</FitText>
-          {card.secondary_name && <p className="gc-subname">{card.secondary_name}</p>}
-        </>
-      )}
+      <CoupleNames card={card} tpl={tpl} />
       <Divider />
       {card.title && <p className="gc-title" data-testid="card-event-title">{card.title}</p>}
-      {cover ? (
-        <ul className="gc-cover-events" data-testid="cover-events-list">
-          {events.map((ev, i) => (
-            <li key={ev.event_id}>
-              <button type="button" onClick={() => onJump(i + 1)} data-testid={`cover-event-${ev.event_id}`}>
-                <span className="gc-cover-event-name">{ev.name}</span>
-                <span className="gc-cover-event-date">{formatShortDate(ev.date, card.language)}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <>
-          <p className="gc-chip" data-testid="card-title-event-chip">
-            {[!card.title && event.name, formatShortDate(event.date, card.language), formatTime(event.time, card.language)].filter(Boolean).join(" · ")}
-          </p>
-          <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
-        </>
-      )}
+      <p className="gc-chip" data-testid="card-title-event-chip">
+        {[!card.title && event.name, formatShortDate(event.date, card.language), formatTime(event.time, card.language)].filter(Boolean).join(" · ")}
+      </p>
+      <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
     </section>
   );
 };
 
 const blessingFor = (card, t) => blessingText(t, card);
 
-const Row = ({ icon: Icon, label, value, testId }) => (
+export const Row = ({ icon: Icon, label, value, testId }) => (
   <div className="gc-row">
     <Icon size={18} className="gc-row-icon" />
     <div><p className="gc-row-label">{label}</p><p className="gc-row-value" data-testid={testId}>{value}</p></div>
@@ -82,12 +69,11 @@ export const DetailsSection = ({ card, event, t, page = false }) => {
     <section className="gc-section" data-testid="card-details-section">
       {page && <HeaderLine card={card} ev={event} testId="card-event-header-line" />}
       {!page && card.invitation_text && <Reveal><p className="gc-invite" data-testid="card-invitation-text">{card.invitation_text}</p></Reveal>}
-      {!page && card.photos?.[1] && <Reveal><CardPhoto path={card.photos[1]} fit={card.photo_fit?.feature} variant="feature" testId="card-feature-photo" /></Reveal>}
       {!page && blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
       <Reveal><EventWording card={card} ev={event} /></Reveal>
       <Reveal>
         <div className="gc-panel">
-          <CardPhoto path={event.photo} fit={event.photo_fit} variant="event" testId="card-event-photo" />
+          <PlacedPhoto card={card} place={`event:${event.event_id}`} variant="event" testId="card-event-photo" />
           <p className="gc-eyebrow">{t("guest.eventLabel")}</p>
           <h2 className="gc-heading" data-testid="card-event-name">{event.name}</h2>
           <div className="gc-rows">

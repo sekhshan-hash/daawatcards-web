@@ -32,7 +32,7 @@ const CardRow = ({ card }) => {
         <Link to={`/cards/${card.card_id}`} className="btn-chip" data-testid={`dashboard-manage-${card.card_id}`}><Share2 size={14} /> {t("common.manage")}</Link>
         <Link to={`/cards/${card.card_id}/edit`} className="btn-chip" data-testid={`dashboard-edit-${card.card_id}`}><Pencil size={14} /> {t("common.edit")}</Link>
         {card.status === "published" && (
-          <a href={guestPath(card.slug, card.events[0].event_id)} target="_blank" rel="noreferrer" className="btn-chip" data-testid={`dashboard-view-${card.card_id}`}><ExternalLink size={14} /> {t("common.view")}</a>
+          <a href={guestPath(card.slug, null)} target="_blank" rel="noreferrer" className="btn-chip" data-testid={`dashboard-view-${card.card_id}`}><ExternalLink size={14} /> {t("common.view")}</a>
         )}
       </div>
     </div>
@@ -63,7 +63,7 @@ export default function Dashboard() {
             <p className="mt-2 text-muted-foreground">{t("dashboard.emptyHint")}</p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link to="/create" className="btn-gold">{t("dashboard.create")}</Link>
-              <Link to={guestPath("demo-shahnawaz-farah", "e1", user?.name)} className="btn-outline" data-testid="dashboard-demo-link">{t("landing.ctaDemo")}</Link>
+              <Link to={guestPath("demo-shahnawaz-farah", null, user?.name)} className="btn-outline" data-testid="dashboard-demo-link">{t("landing.ctaDemo")}</Link>
             </div>
           </div>
         )}

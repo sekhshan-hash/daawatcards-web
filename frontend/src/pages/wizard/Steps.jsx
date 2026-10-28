@@ -132,7 +132,7 @@ const FamilyFields = ({ card, update }) => {
   );
 };
 
-export const StepTemplate = ({ card, onTemplate }) => {
+export const StepTemplate = ({ card, onTemplate, update }) => {
   const [previewId, setPreviewId] = useState(null);
   useEffect(() => TEMPLATE_LIST.forEach((tp) => loadFont(tp.id, tp.fontsHref)), []);
   const list = [...TEMPLATE_LIST].sort((a, b) => b.eventTypes.includes(card.event_type) - a.eventTypes.includes(card.event_type));
@@ -162,7 +162,38 @@ export const StepTemplate = ({ card, onTemplate }) => {
         ))}
       </div>
       {previewId && <TemplatePreview tplId={previewId} card={card} onClose={closePreview} onUse={(id) => { onTemplate(id); setPreviewId(null); }} />}
+      <EffectsField card={card} update={update} />
     </>
+  );
+};
+
+const EffectsField = ({ card, update }) => {
+  const fx = { fireworks: true, vibration: true, intensity: "medium", ...(card.effects || {}) };
+  const set = (patch) => update({ effects: { ...fx, ...patch } });
+  return (
+    <div className="mt-10">
+      <Field label={t("wizard.effects")} hint={t("wizard.effectsHint")}>
+        <div className="space-y-3 rounded-2xl border border-border p-4" data-testid="wizard-effects">
+          <label className="flex items-center justify-between gap-3 text-sm">
+            {t("wizard.fireworks")}
+            <Switch checked={fx.fireworks} onCheckedChange={(v) => set({ fireworks: v })} data-testid="wizard-effects-fireworks-switch" />
+          </label>
+          <label className={`flex items-center justify-between gap-3 text-sm ${fx.fireworks ? "" : "opacity-50"}`}>
+            <span>{t("wizard.vibration")}<span className="mt-0.5 block text-xs text-muted-foreground">{t("wizard.vibrationHint")}</span></span>
+            <Switch checked={fx.fireworks && fx.vibration} disabled={!fx.fireworks} onCheckedChange={(v) => set({ vibration: v })} data-testid="wizard-effects-vibration-switch" />
+          </label>
+          <div className={`flex flex-wrap items-center gap-2 ${fx.fireworks ? "" : "pointer-events-none opacity-50"}`}>
+            <span className="text-sm text-muted-foreground">{t("wizard.intensity")}:</span>
+            {["low", "medium", "high"].map((k) => (
+              <button key={k} type="button" onClick={() => set({ intensity: k })} data-testid={`wizard-effects-intensity-${k}`}
+                className={`rounded-full border px-4 py-1.5 text-xs ${fx.intensity === k ? "border-gold bg-gold/15 text-gold" : "border-border text-muted-foreground"}`}>
+                {t(`wizard.intensities.${k}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Field>
+    </div>
   );
 };
 
@@ -220,6 +251,12 @@ export const StepDetails = ({ card, update, onLanguage }) => {
         {["wedding", "engagement"].includes(card.event_type) && <FamilyFields card={card} update={update} />}
         <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
         <Field label={L.title}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("title")} /></Field>
+        {card.events.length > 1 && (
+          <Field label={t("wizard.hubHeading")} hint={t("wizard.hubHeadingHint")}>
+            <Input className="h-12 rounded-xl text-base" maxLength={80} value={card.hub_heading || ct(`guest.hub.${card.event_type}`)} dir="auto"
+              onChange={(e) => update({ hub_heading: e.target.value === ct(`guest.hub.${card.event_type}`) ? "" : e.target.value })} data-testid="wizard-hub-heading-input" />
+          </Field>
+        )}
         <Field label={L.invitation}><Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} {...bind("invitation_text")} /></Field>
         <Field label={L.blessing}>
           <div className="flex flex-wrap gap-2">

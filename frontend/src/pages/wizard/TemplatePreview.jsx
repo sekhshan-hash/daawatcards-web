@@ -42,7 +42,6 @@ export const TemplatePreview = ({ tplId, card, onClose, onUse }) => {
   const demo = useMemo(() => sampleCard(card, tpl), [card, tpl]);
   const [run, setRun] = useState(0);
   const [sound, setSound] = useState(true);
-  const [eventId, setEventId] = useState(null);
   const hasMusic = demo.music_track && demo.music_track !== "none";
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export const TemplatePreview = ({ tplId, card, onClose, onUse }) => {
     };
   }, [onClose]);
 
-  const view = <GuestCard key={run} card={demo} eventId={eventId} preview soundOn={sound} onSelectEvent={setEventId} />;
+  const view = <GuestCard key={run} card={demo} preview soundOn={sound} />;
   const controls = (
     <>
       <Ctrl onClick={() => setRun((r) => r + 1)} label={t("wizard.tplReplay")} testId="template-preview-replay"><RotateCcw size={16} /> {t("wizard.tplReplay")}</Ctrl>

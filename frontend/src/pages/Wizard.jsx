@@ -13,6 +13,16 @@ import { StepPhotos } from "./wizard/StepPhotos";
 import { t, makeT } from "@/i18n";
 import { weddingDefaults } from "@/i18n/traditions";
 import { BLANK_HEADER } from "./wizard/HeaderBoxes";
+import { mainPhoto } from "@/card/CardPhoto";
+
+const DEFAULT_EFFECTS = { fireworks: true, vibration: true, intensity: "medium" };
+
+// Older cards had several photos: the first one becomes the single cover photo; the others stay saved.
+const singlePhoto = (c) => {
+  if (c.photo_place) return {};
+  const m = mainPhoto(c);
+  return { photo_place: "cover", ...(m ? { photos: [m.path, c.photos?.[1] || ""], photo_fit: { ...(c.photo_fit || {}), ...(m.fit ? { hero: m.fit } : {}) } } : {}) };
+};
 
 const BLANK_FAMILY = { groom_family: "", bride_family: "", groom_parents: "", bride_parents: "", groom_grandparents: "", bride_grandparents: "", host_side: "groom", hidden: false };
 
@@ -24,12 +34,12 @@ const defaultCard = (type, lang = "en", tradition = "neutral") => {
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
     title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
-    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {},
+    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", hub_heading: "", effects: DEFAULT_EFFECTS,
     events: names.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit", "photo_place", "hub_heading", "effects"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
@@ -37,11 +47,11 @@ const validate = (card, step) => {
   return "";
 };
 
-const Preview = ({ card, eventId, setEventId }) => {
+const Preview = ({ card, eventId, focus, setEventId }) => {
   const [key, setKey] = useState(0);
   return (
     <div>
-      <PhoneFrame><GuestCard key={key} card={card} eventId={eventId || null} preview onSelectEvent={setEventId} /></PhoneFrame>
+      <PhoneFrame><GuestCard key={key} card={card} eventId={eventId || null} focus={focus} preview /></PhoneFrame>
       <div className="mt-4 flex items-center justify-center gap-3">
         {card.events.length > 1 && (
           <select value={eventId} onChange={(e) => setEventId(e.target.value)} className="field-select h-10 w-auto" aria-label={t("wizard.previewEvent")} data-testid="wizard-preview-event-select">
@@ -62,12 +72,13 @@ export default function Wizard() {
   const [card, setCard] = useState(cardId ? null : defaultCard("wedding"));
   const [step, setStep] = useState(0);
   const [eventId, setEventId] = useState("");
+  const [focus, setFocus] = useState(null);
   const [busy, setBusy] = useState(false);
   const steps = t("wizard.steps");
 
   useEffect(() => {
     if (!cardId) return;
-    api.get(`/cards/${cardId}`).then((r) => setCard({ tradition: "neutral", header_key: "", header_per_event: false, intro_title: "", ...r.data,
+    api.get(`/cards/${cardId}`).then((r) => setCard({ tradition: "neutral", header_key: "", header_per_event: false, intro_title: "", hub_heading: "", effects: DEFAULT_EFFECTS, ...r.data, ...singlePhoto(r.data),
       custom_header: { ...BLANK_HEADER, ...(r.data.custom_header || {}) }, family: { ...BLANK_FAMILY, ...(r.data.family || {}) } })).catch(() => navigate("/dashboard"));
   }, [cardId, navigate]);
 
@@ -76,7 +87,7 @@ export default function Wizard() {
   const onType = (type) => {
     if (type === card.event_type) return;
     if (card.card_id) return update({ event_type: type, blessing_key: t(`defaults.${type}`).blessing });
-    setCard({ ...defaultCard(type, card.language, card.tradition), heading_font: card.heading_font, photos: card.photos, wishes_photo: card.wishes_photo, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp, family: card.family });
+    setCard({ ...defaultCard(type, card.language, card.tradition), heading_font: card.heading_font, photos: card.photos, photo_fit: card.photo_fit, wishes_photo: card.wishes_photo, effects: card.effects, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp, family: card.family });
     setEventId("");
   };
   const onTradition = (tradition) => {
@@ -101,12 +112,17 @@ export default function Wizard() {
     });
   };
   const onTemplate = (id) => update({ template: id, music_track: card.music_track === TEMPLATES[card.template].defaultMusic ? TEMPLATES[id].defaultMusic : card.music_track });
+  const onPlace = (place) => {
+    setEventId(place.startsWith("event:") ? place.slice(6) : "");
+    setFocus({ place, n: Date.now() });
+  };
   const previewEventId = card.events.some((e) => e.event_id === eventId) ? eventId : "";
 
   const goTo = (target) => {
     const err = target > step ? validate(card, target - 1) : "";
     if (err) return toast.error(err);
     setStep(target);
+    setFocus(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -128,15 +144,15 @@ export default function Wizard() {
 
   const body = [
     <StepEventType card={card} onType={onType} onTradition={onTradition} />,
-    <StepTemplate card={card} onTemplate={onTemplate} />,
+    <StepTemplate card={card} onTemplate={onTemplate} update={update} />,
     <StepDetails card={card} update={update} onLanguage={onLanguage} />,
     <StepEvents card={card} update={update} />,
-    <StepPhotos card={card} update={update} />,
+    <StepPhotos card={card} update={update} onPlace={onPlace} onSkip={() => goTo(step + 1)} />,
     <StepMusic card={card} update={update} />,
     <>
       <StepTitle hint={t("wizard.previewHint")}>{t("wizard.previewTitle")}</StepTitle>
       <p className="mb-6 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-gold" data-testid="wizard-wording-check-publish">{t("wizard.wordingCheck")}</p>
-      {!desktop && <Preview card={card} eventId={previewEventId} setEventId={setEventId} />}
+      {!desktop && <Preview card={card} eventId={previewEventId} focus={focus} setEventId={setEventId} />}
       <div className="mt-8 flex flex-wrap gap-3">
         {card.status !== "published" && <button type="button" disabled={busy} onClick={() => save("draft")} className="btn-outline" data-testid="wizard-save-draft-button">{t("wizard.saveDraft")}</button>}
         <button type="button" disabled={busy} onClick={() => save("published")} className="btn-gold" data-testid="wizard-publish-button">
@@ -180,7 +196,7 @@ export default function Wizard() {
             {step < steps.length - 1 && <button type="button" onClick={() => goTo(step + 1)} className="btn-gold" data-testid="wizard-next-step-button">{t("common.next")} <ArrowRight size={16} /></button>}
           </div>
         </div>
-        {desktop && <aside className="sticky top-24 self-start"><Preview card={card} eventId={previewEventId} setEventId={setEventId} /></aside>}
+        {desktop && <aside className="sticky top-24 self-start"><Preview card={card} eventId={previewEventId} focus={focus} setEventId={setEventId} /></aside>}
       </div>
     </HostShell>
   );

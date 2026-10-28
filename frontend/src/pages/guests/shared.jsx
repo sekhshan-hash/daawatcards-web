@@ -9,7 +9,10 @@ const invitedEvents = (card, g) => {
   return evs.length ? evs : card.events;
 };
 
-export const guestLink = (card, g) => shareUrl(card.slug, invitedEvents(card, g)[0].event_id, g.name, g.guest_id);
+export const guestLink = (card, g) => {
+  const evs = invitedEvents(card, g);
+  return shareUrl(card.slug, evs.length > 1 ? "cover" : evs[0].event_id, g.name, g.guest_id);
+};
 
 export const PLACEHOLDERS = ["guest", "event", "names", "date", "link"];
 

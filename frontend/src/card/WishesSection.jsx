@@ -5,7 +5,9 @@ import { namesLine } from "@/lib/eventTime";
 import { tCorp } from "@/i18n";
 import { waLink } from "@/lib/links";
 import { Reveal } from "./CardSections";
-import { CardPhoto } from "./CardPhoto";
+import { PlacedPhoto } from "./CardPhoto";
+
+export const wishesEnabled = (card) => card.wishes_enabled !== false;
 
 export const WishesSection = ({ card, event, guestName, guestId, t, preview }) => {
   const [name, setName] = useState(guestName);
@@ -28,10 +30,10 @@ export const WishesSection = ({ card, event, guestName, guestId, t, preview }) =
   };
 
   return (
-    <section className="gc-section" data-testid="card-wishes-section">
+    <section className="gc-section" id="gc-wishes" data-testid="card-wishes-section">
       <Reveal>
         <div className="gc-panel">
-          <CardPhoto path={card.wishes_photo} fit={card.photo_fit?.wishes} variant="wishes" testId="card-wishes-photo" />
+          <PlacedPhoto card={card} place="wishes" variant="wishes" testId="card-wishes-photo" />
           <h2 className="gc-heading gc-center">{tCorp(t, card, "wishesTitle")}</h2>
           <p className="gc-muted gc-center">{tCorp(t, card, "wishesSubtitle")}</p>
           <label className="gc-label" htmlFor="wish-name">{t("guest.yourName")}</label>
