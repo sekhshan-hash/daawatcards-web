@@ -73,6 +73,16 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Meals per event (meal, meal_custom, meal_line): event page row, Google Calendar details, ICS description and WhatsApp og:description, localised en/hi/ur
 - Tested: iteration_8, backend 137/138 (1 known flaky isolation test), frontend 100%; polish fixes from that report then applied
 
+## Implemented (Iteration 9: hub + detail pages, one photo, fireworks) — 2026-06
+- Swipe pages, dots, page-flip and auto-advance removed. Multi-event cards: cover hub (header line, photo if placed, invitation title, 3-line names, message + family, editable heading card.hub_heading defaulting to "{Occasion} celebrations" en/hi/ur, one coloured tile per event in date order, then wishes, compliments and Replay once). Event pages with their own colour scheme, sticky "← All events" bar, Previous / Next: {event} / Back to all events / Send wishes ↓
+- Real URLs: /i/{slug} (cover) and /i/{slug}/{event_id}, ?to= and ?g= kept, browser Back works, cover scroll restored; 260ms slide/fade (fade off under reduced motion). Single-event cards skip the hub
+- Share /api/s/{slug}/cover redirects to the cover; link maker "All events (cover)"; guest links with 2+ invited events use the cover
+- Wider than 600px: centred 430px column, full height
+- One photo per card: photos[0] + photo_fit.hero + photo_place (cover | intro | event:{id} | wishes). Older cards: the first existing photo becomes the cover photo, others stay saved (mainPhoto in card/CardPhoto.jsx). Wizard Photos step: single slot, "Show this photo on:" select (jumps the live preview), "Skip photo for now"; deleting the placed event moves it to the cover with a toast
+- Fireworks canvas (card/Fireworks.jsx): accent colours, burst every 1.5-3s, max 3 bursts / 60-120 particles by intensity, fps < 40 lowers particles, stops on hidden tab, static sparkle under reduced motion. Vibration (card/useVibration.js): after first tap, 25ms pulses on big bursts, max 1 per 3s, stronger pattern on open, paused while typing. Effects button next to music (localStorage daawat-fx-{slug}). Wizard Template step: Fireworks / Vibration (follows Fireworks) / Intensity; card.effects defaults on/on/medium for every occasion
+- Leftover RSVP copy removed from landing/wizard/dashboard strings
+- Tested: iteration_9, backend 158/158, frontend 100%; contrast fix for "View details" applied afterwards
+
 ## Backlog
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider

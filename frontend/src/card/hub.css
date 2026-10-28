@@ -34,7 +34,7 @@
 .gc-hub-name { font-family: var(--font-title); font-size: 21px; line-height: 1.25; color: var(--text); }
 .gc-hub-meta { font-size: 15px; color: var(--text); opacity: .88; }
 .gc-hub-meal { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
-.gc-hub-more { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--ev); filter: brightness(1.25); }
+.gc-hub-more { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--accent); }
 
 .gc-topbar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 10px 112px 10px 12px;
   padding-top: max(10px, env(safe-area-inset-top)); background: color-mix(in srgb, var(--bg) 88%, transparent); border-bottom: 1px solid var(--border); }

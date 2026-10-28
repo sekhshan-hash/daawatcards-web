@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 9 (hub + detail pages, one placeable photo, fireworks/vibration effects). Backend: new test_iteration9_hub_effects.py has 20 tests and all pass (photo_place/hub_heading/effects persist on POST/PUT/public, defaults, 422 for photo_place 'foo'/'event:'/'event:a b', hub_heading >80 chars, bad intensity/fireworks; /api/s/{slug}/cover goes to /i/{slug}, /e2 goes to /i/{slug}/e2, unknown slug gives 404). Full suite: 158/158 after creating the missing /tmp/test.jpg fixture. Frontend at 412x860 and 1440x900: the demo cover shows the header line, title, names on 3 lines, invitation text and family block, 'Wedding celebrations', 4 tiles in date order with colour stripes (Haldi #F2B90F, Baraat #C0283A, Nikah #D4AF37, Walima #3A52C4), then wishes, footer and Replay once. There are no swipe-dots and no RSVP UI. Tapping a tile goes to /e3?to=Ali+Khan, and all event page parts are there. Prev is hidden on e1 and Next is hidden on e4. Nav-all, back-all and browser Back return to the cover. Send wishes goes to the cover and scrolls to wishes. Schemes per event: marigold, crimson, template, midnight. Opening /e4 directly works. The view animation is 0.26s. The single-event zara card has no hub or topbar. At 1440 the card is centred, 430px wide and full height. The fireworks canvas has pointer-events:none, and tiles stay clickable. The effects toggle removes the canvas and is remembered after reload. Reduced motion shows fireworks-static instead. No page errors. Wizard: the effects block defaults (on/on/medium) work, vibration is disabled and off when fireworks is off, and intensity high works. The hub heading input defaults to 'Wedding celebrations' and updates the live preview. Photos step: one slot, an empty box with a skip button, the Adjust dialog opens after upload, and the place select has all options. Each place jumps the preview correctly, and the photo shows only on the chosen page. Removing the photo's event shows a toast and moves the photo to the cover. Publish saves the fields and reopening the editor keeps them. The link maker has 'All events (cover)' and makes /api/s/{slug}/cover. The landing preview and the template 'Watch intro' show the hub cover. The legacy faraz card shows its first photo on the cover.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Hub tiles (demo-shahnawaz-farah)", "issues": ["The 'View details' link is drawn in the event stripe colour, so it has low contrast on the dark tile. It is about 3:1 for Baraat crimson #C0283A and about 2.6:1 for Walima #3A52C4 at small text size. Use the accent/gold colour for the text and keep the stripe colour for the stripe only."]},
+      {"screen": "Guest card corner buttons", "issues": ["The fixed effects/music buttons cover the cover frame's top-right corner ornament, and the top border of the wishes panel when it is scrolled to the top (minor)."]},
+      {"screen": "Landing / i18n copy", "issues": ["RSVP was removed, but the copy still mentions it: the landing subtitle ('watch the RSVPs roll in'), the step 'can RSVP in one tap', the wizard whatsappHint ('Guests' WhatsApp RSVPs...'), the dashboard 'RSVPs' strings and deleteConfirm ('all its RSVPs')."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration9_hub_effects.py", "/app/test_reports/pytest/pytest_results_it9.xml"],
+  "action_items": [
+    "Improve the contrast of the 'View details' text on hub tiles for crimson/midnight/blue events",
+    "Update the leftover RSVP copy in en.js (landing subtitle, steps, whatsappHint, dashboard strings, deleteConfirm)",
+    "Optional: move the corner buttons so they do not cover the frame ornament or the wishes panel"
+  ],
+  "critical_code_review_comments": [
+    "The fx localStorage key is daawat-fx-{card.slug} (e.g. daawat-fx-demo-shahnawaz-farah), not 'daawat-fx-daawat-rsvp' as the review request says. Per-card storage looks intended, and it works.",
+    "Landing.jsx renders GuestCard without the preview prop, so vibration can fire on the marketing page, and the toggle writes the demo card's fx key. Consider passing preview or a flag.",
+    "share_page with event_id='cover' uses the first event for the og description and image (find_event fallback). This is acceptable, but the og text shows only the first event's date and venue for the cover link.",
+    "test_guests_wishes_uploads.py depends on /tmp/test.jpg existing (an environment fixture). It should create the file itself."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration9_hub_effects.py"],
+  "success_rate": {"backend": "100% (158/158)", "frontend": "100% of requested flows"},
+  "seed_data_creation": "Phone 9876543210 owns the published card card_824fddc306fc, slug test-imran-noor (e1 Mehndi, e2 Nikah; photo_place event:e2; hub_heading 'TEST Two days of joy'; effects intensity high). /tmp/test.jpg and /tmp/test.png were created for the upload tests.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Log in through page.request.post /api/auth/otp/request + /verify (the cookie is shared with the page). Desktop wizard uses wizard-step-tab-N; mobile uses wizard-step-select (index string). Photo upload: set_input_files on wizard-photo-main-input with a buffer; the dialog is wizard-photo-main-adjust (press Escape to close). The preview intro needs intro-skip-button before checking hub elements. Hub tiles are hub-event-{id}; their sub-element is hub-event-{id}-when, so exclude it when counting tiles."
+}
