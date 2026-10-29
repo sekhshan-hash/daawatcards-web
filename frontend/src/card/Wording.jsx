@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { loadFont } from "@/templates/registry";
 import { FitText } from "./FitText";
-import { SCRIPT_FONTS, eventClosing, eventDua, eventHeader, eventWording, familyText } from "@/i18n/traditions";
+import { SCRIPT_FONTS, eventHeader, familyText } from "@/i18n/traditions";
 
 const SCRIPT_DIR = { arabic: "rtl" };
 
@@ -30,26 +30,24 @@ export const EventWording = ({ card, ev }) => {
   return text ? <p className="gc-invite gc-event-wording" dir="auto" data-testid="card-event-wording">{text}</p> : null;
 };
 
-export const EventDua = ({ card, ev }) => {
-  const dua = eventDua(card, ev);
+export const DuaBlock = ({ dua, testId = "card-event-dua" }) => {
   useEffect(() => {
     if (dua) loadFont("script-arabic", SCRIPT_FONTS.arabic);
   }, [dua]);
   if (!dua) return null;
   return (
-    <div className="gc-dua" data-testid="card-event-dua">
+    <div className="gc-dua" data-testid={testId}>
       <p className="gc-dua-text" dir="rtl" lang="ar">{dua.text}</p>
       {dua.sub && <p className="gc-header-sub" dir="ltr">{dua.sub}</p>}
     </div>
   );
 };
 
-export const ClosingLine = ({ card, ev }) => {
-  const text = eventClosing(card, ev);
-  return (
-    <>
-      {ev.rsvp_line && <p className="gc-muted gc-center" dir="auto" data-testid="card-event-rsvp-line">{ev.rsvp_line}</p>}
-      {text && <p className="gc-closing" dir="auto" data-testid="card-event-closing">{text}</p>}
-    </>
-  );
-};
+// Event pages only show wording the host wrote for that event, so card-level texts never repeat.
+export const EventOwnText = ({ ev }) => (
+  <>
+    {ev.wording?.trim() && <p className="gc-invite gc-event-wording" dir="auto" data-testid="card-event-wording">{ev.wording.trim()}</p>}
+    {ev.dua?.trim() && <DuaBlock dua={{ text: ev.dua.trim(), sub: "" }} />}
+    {ev.closing?.trim() && <p className="gc-closing" dir="auto" data-testid="card-event-closing">{ev.closing.trim()}</p>}
+  </>
+);

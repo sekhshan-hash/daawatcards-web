@@ -9,7 +9,8 @@ import { cardHeader, eventConcluded, familyText } from "@/i18n/traditions";
 import { PlacedPhoto, mainPhoto } from "./CardPhoto";
 import { mealLine } from "@/lib/meals";
 import { FitText } from "./FitText";
-import { ClosingLine, EventDua, EventWording, FamilyBlock, HeaderLine } from "./Wording";
+import { DuaBlock, FamilyBlock, HeaderLine } from "./Wording";
+import { cardDua, closingText, displayTitle, invitationParagraph, mainEvent, occasionName } from "@/lib/textSlots";
 
 export const Reveal = ({ children, className = "" }) => {
   const [ref, inView] = useInView();
@@ -44,14 +45,25 @@ export const TitleSection = ({ card, event, t, tpl, single }) => {
       {!familyText(card) && !(couple && cardHeader(card)?.id === "together") && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
       <CoupleNames card={card} tpl={tpl} />
       <Divider />
-      {card.title && <p className="gc-title" data-testid="card-event-title">{card.title}</p>}
-      {!card.title && <p className="gc-chip" data-testid="card-title-event-chip">{event.name}</p>}
+      <p className="gc-title" data-testid="card-event-title">{displayTitle(card)}</p>
       <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
     </section>
   );
 };
 
-const blessingFor = (card, t) => blessingText(t, card);
+// One invitation paragraph, then the blessing and dua: each shown once per card.
+export const MessageBlock = ({ card, t }) => {
+  const text = invitationParagraph(card);
+  const blessing = blessingText(t, card);
+  return (
+    <>
+      {text && <Reveal><p className="gc-invite" dir="auto" data-testid="card-invitation-text">{text}</p></Reveal>}
+      {blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
+      <Reveal><DuaBlock dua={cardDua(card)} /></Reveal>
+    </>
+  );
+};
+
 
 export const Row = ({ icon: Icon, label, value, testId }) => (
   <div className="gc-row">
@@ -60,20 +72,16 @@ export const Row = ({ icon: Icon, label, value, testId }) => (
   </div>
 );
 
-export const DetailsSection = ({ card, event, t, page = false }) => {
-  const blessing = blessingFor(card, t);
+export const DetailsSection = ({ card, event, t }) => {
   const time = [formatTime(event.time, card.language), formatTime(event.end_time, card.language)].filter(Boolean).join(" – ");
   return (
     <section className="gc-section" data-testid="card-details-section">
-      {page && <HeaderLine card={card} ev={event} testId="card-event-header-line" />}
-      {!page && card.invitation_text && <Reveal><p className="gc-invite" data-testid="card-invitation-text">{card.invitation_text}</p></Reveal>}
-      {!page && blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
-      <Reveal><EventWording card={card} ev={event} /></Reveal>
+      <MessageBlock card={card} t={t} />
       <Reveal>
         <div className="gc-panel">
           <PlacedPhoto card={card} place={`event:${event.event_id}`} variant="event" testId="card-event-photo" />
           <p className="gc-eyebrow">{t("guest.eventLabel")}</p>
-          <h2 className="gc-heading" data-testid="card-event-name">{event.name}</h2>
+          <h2 className="gc-heading" data-testid="card-event-name">{occasionName(card)}</h2>
           <div className="gc-rows">
             <Row icon={CalendarDays} label={t("guest.date")} value={formatLongDate(event.date, card.language) || "—"} testId="card-event-date" />
             <Row icon={Clock} label={t("guest.time")} value={time || "—"} testId="card-event-time" />
@@ -171,14 +179,20 @@ export const VenueSection = ({ card, event, t, preview }) => {
   );
 };
 
-export const ClosingSection = ({ card, event }) => (
-  <section className="gc-section gc-center" data-testid="card-closing-section">
-    <Reveal>
-      <EventDua card={card} ev={event} />
-      <ClosingLine card={card} ev={event} />
-    </Reveal>
-  </section>
-);
+// Closing line once, at the end of the card.
+export const ClosingSection = ({ card }) => {
+  const text = closingText(card);
+  const rsvp = mainEvent(card)?.rsvp_line;
+  if (!text && !rsvp) return null;
+  return (
+    <section className="gc-section gc-center" data-testid="card-closing-section">
+      <Reveal>
+        {rsvp && <p className="gc-muted gc-center" dir="auto" data-testid="card-event-rsvp-line">{rsvp}</p>}
+        {text && <p className="gc-closing" dir="auto" data-testid="card-event-closing">{text}</p>}
+      </Reveal>
+    </section>
+  );
+};
 
 export const FooterSection = ({ card, t, tpl, onReplay }) => {
   const Divider = tpl.Divider;

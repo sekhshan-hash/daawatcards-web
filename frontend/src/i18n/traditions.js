@@ -37,7 +37,7 @@ const DUA = { text: "بَارَكَ اللَّهُ لَكُمَا وَبَارَ
 
 const WORDING = {
   muslim: (ev) => `With the blessings of Almighty Allah, we cordially invite you and your family to join us in the joyous occasion of ${ev}.`,
-  hindu: (ev) => `With the blessings of Lord Ganesha and our elders, we request the pleasure of your company to bless the couple at the ${ev}. Your presence will be our honour.`,
+  hindu: (ev) => `With the blessings of Lord Ganesha and our elders, we request the pleasure of your company to bless the couple at the ${ev}.`,
   sikh: (ev) => `With the grace of Waheguru and the blessings of our elders, we warmly invite you and your family to join us for the ${ev}.`,
   christian: (ev) => `Together with their families, by the grace of God, we joyfully invite you to celebrate the ${ev} with us.`,
   neutral: (ev) => `We would love you to join us for the ${ev}.`,

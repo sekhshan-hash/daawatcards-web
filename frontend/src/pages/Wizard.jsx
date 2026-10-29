@@ -34,7 +34,7 @@ export const defaultCard = (type, lang = "en", tradition = "neutral", tplId = nu
   const names = (type === "wedding" && weddingDefaults(tradition)) || d.events;
   return {
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
-    title: d.title, invitation_text: d.invitation, blessing_key: d.blessing, blessing_text: "",
+    title: "", invitation_text: "", blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
     tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", hub_heading: "", effects: DEFAULT_EFFECTS, welcome_text: "", timeline_art: true,
     events: names.map((name, i) => blankEvent(name, `e${i + 1}`)),

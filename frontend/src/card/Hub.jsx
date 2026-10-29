@@ -1,17 +1,17 @@
 import { ArrowLeft, ArrowRight, ChevronDown, Shirt, UtensilsCrossed } from "lucide-react";
-import { introTitle } from "@/i18n/traditions";
+import { displayTitle } from "@/lib/textSlots";
 import { eventScheme, schemeDot } from "@/templates/eventColors";
 import { eventStatus, formatLongDate, formatTime } from "@/lib/eventTime";
 import { mealLine } from "@/lib/meals";
-import { ClosingSection, CountdownSection, CoupleNames, FooterSection, Reveal, Row, VenueSection } from "./CardSections";
+import { ClosingSection, CountdownSection, CoupleNames, FooterSection, MessageBlock, Reveal, Row, VenueSection } from "./CardSections";
 import { PlacedPhoto, mainPhoto } from "./CardPhoto";
 import { EventArt, secondScript } from "./EventArt";
 import { ScratchDate } from "./ScratchDate";
-import { EventWording, FamilyBlock, HeaderLine } from "./Wording";
+import { EventOwnText, FamilyBlock, HeaderLine } from "./Wording";
 import { WishesSection, wishesEnabled } from "./WishesSection";
 
 export const hubHeading = (card, t) => card.hub_heading?.trim() || t(`guest.hub.${card.event_type}`);
-const wishEvent = (card) => ({ ...card.events[0], name: card.title || card.events[0].name });
+const wishEvent = (card) => ({ ...card.events[0], name: displayTitle(card) });
 const timeRange = (ev, lang) => [formatTime(ev.time, lang), formatTime(ev.end_time, lang)].filter(Boolean).join(" – ");
 const Back = () => <ArrowLeft size={15} className="gc-dir-icon" aria-hidden="true" />;
 const Fwd = () => <ArrowRight size={15} className="gc-dir-icon" aria-hidden="true" />;
@@ -65,19 +65,20 @@ export const CoverPage = ({ card, fullCard, events, t, tpl, guestName, guestId, 
         <Frame />
         <HeaderLine card={card} testId="card-cover-header-line" />
         <PlacedPhoto card={card} place="cover" variant="hero" testId="card-hero-photo" />
-        <p className="gc-cover-title" dir="auto" data-testid="card-cover-invitation-title">{introTitle(card)}</p>
+        <p className="gc-cover-title" dir="auto" data-testid="card-cover-invitation-title">{displayTitle(card)}</p>
         <CoupleNames card={card} tpl={tpl} />
         <Divider />
       </section>
       <section className="gc-section gc-center gc-hub-message">
-        {card.invitation_text && <Reveal><p className="gc-invite" data-testid="card-invitation-text">{card.invitation_text}</p></Reveal>}
         <Reveal><FamilyBlock card={card} /></Reveal>
+        <MessageBlock card={card} t={t} />
       </section>
       <ScratchDate card={card} event={events[0]} t={t} />
       <section className="gc-section gc-hub" data-testid="hub-events">
         <h2 className="gc-hub-heading" dir="auto" data-testid="hub-heading">{hubHeading(card, t)}</h2>
         <Timeline card={card} fullCard={fullCard} tpl={tpl} events={events} t={t} onOpen={onOpen} />
       </section>
+      <ClosingSection card={card} />
       {wishesEnabled(card) && <WishesSection card={card} event={wishEvent(card)} guestName={guestName} guestId={guestId} t={t} preview={preview} />}
       <FooterSection card={card} t={t} tpl={tpl} onReplay={onReplay} />
     </div>
@@ -111,7 +112,7 @@ export const EventPage = ({ card, ev, events, t, preview, onOpen, onWishes }) =>
       <section className="gc-section gc-center">
         {card.timeline_art !== false && <EventArt name={ev.name} className="gc-art-hero" testId="event-page-art" />}
         <HeaderLine card={card} ev={ev} testId="card-event-header-line" />
-        <Reveal><EventWording card={card} ev={ev} /></Reveal>
+        <Reveal><EventOwnText ev={ev} /></Reveal>
         <Reveal>
           <div className="gc-panel">
             <PlacedPhoto card={card} place={`event:${ev.event_id}`} variant="event" testId="card-event-photo" />
@@ -126,7 +127,6 @@ export const EventPage = ({ card, ev, events, t, preview, onOpen, onWishes }) =>
       </section>
       <CountdownSection card={card} event={ev} t={t} />
       <VenueSection card={card} event={ev} t={t} preview={preview} />
-      <ClosingSection card={card} event={ev} />
       <EventNav card={card} events={events} index={index} t={t} onOpen={onOpen} onWishes={onWishes} />
     </div>
   );

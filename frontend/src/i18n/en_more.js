@@ -92,7 +92,7 @@ const enMore = {
       babyShower: "Baby shower celebrations", housewarming: "Housewarming celebrations", corporate: "Event schedule" },
     viewDetails: "View details", allEvents: "All events", previous: "Previous event", nextEvent: "Next: {event}", backToAll: "Back to all events",
     concluded: "Concluded", nextUp: "Next up", saveTheDate: "Save the date", scratchHint: "Scratch to reveal the date", tapReveal: "Reveal the date",
-    welcome: "Welcome", welcomeNote: "Thank you for being part of our celebrations. Your presence means the world to us.", openInvitation: "Open the invitation",
+    welcome: "Welcome", welcomeTo: "Welcome to the {occasion} of {names}", openInvitation: "Open the invitation",
     sendWishesLink: "Send wishes", effectsOn: "Turn effects off", effectsOff: "Turn effects on",
     pageOf: "Page {n} of {total}", goTo: "Go to page {n}",
     rsvpTitle: "Will you join us?", rsvpSubtitle: "Let the hosts know. Your reply goes to them on WhatsApp.",

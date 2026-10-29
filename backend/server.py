@@ -64,6 +64,12 @@ TYPE_TITLES = {"wedding": "Wedding", "engagement": "Engagement", "birthday": "Bi
                "babyShower": "Baby Shower", "housewarming": "Housewarming", "corporate": "Event"}
 
 
+def occasion_name(card, ev):
+    """Same occasion name as the card (frontend occasionName): bare 'Aqiqah' reads 'Aqiqah Ceremony'."""
+    name = ev["name"].strip()
+    return "Aqiqah Ceremony" if name.lower() == "aqiqah" else name
+
+
 def intro_title(card):
     """Invitation title on the intro screen; mirrors frontend autoIntroTitle (traditions.js)."""
     if card.get("intro_title", "").strip():
@@ -767,7 +773,7 @@ async def og_image(slug: str, event_id: str):
             logger.warning(f"OG photo fetch failed: {e}")
     png = await asyncio.to_thread(
         render_og, card["template"], EYEBROWS.get(card.get("language", "en"), EYEBROWS["en"])[card["event_type"]], names_line(card),
-        ev["name"], f"{date_s}  ·  {time_s}", ", ".join(filter(None, [ev["venue_name"], ev["venue_address"]]))[:80],
+        occasion_name(card, ev), f"{date_s}  ·  {time_s}", ", ".join(filter(None, [ev["venue_name"], ev["venue_address"]]))[:80],
         BRAND_NAME, photo, event_scheme(card, ev), card["watermark"],
     )
     return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})

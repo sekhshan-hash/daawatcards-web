@@ -29,7 +29,6 @@ export const BalloonIntro = ({ guestName, t, reduced, onOpen, onDone, onSkip }) 
         <Balloon key={i} color={f.c} size={f.size} className="bday-float"
           style={{ left: f.left, animationDuration: `${f.dur}s`, animationDelay: `${f.delay}s` }} />
       ))}
-      <p className="bday-intro-eyebrow">{t("guest.surprise")}</p>
       <button type="button" className="bday-main-balloon" onClick={pop} aria-label={t("guest.tapBalloon")} data-testid="intro-balloon-button">
         <Balloon color="#FF6B6B" size={128} className="bday-main-svg" />
         {popped && !reduced && SHARDS.map((s, i) => (

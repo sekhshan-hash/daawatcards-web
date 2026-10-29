@@ -33,7 +33,7 @@ const en = {
   blessings: {
     islamic: "Bismillah ir-Rahman ir-Rahim. May Allah bless this union and shower it with love, mercy and barakah.",
     hindu: "With the blessings of Lord Ganesha and our elders, we begin a new journey of love and togetherness.",
-    neutral: "Two hearts, one journey. Your presence will make our celebration complete.",
+    neutral: "Two hearts, one journey, surrounded by the people we love.",
     birthday: "Wishing a year full of laughter, wonder and big dreams.",
   },
   blessingLabels: { islamic: "Islamic", hindu: "Hindu", neutral: "Neutral", birthday: "Birthday wish", custom: "Write my own" },

@@ -10,6 +10,8 @@ import { createPlayer, MUSIC_TRACKS } from "@/lib/music";
 import { t, makeT, LANGUAGES, blessingText } from "@/i18n";
 import { TRADITIONS, autoIntroTitle, cardHeader, familyText, headerOptions } from "@/i18n/traditions";
 import { HeaderBoxes } from "./HeaderBoxes";
+import { SlotWarning, TextSummary } from "./TextSummary";
+import { invitationParagraph, occasionName } from "@/lib/textSlots";
 
 const TYPES = [
   ["wedding", Heart, true], ["engagement", Gem, true], ["birthday", Cake, true], ["aqiqah", Baby, true],
@@ -254,17 +256,21 @@ export const StepDetails = ({ card, update, onLanguage }) => {
         <HeaderPicker card={card} update={update} />
         {["wedding", "engagement"].includes(card.event_type) && <FamilyFields card={card} update={update} />}
         <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
-        <Field label={L.title}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("title")} /></Field>
+        <Field label={L.title} hint="Leave empty to use the occasion name."><Input className="h-12 rounded-xl text-base" maxLength={120} placeholder={occasionName(card)} {...bind("title")} data-testid="wizard-title-input" /></Field>
         {card.events.length > 1 && (
           <Field label={t("wizard.hubHeading")} hint={t("wizard.hubHeadingHint")}>
             <Input className="h-12 rounded-xl text-base" maxLength={80} value={card.hub_heading || ct(`guest.hub.${card.event_type}`)} dir="auto"
               onChange={(e) => update({ hub_heading: e.target.value === ct(`guest.hub.${card.event_type}`) ? "" : e.target.value })} data-testid="wizard-hub-heading-input" />
           </Field>
         )}
-        <Field label={L.invitation}><Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} {...bind("invitation_text")} /></Field>
+        <Field label={L.invitation} hint="Leave empty to use the tradition's wording shown here. Only one invitation paragraph is shown.">
+          <Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} placeholder={invitationParagraph({ ...card, invitation_text: "" })} {...bind("invitation_text")} data-testid="wizard-invitation-input" />
+          <SlotWarning card={card} slot="invitation" />
+        </Field>
         <Field label={t("wizard.welcomeText")} hint={t("wizard.welcomeTextHint")}>
-          <Textarea className="min-h-20 rounded-xl text-base" maxLength={400} dir="auto" value={card.welcome_text || ""} placeholder={ct("guest.welcomeNote")}
+          <Textarea className="min-h-20 rounded-xl text-base" maxLength={400} dir="auto" value={card.welcome_text || ""} placeholder="Optional. Leave empty to show nothing."
             onChange={(e) => update({ welcome_text: e.target.value })} data-testid="wizard-welcome-text-input" />
+          <SlotWarning card={card} slot="welcome" />
         </Field>
         <Field label={L.blessing}>
           <div className="flex flex-wrap gap-2">
@@ -276,12 +282,14 @@ export const StepDetails = ({ card, update, onLanguage }) => {
             ))}
           </div>
           <p className="mt-3 text-sm italic text-muted-foreground" dir="auto">{card.blessing_key !== "custom" && blessingText(ct, card)}</p>
+          <SlotWarning card={card} slot="blessing" />
         </Field>
         {card.blessing_key === "custom" && <Field label={L.blessingCustom}><Textarea className="rounded-xl text-base" maxLength={1000} {...bind("blessing_text")} /></Field>}
         <Field label={`${L.whatsapp} (${L.optional})`} hint={L.whatsappHint}>
           <Input type="tel" inputMode="tel" className="h-12 rounded-xl text-base" placeholder="+91 98765 43210" maxLength={20} {...bind("host_whatsapp")} />
         </Field>
       </div>
+      <TextSummary card={card} />
     </>
   );
 };
