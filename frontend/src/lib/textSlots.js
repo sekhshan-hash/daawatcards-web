@@ -30,18 +30,18 @@ export const invitationParagraph = (card) => {
   if (card.invitation_text?.trim()) return card.invitation_text.trim();
   const ev = mainEvent(card);
   if (!ev) return "";
-  if (multiEvent(card)) return defaultWording(card, { ...ev, wording: "", name: `${typeName(card).toLowerCase()} celebrations` });
+  if (multiEvent(card)) return defaultWording(card, { ...ev, wording: "", name: `${typeName(card).toLowerCase()} festivities` });
   return ev.wording?.trim() || defaultWording(card, { ...ev, name: occasionName(card) });
 };
 
 export const closingText = (card) => {
   const ev = mainEvent(card);
   if (!ev) return "";
-  return eventClosing(card, multiEvent(card) ? { ...ev, closing: "" } : ev);
+  return eventClosing(card, multiEvent(card) ? { ...ev, closing: null } : ev);
 };
 
 export const cardDua = (card) => {
-  if (multiEvent(card)) return (card.events || []).map((e) => eventDua(card, { ...e, dua: "" })).find(Boolean) || null;
+  if (multiEvent(card)) return (card.events || []).map((e) => eventDua(card, { ...e, dua: null })).find(Boolean) || null;
   const ev = mainEvent(card);
   return ev ? eventDua(card, ev) : null;
 };

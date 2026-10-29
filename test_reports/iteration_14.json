@@ -1,0 +1,30 @@
+{
+  "summary": "Retest of the duplicated-wording fixes. PASS: FIXED 1 (welcome-title: /i/ayaan 'Welcome to the Aqiqah Ceremony of Ayaan', /i/zara-turns-7/e1 'Welcome to the Birthday Party of Zara', demo 'Welcome to the Wedding of Shahnawaz & Farah'). FIXED 2 partly: on /i/test-omar-sara, 'TEST own mehndi wording' and 'TEST own mehndi closing' now appear only on /e1, and the cover uses the tradition default 'wedding celebrations' paragraph. FIXED 4 PASS: text-summary-family row shows when family details are given; no 'Tradition default' note when the default is empty (birthday); the Hindu default no longer says 'request the pleasure', so there are 0 slot warnings with the family line; the Christian closing is 'Awaiting your gracious presence'. FIXED 5 PASS: OG PNGs return 200 image/png for multi-event and single cards, and 404 for an unknown slug. Regression PASS: single Aqiqah cards (/i/ayaan and /i/test-ayaan) have 1 paragraph, 1 blessing and 1 closing, and no welcome-note; the intro shows only the title, 'Specially for' and the name; hub navigation works (open e1, next e2, back to all). FAIL (new regression): FIXED 3 dua and the multi-event cover closing. card-event-dua is 0 on the cover and on all event pages of /i/demo-shahnawaz-farah and /i/test-omar-sara. card-event-closing is 0 on the cover of both multi-event cards. So the cover closing now appears 0 times, not once, and the wizard text-summary-closing shows 'Empty, nothing is shown' for multi-event cards.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "lib/textSlots.js closingText + cardDua (multi-event)", "issue": "The overrides use an empty string: closingText passes { ...ev, closing: \"\" } and cardDua passes { ...e, dua: \"\" }. But pick() in traditions.js returns the custom value unless it is null or undefined, so \"\" counts as 'host cleared it' and the defaults are dropped. As a result, multi-event cards show no closing line and no dua anywhere. Fix: use closing: null and dua: null (or call defaultClosing(card) and defaultDua(card, e) directly).", "selector": "[data-testid='card-event-closing'], [data-testid='card-event-dua']", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Multi-event default invitation paragraph", "issues": ["Christian: '...we joyfully invite you to celebrate the wedding celebrations with us.' is redundant ('celebrate ... celebrations').", "The cover hub heading is also 'Wedding celebrations', so the same phrase appears twice on the cover (paragraph + heading). Consider 'our wedding' or 'the wedding festivities' in the paragraph."]},
+      {"screen": "Wizard text summary: blessing", "issues": ["The blessing is chosen by key and does not follow the tradition. After switching the tradition from Muslim to Hindu or Christian, the blessing stays 'Bismillah ir-Rahman ir-Rahim...'. The existing birthday card plan-test shows the blessing 'Two hearts, one journey...' (couple wording on a birthday). Minor, but consider resetting the blessing_key when the tradition or type changes."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "textSlots.js: closingText use { ...ev, closing: null } and cardDua use { ...e, dua: null } (pick() treats \"\" as an explicit empty value). Then verify: /i/demo-shahnawaz-farah cover has card-event-dua 1 and card-event-closing 1, and e1-e4 have 0 of each.",
+    "Optional: reword the multi-event default paragraph so it does not repeat 'celebrations' (Christian) or the hub heading 'Wedding celebrations'."
+  ],
+  "critical_code_review_comments": [
+    "pick(custom, fallback) uses '' as the explicit 'cleared' marker. Any code that wants 'use the default' must pass null or undefined, not ''. Consider a helper such as withDefault(card, ev, field) to avoid this mistake again.",
+    "invitationParagraph passes wording: '' to defaultWording, which is fine because defaultWording does not use pick. Keep it consistent anyway."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (OG smoke)", "frontend": "80% (closing/dua on multi-event cover failing)"},
+  "seed_data_creation": "None new. Used test-host-1 cards card_d2e758c9caf0 (test-omar-sara) and card_422e31fd63f8 (test-ayaan). The wizard edits for family and tradition were not saved (checked via the API).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Guest flow: intro-skip-button, then welcome-continue-button, then scroll. Multi-event checks: /i/demo-shahnawaz-farah and /i/test-omar-sara (cover, /e1.. pages). The wizard summary is on wizard-step-tab-2 (/cards/{id}/edit, cookie session_token=test_session_host). The family inputs are wizard-family-groom-parents-input and wizard-family-bride-parents-input on tab 2, and the tradition is wizard-tradition-{k} on tab 0. Note: bash writes into /app are blocked by the regression harness.",
+  "rca of the issue": "Repro: open /i/demo-shahnawaz-farah?to=Ali, skip the intro, continue, scroll the cover: there is no card-event-closing and no card-event-dua (also none on e1-e4). Cause: in traditions.js, pick = (custom, fallback) => custom == null ? fallback : custom. textSlots.js passes closing: '' and dua: '' to remove the event-level text, so pick returns '' and the default closing and dua are never used. Mitigation: pass null instead of ''."
+}
