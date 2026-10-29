@@ -114,5 +114,15 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - P0 Phase 2: guest list (manual / paste / CSV / contacts), unique per-guest links, bulk WhatsApp share, open tracking, full RSVP dashboard + CSV export, remaining templates (Modern Minimal, Engagement, Pastel Aqiqah/Baby Shower with lullaby, Housewarming, Corporate), Hindi + Urdu (RTL)
 - P1 Phase 3: Razorpay one-time per-card Standard/Premium, Free plan gating (1 card, watermark, 25 guests), remaining event types, real SMS OTP provider
 
-## Backlog
+## Implemented (Iteration 13-15: one text per slot) — 2026-10
+- lib/textSlots.js: occasionName (single event name, "Aqiqah" → "Aqiqah Ceremony"; multi → type), displayTitle (old default titles count as unset), invitationParagraph (host text OR tradition default, never both), closingText/cardDua (card-level, once), cardSlots + slotOverlaps with KEY_PHRASES
+- Guest card: intro = title + "Specially for {guest}" only; welcome "Welcome to the {occasion} of {names}" (couples joined with &), note optional/empty default; one paragraph → blessing → dua under it; closing once at the end; event pages show only wording the host wrote for that event
+- Wizard: empty Card title / Invitation message by default (placeholders show what's used), "This wording is already used in {field}" warnings, "Text on your card" summary (Details step) incl. Family line
+- Defaults de-duplicated (Hindu paragraph, Christian closing, neutral wedding blessing); OG image uses the occasion name
+- Tested: iteration_15 100%
+- Known (pre-existing, not changed): blessing choice does not follow a tradition switch
+
 - See Round 2 above; P1 real Razorpay keys (PAYMENT_MODE=test/live)
+
+## Backlog
+- Round 2: admin password login + 2FA, design-preference charts; real Razorpay keys; Gmail app password

@@ -1,0 +1,16 @@
+{
+  "summary": "Retest of the iteration_14 dua/closing regression and the paragraph rewording. ALL PASS (mobile 390x844, guest flow: skip intro, continue, scroll). /i/demo-shahnawaz-farah?to=Ali cover: invitation 1, blessing 1, dua 1 (Barakallahu lakuma...), closing 1 ('Awaiting your gracious presence') in card-closing-section just above the footer, after the dua. e1-e4: 0 of each (and 0 card-event-wording). Totals: dua 1, closing 1, blessing 1, paragraph 1. /i/test-omar-sara: cover has 1 paragraph '...joyous occasion of wedding festivities.' (the phrase 'celebrate the wedding celebrations' is gone), plus 1 blessing, 1 dua and the default closing once. /e1 has only its own 'TEST own mehndi wording line here.' and 'TEST own mehndi closing'. /e2 has none. Single-event /i/ayaan and /i/zara-turns-7/e1: 1 paragraph, 1 blessing, 1 closing, 0 dua, 0 welcome-note. Welcome titles: 'Welcome to the Aqiqah Ceremony of Ayaan', 'Welcome to the Birthday Party of Zara', 'Welcome to the Wedding of Shahnawaz & Farah', 'Welcome to the Wedding of TEST Omar & Sara'.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "textSlots.js now passes closing: null / dua: null, which correctly falls through pick() to the defaults. The pick() rule ('' = cleared, null = default) is still easy to get wrong; a small helper would help prevent it."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Count testids card-invitation-text, card-blessing, card-event-dua, card-event-closing, card-event-wording after intro-skip-button and then welcome-continue-button, then scroll. The welcome heading is [data-testid=welcome-title]. The blessing not following the tradition is a known issue and out of scope."
+}
