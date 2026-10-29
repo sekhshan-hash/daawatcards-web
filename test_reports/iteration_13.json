@@ -1,0 +1,44 @@
+{
+  "summary": "Frontend testing of the duplicated-wording fix (text slots), with a small backend smoke test (card defaults, watermark, OG image). Passed: single-event Aqiqah card (welcome 'Welcome to the Aqiqah Ceremony of X', no welcome-note, 1 card-invitation-text, 0 card-event-wording, 1 card-blessing, 1 card-event-closing at the end, 1 card-footer, card-event-title and card-event-name both 'Aqiqah Ceremony'). With invitation_text filled, only the host text shows and the tradition paragraph is gone. Demo multi-event card: intro shows only the title and 'Specially for Ali'; welcome is correct; cover has 1 paragraph, 1 blessing, the timeline, the closing once and the compliments; event pages e1-e4 have no blessing, wording or closing (closing appears 1 time across all pages). Zara birthday intro has no extra eyebrow. Wizard: title and invitation start empty with the right placeholders, the text-summary panel shows all 5 rows with pages, and slot warnings work for invitation, welcome and blessing. Regression OK: hub navigation (back, open event, next), scratch reveal, watermark on free cards, mock upgrade removes the watermark. Bugs found: 3 real bugs (welcome joins the subtitle as a name, a multi-event first-event wording or closing is duplicated, the dua is lost on multi-event weddings) and some minor copy and default problems.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/og/{slug}/{event_id}.png", "issue": "occasion_name(card, ev) always uses ev['name']. For multi-event cards, the OG image shows the event name (e.g. 'Haldi') and not the occasion type ('Wedding'), so it does not match the frontend occasionName(). The spec says multi-event cards use the occasion type. Not checked visually (PNG); found by code review."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "WelcomeScreen.jsx (and welcomeHeading in textSlots.js)", "issue": "The names are built as [primary_name, secondary_name].join(' & ') for every event type. For non-couple types, secondary_name is a tagline or relation, so the result is 'Welcome to the Aqiqah Ceremony of Ayaan & son of Imran & Ayesha' (/i/ayaan) and 'Welcome to the Birthday Party of Zara & is turning 7!' (/i/zara-turns-7). Join with ' & ' only for COUPLE_TYPES, otherwise use primary_name only.", "selector": "[data-testid='welcome-title']", "priority": "HIGH"},
+      {"component": "textSlots.js invitationParagraph/closingText + Wording.jsx EventOwnText (multi-event)", "issue": "When invitation_text is empty, the cover uses mainEvent.wording, and closingText uses mainEvent.closing. EventOwnText then shows the same ev.wording and ev.closing again on that first event's page, so they appear twice. Reproduced on /i/test-omar-sara (e1 Mehndi has its own wording and closing): the text appears on the cover and on /e1. For multi-event cards, the cover should use only invitation_text or the tradition default and defaultClosing, or EventOwnText should skip the slots already used by the cover.", "selector": "[data-testid='card-invitation-text'], [data-testid='card-event-wording'], [data-testid='card-event-closing']", "priority": "HIGH"},
+      {"component": "textSlots.js cardDua (multi-event Muslim wedding)", "issue": "cardDua uses mainEvent (the first event by date). defaultDua only matches Nikah/Walima names, so the Barakallahu dua no longer appears anywhere on multi-event Muslim weddings whose first event is Haldi or Mehndi. Checked /i/demo-shahnawaz-farah (cover and e1-e4: card-event-dua count 0) and /i/test-omar-sara. The spec says 'Blessing + dua once on the cover for multi-event'. For multi-event cards, pick the dua from any event that has one (or the Nikah).", "selector": "[data-testid='card-event-dua']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Wizard Details / tradition default", "issues": ["The Muslim default paragraph reads 'in the joyous occasion of Wedding.' and the neutral one '...join us for the Wedding.'. The capitalised occasion name without an article sounds unnatural (the old per-event version used the event name). Consider a lowercase or 'our wedding' wording for the multi-event type name."]},
+      {"screen": "Wizard Text summary (birthday and other types with no default)", "issues": ["The invitation row shows 'Empty, nothing is shown' with the note 'Tradition default (fill Invitation message to replace it)'. The note should not appear when the default is empty."]},
+      {"screen": "Default de-duplication", "issues": ["Christian tradition: the SPECIAL church wording 'request the honour of your presence' combined with the default closing 'Your presence will make this occasion memorable' shares 'your presence' (single-event 'Church Wedding' card).", "The family block (e.g. 'Mr. & Mrs. X request the pleasure of your company at the wedding of...') is a second invitation sentence on the cover. It is not in cardSlots, so the Hindu default paragraph ('we request the pleasure of your company') duplicates it without any warning. Consider adding the family text as a slot in the summary and overlap check."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration13_text_slots.py", "/app/test_reports/pytest/iter13.xml"],
+  "action_items": [
+    "WelcomeScreen/welcomeHeading: join secondary_name with ' & ' only for COUPLE_TYPES (fixes 'Ayaan & son of Imran & Ayesha' and 'Zara & is turning 7!')",
+    "Multi-event: stop the first event's own wording and closing from showing on both the cover and the event page (invitationParagraph/closingText fall back to mainEvent.wording/closing, and EventOwnText shows them again)",
+    "Multi-event Muslim wedding: restore the dua once on the cover (cardDua should look at all events, not only the first by date)",
+    "backend og_image occasion_name: use the occasion type for multi-event cards to match the frontend occasionName",
+    "Minor: remove the dead EventWording component in Wording.jsx (it references eventWording, which is not imported). Hide the 'Tradition default' note when the default is empty. Fix the Christian 'your presence' collision. Consider the family block in the overlap check. Polish the 'occasion of Wedding' copy."
+  ],
+  "critical_code_review_comments": [
+    "Wording.jsx: EventWording calls eventWording, which is not imported (no-undef). The component is unused, so it compiles, but it would crash if used. Delete it.",
+    "textSlots.welcomeHeading and WelcomeScreen duplicate the name-joining logic (both have the same bug). Use namesLine from eventTime, or one helper.",
+    "occasionName is duplicated: frontend TYPE_NAMES, backend occasion_name and intro_title. The backend copy already differs for multi-event cards.",
+    "KEY_PHRASES matching uses plain substring includes ('join us' also matches 'join used'). It only warns, so this is acceptable."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration13_text_slots.py (new)"],
+  "success_rate": {"backend": "100% (5/5 smoke tests)", "frontend": "~80% (requested slot checks pass; 3 bugs: welcome subtitle join, multi-event first-event duplicates, missing dua)"},
+  "test_credentials": "From /app/memory/test_credentials.md: cookie or Bearer test_session_host",
+  "seed_data_creation": "Created as test-host-1: card_422e31fd63f8 (slug test-ayaan, single Aqiqah, Muslim, invitation_text 'TEST host invitation for our little one.', now PAID through the mock upgrade). card_d2e758c9caf0 (slug test-omar-sara, multi-event wedding, Muslim, FREE; e1 Mehndi has its own wording and closing, which reproduces the duplicate bug).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Guest flow: intro-skip-button, then welcome-continue-button. Use /i/test-omar-sara (cover and /e1) to retest the multi-event duplicates (strings 'TEST own mehndi wording' and 'TEST own mehndi closing' should each appear once in total). Use /i/ayaan and /i/zara-turns-7 for the welcome-title fix. The wizard Details tab is wizard-step-tab-2; the occasion and tradition are on tab 0. Mock upgrade route: /cards/{id}/upgrade.",
+  "rca of the issue": "Welcome: names are joined with ' & ' with no check on the event type. Duplicates: invitationParagraph() falls back to ev.wording and closingText() to ev.closing of mainEvent, and Hub EventPage EventOwnText shows ev.wording and ev.closing again for the same event. Dua: cardDua(mainEvent) uses defaultDua, which only matches Nikah/Walima names, and the first event is usually Haldi or Mehndi."
+}

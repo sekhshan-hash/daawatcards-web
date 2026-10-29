@@ -37,7 +37,7 @@ const DUA = { text: "بَارَكَ اللَّهُ لَكُمَا وَبَارَ
 
 const WORDING = {
   muslim: (ev) => `With the blessings of Almighty Allah, we cordially invite you and your family to join us in the joyous occasion of ${ev}.`,
-  hindu: (ev) => `With the blessings of Lord Ganesha and our elders, we request the pleasure of your company to bless the couple at the ${ev}.`,
+  hindu: (ev) => `With the blessings of Lord Ganesha and our elders, we invite you to bless the couple at the ${ev}.`,
   sikh: (ev) => `With the grace of Waheguru and the blessings of our elders, we warmly invite you and your family to join us for the ${ev}.`,
   christian: (ev) => `Together with their families, by the grace of God, we joyfully invite you to celebrate the ${ev} with us.`,
   neutral: (ev) => `We would love you to join us for the ${ev}.`,
@@ -48,7 +48,7 @@ const SPECIAL = {
 };
 
 export const CLOSINGS = ["Your presence will make this occasion memorable", "Kind regards", "Awaiting your gracious presence"];
-const DEFAULT_CLOSING = { muslim: 2, hindu: 0, sikh: 0, christian: 0, neutral: 0 };
+const DEFAULT_CLOSING = { muslim: 2, hindu: 0, sikh: 0, christian: 2, neutral: 0 };
 
 const CONCLUDED = {
   muslim: "Alhamdulillah, it was a blessed gathering. JazakAllah khair for your love and duas.",

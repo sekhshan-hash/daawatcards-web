@@ -1,5 +1,5 @@
-import { blessingText, makeT } from "@/i18n";
-import { autoIntroTitle, defaultWording, eventClosing, eventDua, introTitle } from "@/i18n/traditions";
+import { COUPLE_TYPES, blessingText, makeT } from "@/i18n";
+import { autoIntroTitle, defaultWording, eventClosing, eventDua, familyText, introTitle } from "@/i18n/traditions";
 import { sortEvents } from "@/lib/eventTime";
 
 const TYPE_NAMES = { wedding: "Wedding", engagement: "Engagement", birthday: "Birthday", aqiqah: "Aqiqah Ceremony", babyShower: "Baby Shower", housewarming: "Housewarming", corporate: "Event" };
@@ -21,27 +21,35 @@ export const displayTitle = (card) => {
   return !title || defaults.includes(title) ? occasionName(card) : title;
 };
 
+const multiEvent = (card) => (card.events || []).length > 1;
+const typeName = (card) => TYPE_NAMES[card.event_type] || "Celebration";
+
 // Exactly one invitation paragraph: the host's message, otherwise the tradition's default.
+// Multi-event cards use card-level text only, so event-page wording never repeats it.
 export const invitationParagraph = (card) => {
   if (card.invitation_text?.trim()) return card.invitation_text.trim();
   const ev = mainEvent(card);
-  return ev ? (ev.wording?.trim() || defaultWording(card, { ...ev, name: occasionName(card) })) : "";
+  if (!ev) return "";
+  if (multiEvent(card)) return defaultWording(card, { ...ev, wording: "", name: `${typeName(card).toLowerCase()} celebrations` });
+  return ev.wording?.trim() || defaultWording(card, { ...ev, name: occasionName(card) });
 };
 
 export const closingText = (card) => {
   const ev = mainEvent(card);
-  return ev ? eventClosing(card, ev) : "";
+  if (!ev) return "";
+  return eventClosing(card, multiEvent(card) ? { ...ev, closing: "" } : ev);
 };
 
 export const cardDua = (card) => {
+  if (multiEvent(card)) return (card.events || []).map((e) => eventDua(card, { ...e, dua: "" })).find(Boolean) || null;
   const ev = mainEvent(card);
   return ev ? eventDua(card, ev) : null;
 };
 
-export const welcomeHeading = (card) => {
-  const names = [card.primary_name, card.secondary_name].filter(Boolean).join(" & ");
-  return `Welcome to the ${occasionName(card)} of ${names}`;
-};
+export const welcomeNames = (card) => (COUPLE_TYPES.includes(card.event_type) && card.secondary_name
+  ? `${card.primary_name} & ${card.secondary_name}` : card.primary_name);
+
+export const welcomeHeading = (card) => `Welcome to the ${occasionName(card)} of ${welcomeNames(card)}`;
 
 // Phrases that may appear in only one text slot per card.
 export const KEY_PHRASES = ["mean the world to us", "means the world to us", "cordially invite", "your presence", "gracious presence",
@@ -51,11 +59,13 @@ const sentences = (s) => (s || "").toLowerCase().split(/[.!?।۔\n]+/).map((x) 
 
 export const cardSlots = (card, t) => {
   const multi = (card.events || []).length > 1;
+  const invite = invitationParagraph(card);
   return [
     { key: "intro", label: "Intro title", page: "Intro screen", text: introTitle(card) || autoIntroTitle(card) },
     { key: "welcome", label: "Welcome note", page: "Welcome screen", text: card.welcome_text?.trim() || "" },
-    { key: "invitation", label: "Invitation message", page: multi ? "Cover" : "Card, under the names", text: invitationParagraph(card),
-      note: card.invitation_text?.trim() ? "" : "Tradition default (fill Invitation message to replace it)" },
+    { key: "family", label: "Family line", page: "Cover, above the names", text: familyText(card) },
+    { key: "invitation", label: "Invitation message", page: multi ? "Cover" : "Card, under the names", text: invite,
+      note: card.invitation_text?.trim() || !invite ? "" : "Tradition default (fill Invitation message to replace it)" },
     { key: "blessing", label: "Blessing", page: multi ? "Cover, below the invitation" : "Below the invitation", text: blessingText(t, card) || "" },
     { key: "closing", label: "Closing line", page: "End of the card", text: closingText(card) },
   ];

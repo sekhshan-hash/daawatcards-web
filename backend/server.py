@@ -65,7 +65,9 @@ TYPE_TITLES = {"wedding": "Wedding", "engagement": "Engagement", "birthday": "Bi
 
 
 def occasion_name(card, ev):
-    """Same occasion name as the card (frontend occasionName): bare 'Aqiqah' reads 'Aqiqah Ceremony'."""
+    """Same occasion name as the card (frontend occasionName): multi-event -> type, bare 'Aqiqah' -> 'Aqiqah Ceremony'."""
+    if len(card.get("events", [])) > 1:
+        return TYPE_TITLES.get(card.get("event_type"), "Event")
     name = ev["name"].strip()
     return "Aqiqah Ceremony" if name.lower() == "aqiqah" else name
 
