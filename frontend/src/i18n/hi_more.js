@@ -43,6 +43,7 @@ const hiMore = {
     hub: { wedding: "विवाह समारोह", engagement: "सगाई समारोह", birthday: "जन्मदिन समारोह", aqiqah: "अक़ीक़ा समारोह", babyShower: "गोद भराई समारोह", housewarming: "गृह प्रवेश समारोह", corporate: "कार्यक्रम सूची" },
     viewDetails: "विवरण देखें", allEvents: "सभी कार्यक्रम", previous: "पिछला कार्यक्रम", nextEvent: "अगला: {event}", backToAll: "सभी कार्यक्रमों पर वापस",
     concluded: "संपन्न", nextUp: "अगला कार्यक्रम", saveTheDate: "तारीख़ याद रखें", scratchHint: "तारीख़ देखने के लिए खुरचें", tapReveal: "तारीख़ दिखाएँ",
+    scratchDate: "खुरच कर देखें", tapRevealDate: "दिखाने के लिए टैप करें",
     welcome: "स्वागत है", welcomeTo: "{names} के {occasion} में आपका स्वागत है", openInvitation: "निमंत्रण खोलें",
     sendWishesLink: "शुभकामनाएँ भेजें", effectsOn: "इफ़ेक्ट बंद करें", effectsOff: "इफ़ेक्ट चालू करें",
     swipe: "स्वाइप करें", celebrations: "समारोह", happeningNow: "अभी चल रहा है", concluded: "यह समारोह संपन्न हो चुका है",

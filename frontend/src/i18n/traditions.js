@@ -134,3 +134,75 @@ export const familyText = (card) => {
 
 export const weddingSuggestions = (card) => WEDDING_EVENTS[trad(card)]?.suggest;
 export const weddingDefaults = (tradition) => WEDDING_EVENTS[tradition]?.defaults;
+
+// ---- Welcome page: salutation + greeting presets (localised, editable) ----
+const L = (obj, lang) => (obj ? obj[lang] || obj.en : "");
+const GREET = { en: "Welcome to the {occasion} of {names}", hi: "{names} के {occasion} में आपका स्वागत है", ur: "{names} کی {occasion} میں خوش آمدید" };
+
+export const WELCOME = {
+  muslim: {
+    salutations: [
+      { en: "Assalamu Alaikum", hi: "अस्सलामु अलैकुम", ur: "السلام علیکم" },
+      { en: "Assalamu Alaikum wa Rahmatullah", hi: "अस्सलामु अलैकुम व रहमतुल्लाह", ur: "السلام علیکم و رحمۃ اللہ" },
+    ],
+    greetings: [GREET, { en: "Bismillah, we welcome you to the {occasion} of {names}", hi: "बिस्मिल्लाह, {names} के {occasion} में आपका स्वागत है", ur: "بسم اللہ، {names} کی {occasion} میں خوش آمدید" }],
+  },
+  hindu: {
+    salutations: [
+      { en: "Radhe Radhe", hi: "राधे राधे", ur: "رادھے رادھے" },
+      { en: "Jai Shri Krishna", hi: "जय श्री कृष्ण", ur: "جے شری کرشن" },
+      { en: "Namaste", hi: "नमस्ते", ur: "نمستے" },
+      { en: "Jai Shri Ram", hi: "जय श्री राम", ur: "جے شری رام" },
+      { en: "Om Namah Shivaya", hi: "ॐ नमः शिवाय", ur: "اوم نمہ شیوایہ" },
+      { en: "Shubh Vivah", hi: "शुभ विवाह", ur: "شبھ وِواہ" },
+    ],
+    greetings: [GREET],
+  },
+  sikh: {
+    salutations: [
+      { en: "Sat Sri Akal", hi: "सत श्री अकाल", ur: "ست سری اکال" },
+      { en: "Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh", hi: "वाहेगुरु जी का खालसा, वाहेगुरु जी की फ़तह", ur: "واہے گرو جی کا خالصہ، واہے گرو جی کی فتح" },
+    ],
+    greetings: [GREET],
+  },
+  christian: {
+    noSalutation: true,
+    salutations: [
+      { en: "God bless you", hi: "ईश्वर आपको आशीर्वाद दे", ur: "خدا آپ کو برکت دے" },
+      { en: "Peace be with you", hi: "आपको शांति मिले", ur: "آپ پر سلامتی ہو" },
+    ],
+    greetings: [{ en: "You are invited to the {occasion} of {names}", hi: "आप {names} के {occasion} में आमंत्रित हैं", ur: "آپ کو {names} کی {occasion} میں مدعو کیا جاتا ہے" }],
+  },
+  neutral: { noSalutation: true, salutations: [], greetings: [GREET] },
+};
+
+export const welcomeSalutations = (card) => WELCOME[trad(card)].salutations.map((s) => L(s, card.language));
+export const welcomeGreetings = (card) => WELCOME[trad(card)].greetings.map((g) => L(g, card.language));
+export const welcomeSalutationDefault = (card) => (WELCOME[trad(card)].noSalutation ? "" : L(WELCOME[trad(card)].salutations[0], card.language));
+export const welcomeGreetingDefault = (card) => L(WELCOME[trad(card)].greetings[0], card.language);
+
+// Welcome note: keeps {occasion} and {date} as tokens, filled on the card.
+const NOTE = {
+  single: { en: "We cordially invite you to join the {occasion} on {date}.", hi: "हम आपको {occasion} में {date} को सादर आमंत्रित करते हैं।", ur: "ہم آپ کو {occasion} میں {date} کو بصد احترام مدعو کرتے ہیں۔" },
+  multi: { en: "We cordially invite you to join the {occasion} from {date}.", hi: "हम आपको {occasion} में {date} से सादर आमंत्रित करते हैं।", ur: "ہم آپ کو {occasion} میں {date} سے بصد احترام مدعو کرتے ہیں۔" },
+};
+export const welcomeNoteDefault = (card) => L(NOTE[(card.events || []).length > 1 ? "multi" : "single"], card.language);
+
+// Invitation message defaults (editable). No "With the blessings of…"; worded to avoid repeating the blessing or welcome note.
+const INVITE_NEUTRAL = { en: "Together with our families, we joyfully request your presence at this special occasion.", hi: "अपने परिवारों सहित, हम सहर्ष इस विशेष अवसर पर आपकी उपस्थिति का अनुरोध करते हैं।", ur: "اپنے خاندانوں کے ہمراہ، ہم خوشی سے اس خاص موقع پر آپ کی شرکت کی درخواست کرتے ہیں۔" };
+const INVITATION = {
+  wedding: {
+    hindu: { en: "With joy in our hearts, we request the honour of your presence, with your family, to bless the couple on this auspicious occasion.", hi: "हर्षित हृदय से, हम आपसे सपरिवार पधारकर इस शुभ अवसर पर वर-वधू को आशीर्वाद देने का अनुरोध करते हैं।", ur: "دل کی خوشی کے ساتھ، ہم آپ سے خاندان سمیت تشریف لا کر اس مبارک موقع پر جوڑے کو دعائیں دینے کی درخواست کرتے ہیں۔" },
+    muslim: { en: "Together with our families, we request the pleasure of your company and your duas for the couple on this joyous occasion.", hi: "अपने परिवारों सहित, हम इस आनंदमय अवसर पर आपकी उपस्थिति और जोड़े के लिए आपकी दुआओं का अनुरोध करते हैं।", ur: "اپنے خاندانوں کے ہمراہ، ہم اس خوشی کے موقع پر آپ کی شرکت اور جوڑے کے لیے آپ کی دعاؤں کے طالب ہیں۔" },
+    sikh: { en: "With the grace of Waheguru, we request your presence with your family at this joyous occasion.", hi: "वाहेगुरु की कृपा से, हम इस आनंदमय अवसर पर आपसे सपरिवार पधारने का अनुरोध करते हैं।", ur: "واہے گرو کے فضل سے، ہم اس خوشی کے موقع پر آپ سے خاندان سمیت تشریف آوری کی درخواست کرتے ہیں۔" },
+    christian: { en: "We would be honoured to have you and your family share in our joy on this special day.", hi: "इस विशेष दिन पर आप और आपके परिवार का हमारी खुशी में शामिल होना हमारे लिए सम्मान की बात होगी।", ur: "اس خاص دن پر آپ اور آپ کے خاندان کا ہماری خوشی میں شریک ہونا ہمارے لیے باعثِ فخر ہوگا۔" },
+    neutral: INVITE_NEUTRAL,
+  },
+  aqiqah: { muslim: { en: "Please join us with your family as we celebrate this joyous occasion. Your duas are very precious to us.", hi: "इस आनंदमय अवसर के उत्सव में कृपया सपरिवार हमारे साथ शामिल हों। आपकी दुआएँ हमारे लिए बहुमूल्य हैं।", ur: "اس خوشی کے موقع کی تقریب میں براہِ کرم اپنے خاندان سمیت ہمارے ساتھ شامل ہوں۔ آپ کی دعائیں ہمارے لیے بے حد قیمتی ہیں۔" } },
+  birthday: { _: { en: "Come celebrate with us! We would love to have you and your family join the fun.", hi: "आइए हमारे साथ जश्न मनाइए! हमें खुशी होगी कि आप और आपका परिवार इस मस्ती में शामिल हों।", ur: "آئیے ہمارے ساتھ جشن منائیں! ہمیں خوشی ہوگی کہ آپ اور آپ کا خاندان اس خوشی میں شامل ہوں۔" } },
+};
+export const invitationDefault = (card) => {
+  const byType = INVITATION[card.event_type];
+  const chosen = byType ? byType[trad(card)] || byType.muslim || byType._ : null;
+  return L(chosen || INVITE_NEUTRAL, card.language);
+};

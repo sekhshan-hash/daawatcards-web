@@ -43,6 +43,7 @@ const urMore = {
     hub: { wedding: "تقریباتِ شادی", engagement: "تقریبِ منگنی", birthday: "سالگرہ کی تقریبات", aqiqah: "تقریباتِ عقیقہ", babyShower: "گود بھرائی کی تقریبات", housewarming: "نئے گھر کی تقریبات", corporate: "پروگرام" },
     viewDetails: "تفصیل دیکھیں", allEvents: "تمام تقریبات", previous: "پچھلی تقریب", nextEvent: "اگلی: {event}", backToAll: "تمام تقریبات پر واپس",
     concluded: "اختتام پذیر", nextUp: "اگلی تقریب", saveTheDate: "تاریخ یاد رکھیں", scratchHint: "تاریخ دیکھنے کے لیے کھرچیں", tapReveal: "تاریخ دکھائیں",
+    scratchDate: "کھرچ کر دیکھیں", tapRevealDate: "دیکھنے کے لیے ٹیپ کریں",
     welcome: "خوش آمدید", welcomeTo: "{names} کی {occasion} میں خوش آمدید", openInvitation: "دعوت نامہ کھولیں",
     sendWishesLink: "نیک خواہشات بھیجیں", effectsOn: "ایفیکٹس بند کریں", effectsOff: "ایفیکٹس چالو کریں",
     swipe: "سوائپ کریں", celebrations: "تقریبات", happeningNow: "ابھی جاری ہے", concluded: "یہ تقریب اختتام پذیر ہو چکی ہے",

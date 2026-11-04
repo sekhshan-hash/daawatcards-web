@@ -8,10 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { TEMPLATE_LIST } from "@/templates/registry";
 import { createPlayer, MUSIC_TRACKS } from "@/lib/music";
 import { t, makeT, LANGUAGES, blessingText } from "@/i18n";
-import { TRADITIONS, autoIntroTitle, cardHeader, familyText, headerOptions } from "@/i18n/traditions";
+import { TRADITIONS, autoIntroTitle, cardHeader, familyText, headerOptions, invitationDefault, welcomeGreetings, welcomeNoteDefault, welcomeSalutations } from "@/i18n/traditions";
 import { HeaderBoxes } from "./HeaderBoxes";
 import { SlotWarning, TextSummary } from "./TextSummary";
-import { invitationParagraph, occasionName } from "@/lib/textSlots";
+import { occasionName } from "@/lib/textSlots";
 
 const TYPES = [
   ["wedding", Heart, true], ["engagement", Gem, true], ["birthday", Cake, true], ["aqiqah", Baby, true],
@@ -197,6 +197,10 @@ const EffectsField = ({ card, update }) => {
             <span>{t("wizard.timelineArt")}<span className="mt-0.5 block text-xs text-muted-foreground">{t("wizard.timelineArtHint")}</span></span>
             <Switch checked={card.timeline_art !== false} onCheckedChange={(v) => update({ timeline_art: v })} data-testid="wizard-timeline-art-switch" />
           </label>
+          <label className="flex items-center justify-between gap-3 border-t border-border pt-3 text-sm">
+            <span>{t("wizard.scratchDate")}<span className="mt-0.5 block text-xs text-muted-foreground">{t("wizard.scratchDateHint")}</span></span>
+            <Switch checked={card.scratch_date !== false} onCheckedChange={(v) => update({ scratch_date: v })} data-testid="wizard-scratch-date-switch" />
+          </label>
         </div>
       </Field>
     </div>
@@ -228,6 +232,58 @@ const HeadingFontPicker = ({ value, onChange }) => {
   );
 };
 
+const PresetChips = ({ options, value, onPick, testPrefix }) => (
+  <div className="flex flex-wrap gap-2">
+    {options.map((o) => (
+      <button key={o} type="button" onClick={() => onPick(o)} data-testid={`${testPrefix}-preset`}
+        className={`max-w-full truncate rounded-full border px-3 py-1.5 text-xs transition-colors ${value === o ? "border-gold bg-gold/15 text-gold" : "border-border text-muted-foreground hover:border-gold/50"}`}>
+        {o}
+      </button>
+    ))}
+    <button type="button" onClick={() => onPick("")} data-testid={`${testPrefix}-none`}
+      className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${value === "" ? "border-gold bg-gold/15 text-gold" : "border-border text-muted-foreground hover:border-gold/50"}`}>
+      {t("wizard.welcomeNone")}
+    </button>
+  </div>
+);
+
+const WelcomeGreetingFields = ({ card, update }) => {
+  const sals = welcomeSalutations(card);
+  const greets = welcomeGreetings(card);
+  return (
+    <Field label={t("wizard.welcomeGreeting")} hint={t("wizard.welcomeGreetingHint")}>
+      <div className="space-y-4 rounded-2xl border border-border p-4" data-testid="wizard-welcome-greeting">
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-foreground">{t("wizard.welcomeSalutation")}</p>
+          {sals.length > 0 && <PresetChips options={sals} value={card.welcome_salutation ?? ""} onPick={(v) => update({ welcome_salutation: v })} testPrefix="wizard-welcome-salutation" />}
+          <Input className="h-11 rounded-xl text-base" maxLength={120} dir="auto" value={card.welcome_salutation ?? ""} placeholder={t("wizard.welcomeSalutationPh")}
+            onChange={(e) => update({ welcome_salutation: e.target.value })} data-testid="wizard-welcome-salutation-input" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-foreground">{t("wizard.welcomeGreetingLine")}</p>
+          <PresetChips options={greets} value={card.welcome_greeting ?? ""} onPick={(v) => update({ welcome_greeting: v })} testPrefix="wizard-welcome-greeting" />
+          <Input className="h-11 rounded-xl text-base" maxLength={200} dir="auto" value={card.welcome_greeting ?? ""} placeholder={t("wizard.welcomeGreetingPh")}
+            onChange={(e) => update({ welcome_greeting: e.target.value })} data-testid="wizard-welcome-greeting-input" />
+        </div>
+        <SlotWarning card={card} slot="welcomeGreeting" />
+      </div>
+    </Field>
+  );
+};
+
+const WelcomeNoteField = ({ card, update }) => (
+  <Field label={t("wizard.welcomeText")} hint={t("wizard.welcomeTextHint")}>
+    <Textarea className="min-h-20 rounded-xl text-base" maxLength={400} dir="auto" value={card.welcome_text ?? ""} placeholder={t("wizard.welcomeTextPh")}
+      onChange={(e) => update({ welcome_text: e.target.value })} data-testid="wizard-welcome-text-input" />
+    <div className="mt-2 flex justify-end">
+      <button type="button" onClick={() => update({ welcome_text: welcomeNoteDefault(card) })} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-gold/50" data-testid="wizard-welcome-text-reset">
+        <RotateCcw size={13} /> {t("wizard.resetWording")}
+      </button>
+    </div>
+    <SlotWarning card={card} slot="welcome" />
+  </Field>
+);
+
 export const StepDetails = ({ card, update, onLanguage }) => {
   const L = t("wizard.labels");
   const typeL = L[card.event_type];
@@ -253,6 +309,8 @@ export const StepDetails = ({ card, update, onLanguage }) => {
         </div>
         <HeadingFontPicker value={card.heading_font || "default"} onChange={(v) => update({ heading_font: v })} />
         <IntroTitleField card={card} update={update} />
+        <WelcomeGreetingFields card={card} update={update} />
+        <WelcomeNoteField card={card} update={update} />
         <HeaderPicker card={card} update={update} />
         {["wedding", "engagement"].includes(card.event_type) && <FamilyFields card={card} update={update} />}
         <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
@@ -263,14 +321,14 @@ export const StepDetails = ({ card, update, onLanguage }) => {
               onChange={(e) => update({ hub_heading: e.target.value === ct(`guest.hub.${card.event_type}`) ? "" : e.target.value })} data-testid="wizard-hub-heading-input" />
           </Field>
         )}
-        <Field label={L.invitation} hint="Leave empty to use the tradition's wording shown here. Only one invitation paragraph is shown.">
-          <Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} placeholder={invitationParagraph({ ...card, invitation_text: "" })} {...bind("invitation_text")} data-testid="wizard-invitation-input" />
+        <Field label={L.invitation} hint={t("wizard.invitationHint")}>
+          <Textarea className="min-h-24 rounded-xl text-base" maxLength={1500} placeholder={invitationDefault(card)} {...bind("invitation_text")} data-testid="wizard-invitation-input" />
+          <div className="mt-2 flex justify-end">
+            <button type="button" onClick={() => update({ invitation_text: invitationDefault(card) })} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-gold/50" data-testid="wizard-invitation-reset">
+              <RotateCcw size={13} /> {t("wizard.resetWording")}
+            </button>
+          </div>
           <SlotWarning card={card} slot="invitation" />
-        </Field>
-        <Field label={t("wizard.welcomeText")} hint={t("wizard.welcomeTextHint")}>
-          <Textarea className="min-h-20 rounded-xl text-base" maxLength={400} dir="auto" value={card.welcome_text || ""} placeholder="Optional. Leave empty to show nothing."
-            onChange={(e) => update({ welcome_text: e.target.value })} data-testid="wizard-welcome-text-input" />
-          <SlotWarning card={card} slot="welcome" />
         </Field>
         <Field label={L.blessing}>
           <div className="flex flex-wrap gap-2">

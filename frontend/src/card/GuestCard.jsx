@@ -11,6 +11,7 @@ import { CoverPage, EventPage } from "./Hub";
 import { mainPhoto } from "./CardPhoto";
 import { Fireworks } from "./Fireworks";
 import { WelcomeScreen } from "./WelcomeScreen";
+import { clearDateReveal } from "./WelcomeDateNote";
 import { Watermark } from "./Watermark";
 import { useVibration } from "./useVibration";
 import { IntroPhotoContext, IntroTitleContext } from "@/templates/more/common";
@@ -148,6 +149,7 @@ export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, g
     scroller.current?.scrollTo({ top: 0 });
     stopMusic();
     setParticles(false);
+    clearDateReveal(fullCard);
     setPhase("intro");
   };
   const toggleFx = () => {
@@ -196,7 +198,7 @@ export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, g
           </IntroPhotoContext.Provider>
         </IntroTitleContext.Provider>
       )}
-      {phase !== "card" && <WelcomeScreen card={card} name={name} t={t} tpl={tpl} onContinue={() => setPhase("card")} />}
+      {phase !== "card" && <WelcomeScreen card={card} t={t} tpl={tpl} preview={preview} effects={effects} reduced={reduced} onContinue={() => setPhase("card")} />}
       {(watermark ?? fullCard.watermark) && <Watermark />}
       {phase === "card" && !controlled && (
         <div className="gc-corner-btns">

@@ -1,17 +1,18 @@
 // Full welcome screen shown right after the intro, before the card.
-import { occasionName, welcomeNames } from "@/lib/textSlots";
+import { welcomeGreeting, welcomeSalutation } from "@/lib/textSlots";
+import { WelcomeDateNote } from "./WelcomeDateNote";
 
-export const WelcomeScreen = ({ card, name, t, tpl, onContinue }) => {
+export const WelcomeScreen = ({ card, t, tpl, onContinue, preview, effects, reduced }) => {
   const TplFrame = tpl.Frame;
+  const salutation = welcomeSalutation(card);
+  const greeting = welcomeGreeting(card);
   return (
     <div className="gc-welcome" data-testid="welcome-screen">
       <TplFrame />
       <div className="gc-welcome-inner">
-        <p className="gc-welcome-title" dir="auto" data-testid="welcome-title">
-          {t("guest.welcomeTo", { occasion: occasionName(card), names: welcomeNames(card) })}
-        </p>
-        <p className="gc-welcome-name" dir="auto" data-testid="welcome-guest-name">{name}</p>
-        {card.welcome_text?.trim() && <p className="gc-welcome-note" dir="auto" data-testid="welcome-note">{card.welcome_text.trim()}</p>}
+        {salutation && <p className="gc-welcome-salutation" dir="auto" data-testid="welcome-salutation">{salutation}</p>}
+        {greeting && <p className="gc-welcome-greeting" dir="auto" data-testid="welcome-greeting">{greeting}</p>}
+        <WelcomeDateNote card={card} t={t} preview={preview} effects={effects} reduced={reduced} />
         <button type="button" className="gc-btn" onClick={onContinue} data-testid="welcome-continue-button">{t("guest.openInvitation")}</button>
       </div>
     </div>

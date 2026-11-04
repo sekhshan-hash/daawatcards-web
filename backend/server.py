@@ -208,6 +208,9 @@ class CardIn(BaseModel):
     photo_place: str = Field(default="", pattern=r"^(|cover|intro|wishes|event:[A-Za-z0-9_-]{1,20})$")
     hub_heading: str = Field(default="", max_length=80)
     welcome_text: str = Field(default="", max_length=400)
+    welcome_salutation: str = Field(default="", max_length=120)
+    welcome_greeting: str = Field(default="", max_length=200)
+    scratch_date: bool = True
     timeline_art: bool = True
     effects: EffectsIn = Field(default_factory=EffectsIn)
 

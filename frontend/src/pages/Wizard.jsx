@@ -11,7 +11,7 @@ import { StepDetails, StepEventType, StepMusic, StepTemplate, StepTitle } from "
 import { StepEvents, blankEvent } from "./wizard/StepEvents";
 import { StepPhotos } from "./wizard/StepPhotos";
 import { t, makeT } from "@/i18n";
-import { weddingDefaults } from "@/i18n/traditions";
+import { weddingDefaults, invitationDefault, welcomeGreetingDefault, welcomeNoteDefault, welcomeSalutationDefault } from "@/i18n/traditions";
 import { BLANK_HEADER } from "./wizard/HeaderBoxes";
 import { mainPhoto } from "@/card/CardPhoto";
 import { AgreeTerms } from "@/components/site/AgreeTerms";
@@ -27,6 +27,24 @@ const blessingForTradition = (tradition, type, lang) => {
   return Array.isArray(opts) && opts.includes(want) ? want : null;
 };
 
+// Prefilled, editable wording that follows the tradition, language, occasion and single/multi state.
+const textDefaults = (card) => ({
+  invitation_text: invitationDefault(card),
+  welcome_salutation: welcomeSalutationDefault(card),
+  welcome_greeting: welcomeGreetingDefault(card),
+  welcome_text: welcomeNoteDefault(card),
+});
+// Apply a patch, then refresh any text field the host has not changed from its old default.
+const withDefaults = (card, patch) => {
+  const oldD = textDefaults(card);
+  const newD = textDefaults({ ...card, ...patch });
+  const out = { ...patch };
+  Object.keys(newD).forEach((k) => {
+    if ((card[k] ?? oldD[k]) === oldD[k]) out[k] = newD[k];
+  });
+  return out;
+};
+
 // Older cards had several photos: the first one becomes the single cover photo; the others stay saved.
 const singlePhoto = (c) => {
   if (c.photo_place) return {};
@@ -40,16 +58,18 @@ export const defaultCard = (type, lang = "en", tradition = "neutral", tplId = nu
   const d = makeT(lang)(`defaults.${type}`);
   const template = (tplId && TEMPLATES[tplId] ? tplId : null) || TEMPLATE_LIST.find((tp) => tp.eventTypes.includes(type))?.id || "wedding-royal";
   const names = (type === "wedding" && weddingDefaults(tradition)) || d.events;
-  return {
+  const base = {
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
     title: "", invitation_text: "", blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
-    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", hub_heading: "", effects: DEFAULT_EFFECTS, welcome_text: "", timeline_art: true,
+    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", hub_heading: "",
+    effects: DEFAULT_EFFECTS, welcome_text: "", welcome_salutation: "", welcome_greeting: "", scratch_date: true, timeline_art: true,
     events: names.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
+  return { ...base, ...textDefaults(base) };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit", "photo_place", "hub_heading", "effects", "welcome_text", "timeline_art"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit", "photo_place", "hub_heading", "effects", "welcome_text", "welcome_salutation", "welcome_greeting", "scratch_date", "timeline_art"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");
@@ -93,15 +113,22 @@ export default function Wizard() {
 
   useEffect(() => {
     if (!cardId) return;
-    api.get(`/cards/${cardId}`).then((r) => setCard({ tradition: "neutral", header_key: "", header_per_event: false, intro_title: "", hub_heading: "", effects: DEFAULT_EFFECTS, welcome_text: "", timeline_art: true, ...r.data, ...singlePhoto(r.data),
-      custom_header: { ...BLANK_HEADER, ...(r.data.custom_header || {}) }, family: { ...BLANK_FAMILY, ...(r.data.family || {}) } })).catch(() => navigate("/dashboard"));
+    api.get(`/cards/${cardId}`).then((r) => {
+      const loaded = { tradition: "neutral", header_key: "", header_per_event: false, intro_title: "", hub_heading: "", effects: DEFAULT_EFFECTS, timeline_art: true, scratch_date: true, ...r.data, ...singlePhoto(r.data),
+        custom_header: { ...BLANK_HEADER, ...(r.data.custom_header || {}) }, family: { ...BLANK_FAMILY, ...(r.data.family || {}) } };
+      const legacyNote = (loaded.welcome_text ?? "").trim().toLowerCase() === "welcome note";
+      setCard({ ...loaded,
+        welcome_salutation: r.data.welcome_salutation ?? welcomeSalutationDefault(loaded),
+        welcome_greeting: r.data.welcome_greeting ?? welcomeGreetingDefault(loaded),
+        welcome_text: r.data.welcome_text == null || legacyNote ? welcomeNoteDefault(loaded) : r.data.welcome_text });
+    }).catch(() => navigate("/dashboard"));
   }, [cardId, navigate]);
 
   if (!card) return <FullLoader />;
   const update = (patch) => setCard((c) => ({ ...c, ...patch }));
   const onType = (type) => {
     if (type === card.event_type) return;
-    if (card.card_id) return update({ event_type: type, blessing_key: t(`defaults.${type}`).blessing });
+    if (card.card_id) return update(withDefaults(card, { event_type: type, blessing_key: t(`defaults.${type}`).blessing }));
     setCard({ ...defaultCard(type, card.language, card.tradition, preTpl), heading_font: card.heading_font, photos: card.photos, photo_fit: card.photo_fit, wishes_photo: card.wishes_photo, effects: card.effects, primary_name: card.primary_name, host_family: card.host_family, host_whatsapp: card.host_whatsapp, family: card.family });
     setEventId("");
   };
@@ -112,21 +139,20 @@ export default function Wizard() {
     const untouched = card.event_type === "wedding" && card.events.every((e, i) => e.name === prev[i] && !e.date) && card.events.length === prev.length;
     // The blessing should follow the tradition so a Hindu card never keeps Bismillah. A host's own custom text is left alone.
     const nextBlessing = card.blessing_key === "custom" ? null : blessingForTradition(tradition, card.event_type, card.language);
-    update({ tradition, header_key: "", ...(nextBlessing ? { blessing_key: nextBlessing } : {}), ...(untouched ? { events: next.map((n, i) => blankEvent(n, `e${i + 1}`)) } : {}) });
+    update(withDefaults(card, { tradition, header_key: "", ...(nextBlessing ? { blessing_key: nextBlessing } : {}), ...(untouched ? { events: next.map((n, i) => blankEvent(n, `e${i + 1}`)) } : {}) }));
   };
   const onLanguage = (lang) => {
     const prev = makeT(card.language)(`defaults.${card.event_type}`);
     const next = makeT(lang)(`defaults.${card.event_type}`);
     const swap = (cur, a, b) => (cur === a ? b : cur);
-    update({
+    update(withDefaults(card, {
       language: lang,
       title: swap(card.title, prev.title, next.title),
-      invitation_text: swap(card.invitation_text, prev.invitation, next.invitation),
       events: card.events.map((e) => {
         const i = prev.events.indexOf(e.name);
         return i >= 0 && next.events[i] ? { ...e, name: next.events[i] } : e;
       }),
-    });
+    }));
   };
   const onTemplate = (id) => update({ template: id, music_track: card.music_track === TEMPLATES[card.template].defaultMusic ? TEMPLATES[id].defaultMusic : card.music_track });
   const onPlace = (place) => {

@@ -12,6 +12,9 @@ const parseDate = (date) => {
 export const formatLongDate = (date, lang) =>
   parseDate(date)?.toLocaleDateString(locale(lang), { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) || "";
 
+export const formatDate = (date, lang) =>
+  parseDate(date)?.toLocaleDateString(locale(lang), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) || "";
+
 export const formatShortDate = (date, lang) =>
   parseDate(date)?.toLocaleDateString(locale(lang), { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) || "";
 

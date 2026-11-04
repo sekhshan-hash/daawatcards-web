@@ -6,7 +6,6 @@ import { mealLine } from "@/lib/meals";
 import { ClosingSection, CountdownSection, CoupleNames, FooterSection, MessageBlock, Reveal, Row, VenueSection } from "./CardSections";
 import { PlacedPhoto, mainPhoto } from "./CardPhoto";
 import { EventArt, secondScript } from "./EventArt";
-import { ScratchDate } from "./ScratchDate";
 import { EventOwnText, FamilyBlock, HeaderLine } from "./Wording";
 import { WishesSection, wishesEnabled } from "./WishesSection";
 
@@ -73,7 +72,6 @@ export const CoverPage = ({ card, fullCard, events, t, tpl, guestName, guestId, 
         <Reveal><FamilyBlock card={card} /></Reveal>
         <MessageBlock card={card} t={t} />
       </section>
-      <ScratchDate card={card} event={events[0]} t={t} />
       <section className="gc-section gc-hub" data-testid="hub-events">
         <h2 className="gc-hub-heading" dir="auto" data-testid="hub-heading">{hubHeading(card, t)}</h2>
         <Timeline card={card} fullCard={fullCard} tpl={tpl} events={events} t={t} onOpen={onOpen} />
