@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 16 frontend test: Welcome greeting, welcome note date patch, prefilled invitation, scratch removed from cover, wizard field order and duplicate-wording warnings. GUEST (390x844): PASS. /i/test-single-aqiqah: salutation 'Radhe Radhe' (Great Vibes 42.9px), greeting 'Welcome to the Aqiqah Ceremony of Baby Aarav', no guest name. Note 'We cordially invite you to join the Aqiqah Ceremony on [patch]'. The welcome-date-canvas and welcome-date-reveal-button show; the tap button reveals '10 December 2026' and removes the canvas and the button. Dragging the mouse across the canvas also reveals at about 60%, and the reveal is still there after a reload (localStorage). The cover has 0 scratch-date-section and 0 scratch-date-card, 0 card-invitation-text and 1 card-blessing; the occasion box shows the date and time as plain text. /i/test-multi-wedding: 'Assalamu Alaikum' / 'Welcome to the Wedding of Imran & Sana' / note uses 'from 9 December 2026'; no scratch section, the timeline shows, 1 blessing. No repeated phrases on either guest card. WIZARD (host cookie, 1920x1080): field order is correct (Intro title, Welcome greeting, Welcome note, Header line, Family, With compliments from, Card title, Events heading, Invitation message, Blessing). Salutation presets and a None chip work, and the greeting presets have a None chip too. Welcome note is prefilled and its reset works. Invitation is prefilled with the tradition default (never starts 'With the blessings of'). Its hint text is correct and the reset works. When cleared, the summary says 'Empty, nothing is shown' and the preview cover has no invitation paragraph; typed text shows at once. Changing tradition updates salutation, greeting, invitation and blessing (Muslim -> Assalamu Alaikum/islamic, Hindu -> Radhe Radhe/hindu, Christian -> 'You are invited...'/neutral). Custom salutation and custom invitation text are kept. The scratch-date switch is on by default and can be toggled; a saved draft keeps scratch_date=false, welcome_* and an empty invitation_text, and they reload in edit. The text-summary-panel lists all slots. Duplicate-wording warnings appear when 'cordially invite' is typed into the invitation. The live phone preview updates for salutation, greeting and note. Hindi and Urdu salutation, greeting and note defaults show correctly. Main defect: in 16 of 35 type x tradition combinations the default invitation and the default closing line share the phrase 'your presence', so a new card shows the duplicate-wording warning straight away and has repeated wording.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Wizard Details hints (en_more.js welcomeGreetingHint / welcomeTextHint, and probably welcomeGreetingPh / welcomeTextPh)", "issue": "t() interpolation (i18n/index.js line 27, replace(/\\{(\\w+)\\}/g)) removes the literal tokens. The hint shows 'Shown at the top of the welcome screen. and are filled in automatically.' and 'Type where the date should appear as a scratch patch.' The {occasion}/{names}/{date} tokens are missing, so the host cannot learn the token syntax. Fix: pass the tokens as vars, e.g. t('wizard.welcomeTextHint', {date: '{date}'}), or escape them.", "selector": "[data-testid=wizard-welcome-text-input] hint, [data-testid=wizard-welcome-greeting] hint", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Default wording, duplicate check", "issue": "The default invitation repeats the key phrase 'your presence' from the default closing line ('Your presence will make this occasion memorable'). Affected: wedding neutral/hindu/sikh, and engagement, babyShower, housewarming and corporate in neutral/hindu/sikh. A brand-new card shows slot-warning-invitation 'This wording is already used in Closing line', and the guest card shows 'your presence' twice. This goes against requirement (8), no duplicate wording. Fix: reword INVITATION hindu/sikh/INVITE_NEUTRAL in traditions.js so they do not contain 'your presence', or change the default closing for these traditions.", "affected_selectors": ["[data-testid=slot-warning-invitation]", "[data-testid=text-summary-closing]"]}
+    ],
+    "design_issues": [
+      {"screen": "Welcome screen", "issues": ["A visible space appears between the date patch or revealed date and the final period ('10 DECEMBER 2026 .'). The gc-datepatch padding/margin creates the gap. Cosmetic."]},
+      {"screen": "Wizard Details / Welcome greeting", "issues": ["The greeting preset chips show the raw tokens 'Welcome to the {occasion} of {names}'. Consider showing a filled-in preview."]},
+      {"screen": "Wizard Events step", "issues": ["The date input is the browser's native mm/dd/yyyy picker, not the shadcn calendar (existing before this iteration)."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Reword the default invitation texts (INVITE_NEUTRAL, wedding hindu, wedding sikh) or the default closing so that a new card has no 'your presence' overlap and shows no duplicate warning.",
+    "Fix the Welcome greeting and Welcome note hints and placeholders: the {occasion}/{names}/{date} tokens are removed by t() interpolation.",
+    "Optional: aqiqah with the hindu, sikh or christian tradition falls back to the Muslim invitation ('Your duas are very precious to us'). Add a non-Muslim aqiqah default or fall back to neutral.",
+    "Optional: remove the space before the period after the inline date patch."
+  ],
+  "critical_code_review_comments": [
+    "invitationDefault() falls back to byType.muslim before byType._, so a Hindu aqiqah gets 'duas' wording.",
+    "CardIn defaults welcome_salutation and welcome_greeting to ''. Any API create or PUT without these fields saves '' and hides the greeting. The frontend's ?? fallback only covers fields missing from the record. The wizard always sends them, so this matters only for other save paths.",
+    "The seeded test-single-aqiqah is tradition hindu but its header is Bismillah (seed data, not a code bug)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "92% (all requested checks pass except the duplicate defaults and the hint-token bug)"},
+  "seed_data_creation": "Created a draft card card_2cc6c03d65fd (slug test-kiran, owner test-host-1) via the wizard to test persistence, then deleted it (DELETE 200).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Guest flow: to reach the welcome screen, check that welcome-continue-button is the topmost element (document.elementFromPoint); welcome-screen is in the DOM while the intro is still showing. Click skip-intro-button, or tap (195,540). Wizard: add the session_token=test_session_host cookie and use the wizard-step-tab-N buttons. Tradition picker is on tab 0, scratch-date switch on tab 1, details on tab 2. The type x tradition matrix check reads slot-warning-* on tab 2 for every combination."
+}

@@ -189,12 +189,12 @@ const NOTE = {
 export const welcomeNoteDefault = (card) => L(NOTE[(card.events || []).length > 1 ? "multi" : "single"], card.language);
 
 // Invitation message defaults (editable). No "With the blessings of…"; worded to avoid repeating the blessing or welcome note.
-const INVITE_NEUTRAL = { en: "Together with our families, we joyfully request your presence at this special occasion.", hi: "अपने परिवारों सहित, हम सहर्ष इस विशेष अवसर पर आपकी उपस्थिति का अनुरोध करते हैं।", ur: "اپنے خاندانوں کے ہمراہ، ہم خوشی سے اس خاص موقع پر آپ کی شرکت کی درخواست کرتے ہیں۔" };
+const INVITE_NEUTRAL = { en: "Together with our families, we warmly invite you and your family to this special occasion.", hi: "अपने परिवारों सहित, हम सहर्ष आपको और आपके परिवार को इस विशेष अवसर पर आमंत्रित करते हैं।", ur: "اپنے خاندانوں کے ہمراہ، ہم خوشی سے آپ کو اور آپ کے خاندان کو اس خاص موقع پر مدعو کرتے ہیں۔" };
 const INVITATION = {
   wedding: {
-    hindu: { en: "With joy in our hearts, we request the honour of your presence, with your family, to bless the couple on this auspicious occasion.", hi: "हर्षित हृदय से, हम आपसे सपरिवार पधारकर इस शुभ अवसर पर वर-वधू को आशीर्वाद देने का अनुरोध करते हैं।", ur: "دل کی خوشی کے ساتھ، ہم آپ سے خاندان سمیت تشریف لا کر اس مبارک موقع پر جوڑے کو دعائیں دینے کی درخواست کرتے ہیں۔" },
+    hindu: { en: "With joy in our hearts, we warmly invite you and your family to bless the couple on this auspicious occasion.", hi: "हर्षित हृदय से, हम आपको और आपके परिवार को इस शुभ अवसर पर वर-वधू को आशीर्वाद देने के लिए आमंत्रित करते हैं।", ur: "دل کی خوشی کے ساتھ، ہم آپ کو اور آپ کے خاندان کو اس مبارک موقع پر جوڑے کو دعائیں دینے کی دعوت دیتے ہیں۔" },
     muslim: { en: "Together with our families, we request the pleasure of your company and your duas for the couple on this joyous occasion.", hi: "अपने परिवारों सहित, हम इस आनंदमय अवसर पर आपकी उपस्थिति और जोड़े के लिए आपकी दुआओं का अनुरोध करते हैं।", ur: "اپنے خاندانوں کے ہمراہ، ہم اس خوشی کے موقع پر آپ کی شرکت اور جوڑے کے لیے آپ کی دعاؤں کے طالب ہیں۔" },
-    sikh: { en: "With the grace of Waheguru, we request your presence with your family at this joyous occasion.", hi: "वाहेगुरु की कृपा से, हम इस आनंदमय अवसर पर आपसे सपरिवार पधारने का अनुरोध करते हैं।", ur: "واہے گرو کے فضل سے، ہم اس خوشی کے موقع پر آپ سے خاندان سمیت تشریف آوری کی درخواست کرتے ہیں۔" },
+    sikh: { en: "With the grace of Waheguru, we warmly invite you and your family to this joyous occasion.", hi: "वाहेगुरु की कृपा से, हम आपको और आपके परिवार को इस आनंदमय अवसर पर आमंत्रित करते हैं।", ur: "واہے گرو کے فضل سے، ہم آپ کو اور آپ کے خاندان کو اس خوشی کے موقع پر مدعو کرتے ہیں۔" },
     christian: { en: "We would be honoured to have you and your family share in our joy on this special day.", hi: "इस विशेष दिन पर आप और आपके परिवार का हमारी खुशी में शामिल होना हमारे लिए सम्मान की बात होगी।", ur: "اس خاص دن پر آپ اور آپ کے خاندان کا ہماری خوشی میں شریک ہونا ہمارے لیے باعثِ فخر ہوگا۔" },
     neutral: INVITE_NEUTRAL,
   },
@@ -203,6 +203,6 @@ const INVITATION = {
 };
 export const invitationDefault = (card) => {
   const byType = INVITATION[card.event_type];
-  const chosen = byType ? byType[trad(card)] || byType.muslim || byType._ : null;
+  const chosen = byType ? byType[trad(card)] || byType._ : null;
   return L(chosen || INVITE_NEUTRAL, card.language);
 };

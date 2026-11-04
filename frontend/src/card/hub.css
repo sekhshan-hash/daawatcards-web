@@ -86,10 +86,10 @@
 .gc-root.is-reduced .gc-welcome-inner { animation: none; }
 
 /* Inline scratch patch inside the welcome note */
-.gc-datepatch { position: relative; display: inline-block; vertical-align: middle; border-radius: 8px; padding: 1px 8px; line-height: 1.4;
+.gc-datepatch { position: relative; display: inline-block; vertical-align: baseline; border-radius: 8px; padding: 0 2px; line-height: 1.4;
   font-family: var(--font-title); color: var(--accent); white-space: nowrap; }
-.gc-datepatch.is-plain { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.gc-datepatch:not(.is-plain):not(.is-revealed) { background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.gc-datepatch.is-plain { background: none; }
+.gc-datepatch:not(.is-plain):not(.is-revealed) { padding: 1px 10px; background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
 .gc-datepatch-value { position: relative; z-index: 0; }
 .gc-datepatch-cover { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 8px; touch-action: none; cursor: grab; }
 .gc-datepatch.is-revealed .gc-datepatch-value.is-sparkle { animation: gc-date-pop .9s ease both; text-shadow: 0 0 10px color-mix(in srgb, var(--accent2) 70%, transparent); }

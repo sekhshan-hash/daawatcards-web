@@ -247,11 +247,13 @@ const PresetChips = ({ options, value, onPick, testPrefix }) => (
   </div>
 );
 
+const TOK = { occasion: "{occasion}", names: "{names}", date: "{date}" };
+
 const WelcomeGreetingFields = ({ card, update }) => {
   const sals = welcomeSalutations(card);
   const greets = welcomeGreetings(card);
   return (
-    <Field label={t("wizard.welcomeGreeting")} hint={t("wizard.welcomeGreetingHint")}>
+    <Field label={t("wizard.welcomeGreeting")} hint={t("wizard.welcomeGreetingHint", TOK)}>
       <div className="space-y-4 rounded-2xl border border-border p-4" data-testid="wizard-welcome-greeting">
         <div className="space-y-2">
           <p className="text-xs font-medium text-foreground">{t("wizard.welcomeSalutation")}</p>
@@ -262,7 +264,7 @@ const WelcomeGreetingFields = ({ card, update }) => {
         <div className="space-y-2">
           <p className="text-xs font-medium text-foreground">{t("wizard.welcomeGreetingLine")}</p>
           <PresetChips options={greets} value={card.welcome_greeting ?? ""} onPick={(v) => update({ welcome_greeting: v })} testPrefix="wizard-welcome-greeting" />
-          <Input className="h-11 rounded-xl text-base" maxLength={200} dir="auto" value={card.welcome_greeting ?? ""} placeholder={t("wizard.welcomeGreetingPh")}
+          <Input className="h-11 rounded-xl text-base" maxLength={200} dir="auto" value={card.welcome_greeting ?? ""} placeholder={t("wizard.welcomeGreetingPh", TOK)}
             onChange={(e) => update({ welcome_greeting: e.target.value })} data-testid="wizard-welcome-greeting-input" />
         </div>
         <SlotWarning card={card} slot="welcomeGreeting" />
@@ -272,7 +274,7 @@ const WelcomeGreetingFields = ({ card, update }) => {
 };
 
 const WelcomeNoteField = ({ card, update }) => (
-  <Field label={t("wizard.welcomeText")} hint={t("wizard.welcomeTextHint")}>
+  <Field label={t("wizard.welcomeText")} hint={t("wizard.welcomeTextHint", TOK)}>
     <Textarea className="min-h-20 rounded-xl text-base" maxLength={400} dir="auto" value={card.welcome_text ?? ""} placeholder={t("wizard.welcomeTextPh")}
       onChange={(e) => update({ welcome_text: e.target.value })} data-testid="wizard-welcome-text-input" />
     <div className="mt-2 flex justify-end">

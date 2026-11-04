@@ -129,6 +129,16 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Razorpay switched from mock to real TEST mode: PAYMENT_MODE="test"; RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET stored via secure secrets (rzp_test_...). Verified: real order creation against api.razorpay.com returns 200 (order_...). Existing backend order/verify/webhook + frontend checkout.js flow already supported test/live; no code change needed. RAZORPAY_WEBHOOK_SECRET optional (only for dashboard webhooks).
 - NOTE for production: preview .env now has PAYMENT_MODE=test; set PAYMENT_MODE (and Razorpay keys) in the production/live secret slot before go-live.
 
+## Implemented (Iteration 17: Welcome rework, inline date scratch, invitation blank, de-dup) — 2026-06
+- Wizard Details order: Invitation title → Welcome greeting (salutation + greeting) → Welcome note → header → family → compliments → title → events heading → invitation → blessing (Steps.jsx StepDetails)
+- Welcome greeting: new card fields welcome_salutation + welcome_greeting (backend CardIn); tradition presets + None + free text (traditions.js WELCOME, localised en/hi/ur); {occasion}/{names} tokens filled on the card; salutation in display font, greeting letter-spaced. No guest name on the Welcome page.
+- Welcome note: prefilled, editable, keeps {occasion}/{date} tokens; single='on {date}', multi='from {date}' (traditions.js welcomeNoteDefault). {date} renders as an inline gold scratch patch (card/WelcomeDateNote.jsx), reveals ~60% + Tap-to-reveal fallback, sparkle + haptic, localStorage per slug, Replay resets (GuestCard.replay clearDateReveal), pre-revealed in wizard preview / reduced motion. Literal "welcome note" treated as empty. Reset-to-default button.
+- Cover/single scratch card REMOVED (Hub.jsx, CardPages.jsx; ScratchDate.jsx deleted). New wizard Style-step toggle scratch_date (default on).
+- Invitation message: prefilled with tradition default (traditions.js INVITATION, no "blessings of" wording, reworded to avoid the closing's "your presence"); blank = nothing (textSlots.invitationParagraph returns host text only); Reset button; hint "Shown once on the cover. Leave empty to show nothing."
+- Blessing unchanged, once on the cover. De-dup: KEY_PHRASES extended; cardSlots adds welcomeGreeting + welcome note slots; TextSummary + SlotWarning cover them.
+- Tradition/language/type change refreshes unedited welcome + invitation defaults (Wizard.textDefaults/withDefaults); custom text preserved.
+- Tested: iteration_16 (frontend 92% → fixed: invitation/closing "your presence" overlap, wizard hint {token} interpolation, aqiqah non-Muslim fallback, patch spacing). Self-verified wizard (no dup warning, tokens show, field order) + guest (welcome layout, patch reveal, no cover scratch, blank invitation, blessing once).
+
 ## Backlog
 - Round 2: admin password login + 2FA, design-preference charts; Gmail app password
 - Go-live: switch PAYMENT_MODE to live + add live Razorpay keys; optional Razorpay webhook secret
