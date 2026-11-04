@@ -25,11 +25,6 @@ export const FamilyBlock = ({ card }) => {
   return text ? <p className="gc-family" dir="ltr" data-testid="card-family-block">{text}</p> : null;
 };
 
-export const EventWording = ({ card, ev }) => {
-  const text = eventWording(card, ev);
-  return text ? <p className="gc-invite gc-event-wording" dir="auto" data-testid="card-event-wording">{text}</p> : null;
-};
-
 export const DuaBlock = ({ dua, testId = "card-event-dua" }) => {
   useEffect(() => {
     if (dua) loadFont("script-arabic", SCRIPT_FONTS.arabic);

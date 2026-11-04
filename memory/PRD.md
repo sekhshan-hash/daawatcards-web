@@ -124,5 +124,11 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 
 - See Round 2 above; P1 real Razorpay keys (PAYMENT_MODE=test/live)
 
+## Implemented (Iteration 16: blessing follows tradition, Razorpay test mode) — 2026-06
+- Blessing now follows the tradition: Wizard onTradition maps tradition→blessing_key (muslim→islamic, hindu→hindu, sikh/christian/neutral→neutral) when the key exists in that occasion's blessingOptions; a host's "custom" blessing is left untouched; corporate/birthday unaffected (no matching option). Fixes a Hindu card keeping Bismillah after switching from Muslim. (frontend/src/pages/Wizard.jsx)
+- Razorpay switched from mock to real TEST mode: PAYMENT_MODE="test"; RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET stored via secure secrets (rzp_test_...). Verified: real order creation against api.razorpay.com returns 200 (order_...). Existing backend order/verify/webhook + frontend checkout.js flow already supported test/live; no code change needed. RAZORPAY_WEBHOOK_SECRET optional (only for dashboard webhooks).
+- NOTE for production: preview .env now has PAYMENT_MODE=test; set PAYMENT_MODE (and Razorpay keys) in the production/live secret slot before go-live.
+
 ## Backlog
-- Round 2: admin password login + 2FA, design-preference charts; real Razorpay keys; Gmail app password
+- Round 2: admin password login + 2FA, design-preference charts; Gmail app password
+- Go-live: switch PAYMENT_MODE to live + add live Razorpay keys; optional Razorpay webhook secret

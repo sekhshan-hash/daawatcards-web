@@ -19,6 +19,14 @@ import { UpgradeButton, isPaid } from "@/components/plans/Plans";
 
 const DEFAULT_EFFECTS = { fireworks: true, vibration: true, intensity: "medium" };
 
+// Pick the blessing that matches a tradition, falling back to neutral when the occasion has no dedicated one.
+const TRADITION_BLESSING = { muslim: "islamic", hindu: "hindu", sikh: "neutral", christian: "neutral", neutral: "neutral" };
+const blessingForTradition = (tradition, type, lang) => {
+  const want = TRADITION_BLESSING[tradition] || "neutral";
+  const opts = makeT(lang)(`blessingOptions.${type}`);
+  return Array.isArray(opts) && opts.includes(want) ? want : null;
+};
+
 // Older cards had several photos: the first one becomes the single cover photo; the others stay saved.
 const singlePhoto = (c) => {
   if (c.photo_place) return {};
@@ -102,7 +110,9 @@ export default function Wizard() {
     const prev = weddingDefaults(card.tradition) || makeT(card.language)(`defaults.${card.event_type}`).events;
     const next = weddingDefaults(tradition) || makeT(card.language)(`defaults.${card.event_type}`).events;
     const untouched = card.event_type === "wedding" && card.events.every((e, i) => e.name === prev[i] && !e.date) && card.events.length === prev.length;
-    update({ tradition, header_key: "", ...(untouched ? { events: next.map((n, i) => blankEvent(n, `e${i + 1}`)) } : {}) });
+    // The blessing should follow the tradition so a Hindu card never keeps Bismillah. A host's own custom text is left alone.
+    const nextBlessing = card.blessing_key === "custom" ? null : blessingForTradition(tradition, card.event_type, card.language);
+    update({ tradition, header_key: "", ...(nextBlessing ? { blessing_key: nextBlessing } : {}), ...(untouched ? { events: next.map((n, i) => blankEvent(n, `e${i + 1}`)) } : {}) });
   };
   const onLanguage = (lang) => {
     const prev = makeT(card.language)(`defaults.${card.event_type}`);
