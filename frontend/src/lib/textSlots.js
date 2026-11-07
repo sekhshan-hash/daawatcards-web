@@ -30,6 +30,12 @@ export const invitationParagraph = (card) => (card.invitation_text?.trim() || ""
 export const welcomeNames = (card) => (COUPLE_TYPES.includes(card.event_type) && card.secondary_name
   ? `${card.primary_name} & ${card.secondary_name}` : card.primary_name);
 
+// Raw templates (tokens kept) for rich rendering on the card.
+export const welcomeSalutationRaw = (card) => card.welcome_salutation ?? welcomeSalutationDefault(card);
+export const welcomeGreetingRaw = (card) => card.welcome_greeting ?? welcomeGreetingDefault(card);
+export const occasionValue = (card) => occasionName(card);
+export const namesValue = (card) => welcomeNames(card);
+
 const fillTokens = (text, card) => (text || "").replace(/\{occasion\}/g, occasionName(card)).replace(/\{names\}/g, welcomeNames(card));
 // Welcome greeting lines: fall back to the tradition default only when the field was never set.
 export const welcomeSalutation = (card) => fillTokens(card.welcome_salutation ?? welcomeSalutationDefault(card), card);

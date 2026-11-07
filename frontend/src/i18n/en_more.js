@@ -143,6 +143,7 @@ const enMore = {
     welcomeSalutation: "Salutation", welcomeSalutationPh: "e.g. Assalamu Alaikum (leave empty for none)",
     welcomeGreetingLine: "Greeting line", welcomeGreetingPh: "Welcome to the {occasion} of {names}", welcomeNone: "None",
     invitationHint: "Shown once on the cover. Leave empty to show nothing.", resetWording: "Reset to default wording",
+    anyLanguageHint: "You can type or paste text in any language.",
     scratchDate: "Scratch the date", scratchDateHint: "Hide the date under a gold scratch patch in the welcome note. Off shows it plainly.",
     meal: "Meal / food served", mealCustom: "Your meal name (e.g. Dawat-e-Walima Dinner)", mealLine: "Line on the card",
     adjust: "Adjust", adjustTitle: "Adjust photo", adjustHint: "Drag to move, pinch or use the slider to zoom. The preview shows exactly how it looks on the card.",

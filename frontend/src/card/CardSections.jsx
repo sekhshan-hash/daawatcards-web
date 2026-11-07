@@ -11,6 +11,8 @@ import { mealLine } from "@/lib/meals";
 import { FitText } from "./FitText";
 import { DuaBlock, FamilyBlock, HeaderLine } from "./Wording";
 import { cardDua, closingText, displayTitle, invitationParagraph, mainEvent, occasionName } from "@/lib/textSlots";
+import { ScriptText } from "./TokenText";
+import { useScriptFont } from "@/lib/script";
 
 export const Reveal = ({ children, className = "" }) => {
   const [ref, inView] = useInView();
@@ -19,18 +21,22 @@ export const Reveal = ({ children, className = "" }) => {
 
 
 
-export const CoupleNames = ({ card, tpl }) => (COUPLE_TYPES.includes(card.event_type) && card.secondary_name ? (
-  <FitText as="h1" className="gc-names is-couple is-stacked" maxLines={5} data-testid="card-names">
-    <span className="gc-name-line">{card.primary_name}</span>
-    <span className="gc-amp">&amp;</span>
-    <span className="gc-name-line">{card.secondary_name}</span>
-  </FitText>
-) : (
-  <>
-    <FitText as="h1" className="gc-names" data-testid="card-names">{tpl.renderName ? tpl.renderName(card.primary_name) : card.primary_name}</FitText>
-    {card.secondary_name && <p className="gc-subname">{card.secondary_name}</p>}
-  </>
-));
+export const CoupleNames = ({ card, tpl }) => {
+  const sf = useScriptFont(`${card.primary_name || ""} ${card.secondary_name || ""}`);
+  const nameStyle = sf.fontFamily ? { fontFamily: `var(--font-display), ${sf.fontFamily}` } : undefined;
+  return COUPLE_TYPES.includes(card.event_type) && card.secondary_name ? (
+    <FitText as="h1" className="gc-names is-couple is-stacked" maxLines={5} data-testid="card-names" dir={sf.dir || undefined} style={nameStyle}>
+      <span className="gc-name-line">{card.primary_name}</span>
+      <span className="gc-amp">&amp;</span>
+      <span className="gc-name-line">{card.secondary_name}</span>
+    </FitText>
+  ) : (
+    <>
+      <FitText as="h1" className="gc-names" data-testid="card-names" dir={sf.dir || undefined} style={nameStyle}>{tpl.renderName ? tpl.renderName(card.primary_name) : card.primary_name}</FitText>
+      {card.secondary_name && <p className="gc-subname" dir={sf.dir || undefined} style={nameStyle}>{card.secondary_name}</p>}
+    </>
+  );
+};
 
 export const TitleSection = ({ card, event, t, tpl, single }) => {
   const couple = COUPLE_TYPES.includes(card.event_type) && card.secondary_name;
@@ -57,8 +63,8 @@ export const MessageBlock = ({ card, t }) => {
   const blessing = blessingText(t, card);
   return (
     <>
-      {text && <Reveal><p className="gc-invite" dir="auto" data-testid="card-invitation-text">{text}</p></Reveal>}
-      {blessing && <Reveal><blockquote className="gc-blessing" data-testid="card-blessing">{blessing}</blockquote></Reveal>}
+      {text && <Reveal><ScriptText as="p" className="gc-invite" text={text} testId="card-invitation-text" /></Reveal>}
+      {blessing && <Reveal><ScriptText as="blockquote" className="gc-blessing" text={blessing} testId="card-blessing" /></Reveal>}
       <Reveal><DuaBlock dua={cardDua(card)} /></Reveal>
     </>
   );
@@ -81,14 +87,14 @@ export const DetailsSection = ({ card, event, t }) => {
         <div className="gc-panel">
           <PlacedPhoto card={card} place={`event:${event.event_id}`} variant="event" testId="card-event-photo" />
           <p className="gc-eyebrow">{t("guest.eventLabel")}</p>
-          <h2 className="gc-heading" data-testid="card-event-name">{occasionName(card)}</h2>
+          <h2 className="gc-heading" data-testid="card-event-name"><ScriptText as="span" preserveLines={false} text={occasionName(card)} /></h2>
           <div className="gc-rows">
             <Row icon={CalendarDays} label={t("guest.date")} value={formatLongDate(event.date, card.language) || "—"} testId="card-event-date" />
             <Row icon={Clock} label={t("guest.time")} value={time || "—"} testId="card-event-time" />
             {mealLine(event, t) && <Row icon={UtensilsCrossed} label={t("guest.meal")} value={mealLine(event, t)} testId="card-event-meal" />}
             {event.dress_code && <Row icon={Shirt} label={t("guest.dressCode")} value={event.dress_code} testId="card-event-dress-code" />}
           </div>
-          {event.custom_text && <p className="gc-note" data-testid="card-event-custom-text">{event.custom_text}</p>}
+          {event.custom_text && <ScriptText as="p" className="gc-note" text={event.custom_text} testId="card-event-custom-text" />}
         </div>
       </Reveal>
     </section>
@@ -155,8 +161,8 @@ export const VenueSection = ({ card, event, t, preview }) => {
         <div className="gc-panel gc-center">
           <MapPin className="gc-pin" size={30} />
           <p className="gc-eyebrow">{t("guest.venue")}</p>
-          <h2 className="gc-heading" data-testid="card-venue-name">{event.venue_name || "—"}</h2>
-          {event.venue_address && <p className="gc-muted" data-testid="card-venue-address">{event.venue_address}</p>}
+          <h2 className="gc-heading" data-testid="card-venue-name"><ScriptText as="span" preserveLines={false} text={event.venue_name || "—"} /></h2>
+          {event.venue_address && <ScriptText as="p" className="gc-muted" text={event.venue_address} testId="card-venue-address" />}
           <div className="gc-actions">
             <a className="gc-btn" href={directionsUrl(event)} target="_blank" rel="noreferrer" data-testid="get-directions-button">
               <Navigation size={16} /> {t("guest.directions")}
@@ -187,8 +193,8 @@ export const ClosingSection = ({ card }) => {
   return (
     <section className="gc-section gc-center" data-testid="card-closing-section">
       <Reveal>
-        {rsvp && <p className="gc-muted gc-center" dir="auto" data-testid="card-event-rsvp-line">{rsvp}</p>}
-        {text && <p className="gc-closing" dir="auto" data-testid="card-event-closing">{text}</p>}
+        {rsvp && <ScriptText as="p" className="gc-muted gc-center" text={rsvp} testId="card-event-rsvp-line" />}
+        {text && <ScriptText as="p" className="gc-closing" text={text} testId="card-event-closing" />}
       </Reveal>
     </section>
   );
@@ -196,11 +202,13 @@ export const ClosingSection = ({ card }) => {
 
 export const FooterSection = ({ card, t, tpl, onReplay }) => {
   const Divider = tpl.Divider;
+  const host = card.host_family || namesLine(card);
+  const sf = useScriptFont(host);
   return (
     <footer className="gc-footer" data-testid="card-footer">
       <Divider />
       <p className="gc-eyebrow">{tCorp(t, card, "compliments")}</p>
-      <FitText className="gc-host" data-testid="card-host-family">{card.host_family || namesLine(card)}</FitText>
+      <FitText className="gc-host" data-testid="card-host-family" dir={sf.dir || undefined} style={sf.fontFamily ? { fontFamily: `var(--font-display), ${sf.fontFamily}` } : undefined}>{host}</FitText>
       <button type="button" className="gc-btn gc-btn-ghost" onClick={onReplay} data-testid="card-replay-button">
         <RotateCcw size={16} /> {t("guest.replay")}
       </button>

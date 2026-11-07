@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatDate } from "@/lib/eventTime";
-import { mainEvent, occasionName, welcomeNames, welcomeNoteRaw } from "@/lib/textSlots";
+import { mainEvent, namesValue, occasionValue, welcomeNoteRaw } from "@/lib/textSlots";
+import { TokenText } from "./TokenText";
 
 const read = (el, name) => getComputedStyle(el).getPropertyValue(name).trim();
 const dateKey = (card) => `daawat-date-${card.slug || "preview"}`;
@@ -11,15 +12,11 @@ const wasRevealed = (card) => {
   try { return localStorage.getItem(dateKey(card)) === "1"; } catch { return false; }
 };
 
-// Welcome note with the first event's date hidden under a small gold scratch patch, inline in the sentence.
+// Welcome note; the first event's date sits under a small gold scratch patch, sized like the other tokens.
 export const WelcomeDateNote = ({ card, t, preview, effects, reduced }) => {
   const raw = welcomeNoteRaw(card);
-  const fill = (s) => (s || "").replace(/\{occasion\}/g, occasionName(card)).replace(/\{names\}/g, welcomeNames(card));
   const dateText = formatDate(mainEvent(card)?.date, card.language) || "—";
   const hasDate = raw.includes("{date}");
-  const at = raw.indexOf("{date}");
-  const before = fill(hasDate ? raw.slice(0, at) : raw);
-  const after = hasDate ? fill(raw.slice(at + 6)) : "";
   const usePatch = hasDate && card.scratch_date !== false && !reduced && !preview;
 
   const canvas = useRef(null);
@@ -53,7 +50,6 @@ export const WelcomeDateNote = ({ card, t, preview, effects, reduced }) => {
       const g = ctx.createLinearGradient(0, 0, width, height);
       g.addColorStop(0, read(c, "--accent") || "#D4AF37");
       g.addColorStop(1, read(c, "--accent2") || "#F5E6B8");
-      ctx.globalCompositeOperation = "source-over";
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = "rgba(255,255,255,.3)";
@@ -87,7 +83,7 @@ export const WelcomeDateNote = ({ card, t, preview, effects, reduced }) => {
     const ctx = c.getContext("2d", { willReadFrequently: true });
     ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath();
-    ctx.arc(e.clientX - r.left, e.clientY - r.top, 14, 0, Math.PI * 2);
+    ctx.arc(e.clientX - r.left, e.clientY - r.top, 16, 0, Math.PI * 2);
     ctx.fill();
     moves.current += 1;
     if (moves.current % 5 === 0 && cleared() > 0.6) doReveal();
@@ -100,22 +96,21 @@ export const WelcomeDateNote = ({ card, t, preview, effects, reduced }) => {
   const up = () => { drawing.current = false; };
 
   if (!raw) return null;
+
+  const dateNode = !hasDate ? null : (
+    <span className={`gc-token gc-datepatch ${revealed ? "is-revealed" : ""} ${usePatch ? "" : "is-plain"}`} data-testid="welcome-date-patch">
+      <span className={`gc-datepatch-value ${sparkle ? "is-sparkle" : ""}`} data-testid="welcome-date-value">{dateText}</span>
+      {usePatch && !revealed && (
+        <canvas ref={canvas} className="gc-datepatch-cover" onPointerDown={down} onPointerMove={scratch} onPointerUp={up} onPointerCancel={up}
+          role="button" tabIndex={0} aria-label={t("guest.scratchDate")}
+          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && doReveal()} data-testid="welcome-date-canvas" />
+      )}
+    </span>
+  );
+
   return (
     <>
-      <p className="gc-welcome-note" dir="auto" data-testid="welcome-note">
-        {before}
-        {hasDate && (
-          <span className={`gc-datepatch ${revealed ? "is-revealed" : ""} ${usePatch ? "" : "is-plain"}`} data-testid="welcome-date-patch">
-            <span className={`gc-datepatch-value ${sparkle ? "is-sparkle" : ""}`} data-testid="welcome-date-value">{dateText}</span>
-            {usePatch && !revealed && (
-              <canvas ref={canvas} className="gc-datepatch-cover" onPointerDown={down} onPointerMove={scratch} onPointerUp={up} onPointerCancel={up}
-                role="button" tabIndex={0} aria-label={t("guest.scratchDate")}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && doReveal()} data-testid="welcome-date-canvas" />
-            )}
-          </span>
-        )}
-        {after}
-      </p>
+      <TokenText as="p" className="gc-welcome-note" text={raw} occasion={occasionValue(card)} names={namesValue(card)} dateNode={dateNode} testId="welcome-note" />
       {usePatch && !revealed && (
         <button type="button" className="gc-link gc-welcome-reveal-btn" onClick={doReveal} data-testid="welcome-date-reveal-button">{t("guest.tapRevealDate")}</button>
       )}

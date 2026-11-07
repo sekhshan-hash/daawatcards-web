@@ -264,9 +264,10 @@ const WelcomeGreetingFields = ({ card, update }) => {
         <div className="space-y-2">
           <p className="text-xs font-medium text-foreground">{t("wizard.welcomeGreetingLine")}</p>
           <PresetChips options={greets} value={card.welcome_greeting ?? ""} onPick={(v) => update({ welcome_greeting: v })} testPrefix="wizard-welcome-greeting" />
-          <Input className="h-11 rounded-xl text-base" maxLength={200} dir="auto" value={card.welcome_greeting ?? ""} placeholder={t("wizard.welcomeGreetingPh", TOK)}
+          <Textarea className="min-h-16 rounded-xl text-base" maxLength={200} dir="auto" value={card.welcome_greeting ?? ""} placeholder={t("wizard.welcomeGreetingPh", TOK)}
             onChange={(e) => update({ welcome_greeting: e.target.value })} data-testid="wizard-welcome-greeting-input" />
         </div>
+        <p className="text-xs text-muted-foreground" data-testid="wizard-anylang-greeting">{t("wizard.anyLanguageHint")}</p>
         <SlotWarning card={card} slot="welcomeGreeting" />
       </div>
     </Field>
@@ -282,6 +283,7 @@ const WelcomeNoteField = ({ card, update }) => (
         <RotateCcw size={13} /> {t("wizard.resetWording")}
       </button>
     </div>
+    <p className="mt-1 text-xs text-muted-foreground" data-testid="wizard-anylang-welcome">{t("wizard.anyLanguageHint")}</p>
     <SlotWarning card={card} slot="welcome" />
   </Field>
 );
@@ -309,6 +311,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
           <Field label={typeL.primary}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("primary_name")} /></Field>
           <Field label={`${typeL.secondary}`}><Input className="h-12 rounded-xl text-base" maxLength={60} {...bind("secondary_name")} /></Field>
         </div>
+        <p className="-mt-3 text-xs text-muted-foreground" data-testid="wizard-anylang-names">{t("wizard.anyLanguageHint")}</p>
         <HeadingFontPicker value={card.heading_font || "default"} onChange={(v) => update({ heading_font: v })} />
         <IntroTitleField card={card} update={update} />
         <WelcomeGreetingFields card={card} update={update} />
@@ -330,6 +333,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
               <RotateCcw size={13} /> {t("wizard.resetWording")}
             </button>
           </div>
+          <p className="mt-1 text-xs text-muted-foreground" data-testid="wizard-anylang-invitation">{t("wizard.anyLanguageHint")}</p>
           <SlotWarning card={card} slot="invitation" />
         </Field>
         <Field label={L.blessing}>

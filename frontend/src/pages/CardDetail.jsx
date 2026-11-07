@@ -8,6 +8,7 @@ import { api, errMsg } from "@/lib/api";
 import { copyText, guestPath, shareUrl, waLink } from "@/lib/links";
 import { formatLongDate, formatTime, namesLine } from "@/lib/eventTime";
 import { HostShell, FullLoader } from "@/components/host/HostShell";
+import { PlanBadge, UpgradeButton, isPaid } from "@/components/plans/Plans";
 import { t, makeT } from "@/i18n";
 
 const LinkMaker = ({ card }) => {
@@ -69,10 +70,14 @@ export default function CardDetail() {
   const navigate = useNavigate();
   const [card, setCard] = useState(null);
   const [wishes, setWishes] = useState(null);
+  const [bill, setBill] = useState(null);
+  const [guestCount, setGuestCount] = useState(0);
 
   useEffect(() => {
     api.get(`/cards/${cardId}`).then((r) => setCard(r.data)).catch(() => navigate("/dashboard"));
     api.get(`/cards/${cardId}/wishes`).then((r) => setWishes(r.data)).catch(() => {});
+    api.get(`/billing/cards/${cardId}`).then((r) => setBill(r.data)).catch(() => {});
+    api.get(`/cards/${cardId}/guests`).then((r) => setGuestCount(r.data.length)).catch(() => {});
   }, [cardId, navigate]);
 
   const [agreed, setAgreed] = useState(false);
@@ -100,15 +105,26 @@ export default function CardDetail() {
         <div>
           <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">← {t("dashboard.title")}</Link>
           <h1 className="mt-3 font-display text-4xl text-foreground sm:text-5xl" data-testid="card-detail-title">{namesLine(card)}</h1>
-          <p className="mt-2 text-muted-foreground">{card.title} · /{card.slug}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground">
+            <span>{card.title} · /{card.slug}</span>
+            <PlanBadge plan={card.plan} testId="card-detail-plan-badge" />
+            {bill && !isPaid(bill.plan) && <span className="text-sm" data-testid="card-detail-guest-usage">{guestCount} / {bill.limit} guests used</span>}
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {card.status !== "published" && <button type="button" onClick={publish} className="btn-gold" data-testid="card-detail-publish-button">{t("detail.publish")}</button>}
           <Link to={`/cards/${cardId}/guests`} className="btn-gold" data-testid="card-detail-guests-button"><Users size={15} /> {t("detail.guestList")}</Link>
           <Link to={`/cards/${cardId}/edit`} className="btn-outline" data-testid="card-detail-edit-button"><Pencil size={15} /> {t("common.edit")}</Link>
+          <UpgradeButton cardId={cardId} plan={card.plan} className="btn-outline" testId="card-detail-upgrade-button" />
           <button type="button" onClick={remove} className="btn-outline text-rose" data-testid="card-detail-delete-button"><Trash2 size={15} /></button>
         </div>
       </div>
+      {!isPaid(card.plan) && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3" data-testid="card-detail-plan-usage">
+          <p className="text-sm text-foreground"><strong>{guestCount} / {bill?.limit ?? 2} guests used</strong> on the Free plan. Upgrade for unlimited guests, contacts import, CSV and no watermark.</p>
+          <UpgradeButton cardId={cardId} plan={card.plan} testId="card-detail-usage-upgrade-button" />
+        </div>
+      )}
       {card.status !== "published" && <div className="max-w-xl"><AgreeTerms checked={agreed} onChange={setAgreed} testId="card-detail-agree-terms" /></div>}
 
       <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_1fr] [&>*]:min-w-0">

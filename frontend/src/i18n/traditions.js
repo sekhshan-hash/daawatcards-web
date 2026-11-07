@@ -183,8 +183,8 @@ export const welcomeGreetingDefault = (card) => L(WELCOME[trad(card)].greetings[
 
 // Welcome note: keeps {occasion} and {date} as tokens, filled on the card.
 const NOTE = {
-  single: { en: "We cordially invite you to join the {occasion} on {date}.", hi: "हम आपको {occasion} में {date} को सादर आमंत्रित करते हैं।", ur: "ہم آپ کو {occasion} میں {date} کو بصد احترام مدعو کرتے ہیں۔" },
-  multi: { en: "We cordially invite you to join the {occasion} from {date}.", hi: "हम आपको {occasion} में {date} से सादर आमंत्रित करते हैं।", ur: "ہم آپ کو {occasion} میں {date} سے بصد احترام مدعو کرتے ہیں۔" },
+  single: { en: "We cordially invite you to join the\n{occasion}\non {date}.", hi: "हम आपको\n{occasion} में\n{date} को सादर आमंत्रित करते हैं।", ur: "ہم آپ کو\n{occasion} میں\n{date} کو بصد احترام مدعو کرتے ہیں۔" },
+  multi: { en: "We cordially invite you to join the\n{occasion}\nfrom {date}.", hi: "हम आपको\n{occasion} में\n{date} से सादर आमंत्रित करते हैं।", ur: "ہم آپ کو\n{occasion} میں\n{date} سے بصد احترام مدعو کرتے ہیں۔" },
 };
 export const welcomeNoteDefault = (card) => L(NOTE[(card.events || []).length > 1 ? "multi" : "single"], card.language);
 
