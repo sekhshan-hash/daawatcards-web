@@ -95,21 +95,26 @@ export const parseFile = async (file) => {
 
 export const supportsContacts = () => "contacts" in navigator && "ContactsManager" in window;
 
-// Contact Picker results vary by browser: a property may be an array, a single string, or missing.
+// Contact Picker results vary by browser: a property may be an array, a single string, an object, or missing.
 const firstValue = (v) => {
-  if (Array.isArray(v)) return (v.find((x) => x && String(x).trim()) || "").toString();
-  return v ? String(v) : "";
+  if (v == null) return "";
+  if (Array.isArray(v)) {
+    for (const x of v) {
+      const s = firstValue(x);
+      if (s) return s;
+    }
+    return "";
+  }
+  if (typeof v === "object") return firstValue(v.value ?? v.tel ?? v.name ?? v.number ?? "");
+  return String(v).trim();
 };
 
+// select() must be called directly inside the user gesture (no await before it) or Android revokes it.
 export const pickContacts = async () => {
-  let props = ["name", "tel"];
-  try {
-    const supported = await navigator.contacts.getProperties();
-    const want = props.filter((p) => supported.includes(p));
-    if (want.length) props = want;
-  } catch { /* fall back to requesting both */ }
-  const list = await navigator.contacts.select(props, { multiple: true });
-  return list
+  const list = await navigator.contacts.select(["name", "tel"], { multiple: true });
+  const rows = list
     .map((c) => row(firstValue(c.name) || firstValue(c.tel), firstValue(c.tel)))
     .filter(Boolean);
+  const sample = list[0] ? JSON.stringify(list[0]).slice(0, 200) : "";
+  return { rows, count: list.length, sample };
 };

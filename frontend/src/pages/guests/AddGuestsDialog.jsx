@@ -53,6 +53,7 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
   const [paste, setPaste] = useState("");
   const [busy, setBusy] = useState(false);
   const [contactsFailed, setContactsFailed] = useState(false);
+  const [contactsDebug, setContactsDebug] = useState("");
   useEffect(() => {
     if (open) setEventIds(card.events.map((e) => e.event_id));
   }, [open, card.events]);
@@ -99,17 +100,20 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
   };
   const onContacts = async () => {
     try {
-      const picked = await pickContacts();
+      const { rows: picked, count, sample } = await pickContacts();
       if (!picked.length) {
         setContactsFailed(true);
+        setContactsDebug(count > 0 ? `Read ${count} contact(s) but couldn't find a name/number. Data: ${sample}` : "The picker returned no contacts (nothing was selected).");
         toast.error(t("guests.contactsFailed"));
         return;
       }
       setContactsFailed(false);
+      setContactsDebug("");
       load(picked);
     } catch (e) {
       if (e?.name === "AbortError") return; // user closed the picker
       setContactsFailed(true);
+      setContactsDebug(`${e?.name || "Error"}: ${e?.message || "unknown"}`);
       toast.error(t("guests.contactsFailed"));
     }
   };
@@ -149,6 +153,7 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
             <p className="mt-3 text-sm text-muted-foreground">{supportsContacts() ? t("guests.contactsHint") : t("guests.contactsUnsupported")}</p>
             {supportsContacts() && <button type="button" onClick={onContacts} className="btn-outline mt-3 w-full" data-testid="add-guests-contacts-button"><BookUser size={16} /> {t("guests.contactsPick")}</button>}
             {contactsFailed && <p className="mt-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-2.5 text-xs text-amber-200" data-testid="add-guests-contacts-guide">{t("guests.contactsFailed")}</p>}
+            {contactsDebug && <p className="mt-2 break-all rounded-xl border border-border/60 bg-black/30 px-3 py-2 font-mono text-[10px] leading-snug text-muted-foreground" data-testid="add-guests-contacts-debug">{contactsDebug}</p>}
           </TabsContent>
         </Tabs>
         {rows.length > 0 && <ReviewList rows={rows} setRows={setRows} onAdd={addRows} busy={busy} existingKeys={existingKeys} merge={merge} setMerge={setMerge} />}
