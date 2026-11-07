@@ -82,9 +82,10 @@
 .gc-welcome-greeting { font-family: var(--font-title); font-size: 14px; letter-spacing: .12em; line-height: 1.6; text-transform: uppercase; color: var(--accent); }
 .gc-welcome-note { font-size: 17px; line-height: 1.8; color: var(--text); opacity: .92; }
 /* Tokens ({occasion}/{names}/{date}) render larger, bold, in the heading font and accent colour. */
-.gc-token { font-family: var(--font-display); font-weight: 700; color: var(--accent2); font-size: 1.3em; line-height: 1.25; }
-.gc-prewrap { white-space: pre-line; }
-.gc-welcome-reveal-btn { margin-top: 2px; font-size: 13px; opacity: .8; }
+.gc-token { font-family: var(--font-display); font-weight: 700; color: var(--accent2); font-size: 1.3em; line-height: 1.25; text-transform: none; }
+/* Keep line breaks, and let each line choose its own direction so mixed English/Urdu lines are not reversed. */
+.gc-prewrap { white-space: pre-line; unicode-bidi: plaintext; }
+.gc-welcome-reveal-btn { margin-top: 2px; font-size: 13px; color: var(--accent); opacity: .95; text-decoration: underline; }
 @keyframes gc-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .gc-root.is-reduced .gc-welcome-inner { animation: none; }
 

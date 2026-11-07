@@ -1,0 +1,33 @@
+{
+  "summary": "Batch 1 frontend test (#2 upgrade button, #3 multi-line + token styling, #6 any-language). CARD DETAIL (host cookie, 1920 + 390): PASS. Free card card_76e6fe90ab9a shows the FREE badge, '0 / 2 guests used', and 'Upgrade this card' after Guest list / Edit (in that order). The usage banner and its Upgrade button show too. Both buttons go to /cards/card_76e6fe90ab9a/upgrade, and the upgrade page loads (Rs. 116.82). On paid cards card_a8c005a026a1 (paid) and card_81fd619150f2 (paid_without_payment), the badge says PAID and the upgrade button, banner and usage count are all absent. The mobile layout wraps cleanly. GUEST /i/test-batch1 (390x844): PASS. 'राधे राधे' uses Noto Serif Devanagari. The greeting shows on 3 lines (pre-line) and the occasion/names tokens are 18.2px (1.3x of 14px), weight 700, accent2 colour. The note shows on 3 lines 'We cordially invite you to join the' / 'Pheras' / 'on [patch].', and the patch is 22.1px like the 22.1px note token. The tap-to-reveal button reveals '10 December 2026' and removes the canvas. The invitation shows its 3 lines as typed, centred. The names आरव/मीरा and the venue गार्डन हॉल use the Devanagari Noto stack and document.fonts.check is true. No tofu appeared in the screenshots. WIZARD (/create, tab 3 Details): PASS with one bug. The greeting, welcome note and invitation are all TEXTAREAs, and Enter adds '\\n'. The 4 any-language hints show the exact text. Hindi, Urdu and Gurmukhi typed or pasted (clipboard Ctrl+V) into names, greeting, note and invitation stay intact. The live preview shows the line breaks and scripts. BUG: mixed-script multi-line text is in the wrong order when the field contains Arabic/Urdu (see action_items).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "card/TokenText.jsx (TokenText / ScriptText)", "issue": "The direction for a mixed-script paragraph is set once for the whole block. If Arabic/Urdu is found anywhere in the text, the <p> gets dir='rtl'. English lines in the same field then show in RTL bidi order. Reproduced in the wizard preview with welcome note 'السلام علیکم\\nJoin the {occasion}\\non {date}.': it shows 'Wedding Join the' and '. — on' (the token and the punctuation move to the wrong side). This is likely for Muslim hosts who start with an Urdu line and continue in English. Fix: add `unicode-bidi: plaintext` to .gc-prewrap (each line then picks its own direction), or split on \\n and render each line with dir='auto'.", "selector": "[data-testid='welcome-note'], [data-testid='card-invitation-text']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Guest welcome screen", "issues": [
+        "The greeting is uppercase (text-transform), so the occasion token shows as 'PHERAS'/'WEDDING' in all-caps Great Vibes script, which is hard to read. Consider text-transform:none on .gc-token.",
+        "The 'Tap to reveal' link is small (13px, opacity .8) on the maroon background, so it has low contrast."
+      ]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix the mixed-script RTL order in TokenText/ScriptText. Add `unicode-bidi: plaintext;` to .gc-prewrap in card/hub.css, or give each line dir='auto', so English lines are not reversed when the same field has an Urdu/Arabic line.",
+    "Optional: useScriptFont only detects the FIRST script it finds (in RANGES order), so mixed text loads one font. For example, names 'आरव & ਮੀਰਾ' get only the Devanagari stack and the Gurmukhi part falls back to the system font. Consider detecting all scripts and joining their font stacks.",
+    "Optional: card-family-block (e.g. 'Mr. & Mrs. Iqbal Siddiqui ... son आरव with मीरा') does not use ScriptText/useScriptFont, so its Devanagari falls back to the system font (it rendered fine here). Apply useScriptFont to keep it consistent."
+  ],
+  "critical_code_review_comments": [
+    "TokenText: dir and font are set from the whole text (detectScript returns the first match), which causes the mixed-script issues above.",
+    "CardDetail: the header usage count appears only after /billing loads, so the pill shows up late (it is fine once loaded). The banner already falls back to limit 2, so the header could do the same.",
+    "The welcome note default for multi-event cards is '...\\n{occasion}\\nfrom {date}.' and for single-event cards it is 'on {date}.' The 'from' wording looks intentional; please confirm."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (frontend only)", "frontend": "95%"},
+  "seed_data_creation": "None. The wizard tests were not saved (no card was created).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Guest flow: on /i/test-batch1 there is no skip-intro-button. Click intro-open-button, then wait until document.elementFromPoint at welcome-date-reveal-button returns that element. Force clicks earlier hit the intro overlay. Paid host cards: card_a8c005a026a1 (paid) and card_81fd619150f2 (paid_without_payment). Free: card_76e6fe90ab9a and card_d2e758c9caf0. Wizard: /create, wizard-step-tab-2 has the names, greeting, note and invitation fields. In the preview, intro-open-button and then welcome-continue-button. For clipboard paste, use grant_permissions clipboard-read/write and Control+V, and do not click the field again before pasting (the click moves the caret)."
+}

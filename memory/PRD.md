@@ -139,6 +139,14 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - Tradition/language/type change refreshes unedited welcome + invitation defaults (Wizard.textDefaults/withDefaults); custom text preserved.
 - Tested: iteration_16 (frontend 92% → fixed: invitation/closing "your presence" overlap, wizard hint {token} interpolation, aqiqah non-Muslim fallback, patch spacing). Self-verified wizard (no dup warning, tokens show, field order) + guest (welcome layout, patch reveal, no cover scratch, blank invitation, blessing once).
 
-## Backlog
+## Implemented (Iteration 18 — Batch 1 of 6-part card rework) — 2026-06
+- #2 Upgrade on card page: CardDetail shows PlanBadge, "x / N guests used", UpgradeButton (hidden on paid) next to Guest list/Edit + a usage banner with the button inside. (pages/CardDetail.jsx)
+- #3 Enter = new line + token styling: TokenText/ScriptText (card/TokenText.jsx) preserve line breaks (.gc-prewrap pre-line + unicode-bidi:plaintext) and render {occasion}/{names}/{date} 1.3x bold heading-font accent (.gc-token); date patch matches token size; greeting line field now multi-line; new default welcome note is 3 lines with "on {date}" spaced. (Steps.jsx, WelcomeScreen/WelcomeDateNote, traditions.welcomeNoteDefault)
+- #6 Any-language paste/render: lib/script.js detectScript + useScriptFont lazy-loads Noto fonts (Devanagari/Arabic/Gurmukhi/Gujarati/Bengali/Tamil/Telugu); applied to names, salutation, greeting, note, invitation, blessing, closing, event name, venue, host; RTL per-line; "You can type or paste text in any language." helper under key fields. NOTE: WhatsApp/OG preview IMAGE (backend PIL) does NOT yet carry non-Latin fonts — deferred.
+- Tested iteration_17 (frontend 95% → fixed mixed-script RTL order, token all-caps, reveal-link contrast).
+
+## Backlog (remaining batches)
+- Batch 2: photo exact position per page (#1); all card text colours from theme tokens, remove hardcoded black/white/grey (#4)
+- Batch 3: Bismillah SVG artwork (live calligraphic webfont) in 4 styles + Arabic/multi-script calligraphy font selector (#5); apply non-Latin fonts to WhatsApp/OG image
 - Round 2: admin password login + 2FA, design-preference charts; Gmail app password
 - Go-live: switch PAYMENT_MODE to live + add live Razorpay keys; optional Razorpay webhook secret
