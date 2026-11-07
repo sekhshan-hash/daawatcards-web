@@ -318,7 +318,6 @@ export const StepDetails = ({ card, update, onLanguage }) => {
         <WelcomeNoteField card={card} update={update} />
         <HeaderPicker card={card} update={update} />
         {["wedding", "engagement"].includes(card.event_type) && <FamilyFields card={card} update={update} />}
-        <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} /></Field>
         <Field label={L.title} hint="Leave empty to use the occasion name."><Input className="h-12 rounded-xl text-base" maxLength={120} placeholder={occasionName(card)} {...bind("title")} data-testid="wizard-title-input" /></Field>
         {card.events.length > 1 && (
           <Field label={t("wizard.hubHeading")} hint={t("wizard.hubHeadingHint")}>
@@ -349,6 +348,7 @@ export const StepDetails = ({ card, update, onLanguage }) => {
           <SlotWarning card={card} slot="blessing" />
         </Field>
         {card.blessing_key === "custom" && <Field label={L.blessingCustom}><Textarea className="rounded-xl text-base" maxLength={1000} {...bind("blessing_text")} /></Field>}
+        <Field label={card.event_type === "corporate" ? t("wizard.hostedBy") : L.host} hint={L.hostHint}><Input className="h-12 rounded-xl text-base" maxLength={120} {...bind("host_family")} data-testid="wizard-host-family-input" /></Field>
         <Field label={`${L.whatsapp} (${L.optional})`} hint={L.whatsappHint}>
           <Input type="tel" inputMode="tel" className="h-12 rounded-xl text-base" placeholder="+91 98765 43210" maxLength={20} {...bind("host_whatsapp")} />
         </Field>

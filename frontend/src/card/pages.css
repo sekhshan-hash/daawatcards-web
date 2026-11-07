@@ -8,7 +8,7 @@
 .gc-root .gc-photo.has-fit { width: 100%; height: auto; max-width: var(--pmax, 320px); overflow: visible; }
 .gc-root .gc-photo-hero.has-fit { --pmax: 240px; }
 .gc-root .gc-photo-feature.has-fit { --pmax: 320px; }
-.gc-root .gc-photo-event.has-fit { --pmax: 100%; }
+.gc-root .gc-photo-event.has-fit { --pmax: 300px; margin: 20px auto; }
 .gc-root .gc-photo-wishes.has-fit { --pmax: 210px; }
 .gc-photo.has-fit .gc-photo-clip { position: relative; z-index: 1; overflow: hidden; border-radius: inherit; aspect-ratio: var(--ar, auto); }
 .gc-photo.has-fit:not(.shape-full) .gc-photo-clip img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
