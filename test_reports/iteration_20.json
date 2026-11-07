@@ -1,0 +1,28 @@
+{
+  "summary": "Retested the Batch 2 photo fixes in the /create wizard live preview at 1920px, logged in with the host cookie test_session_host. I used Aqiqah with its 2 default events (multi) and with 1 event removed (single), uploaded /tmp/p.jpg (600x750), and measured each figure's img rect against nearby p/h1/h2/h3/blockquote/a/button text rects, ignoring watermark. FIX3 overlap PASS: every figure box now equals its img size (aspect-ratio:auto works) and there is 0 overlap. Positions checked: multi cover top, after-header, after-names, after-invitation, after-blessing, before-events and end; multi event e1 top, after-name, after-datetime, after-venue and end; single cover (all 7) and single event after-venue/end. FIX3 welcome PASS: Below and Above the greeting both give a 230x280 figure (img 224x280), centred (centre offset 0), 48px inside the card's right edge, with no overlap of the greeting or the welcome note. welcome-continue-button stays visible. FIX1 single order PASS for DOM order: before-events now follows card-blessing and precedes card-event-name (the occasion panel), so it sits below the invitation and blessing. Each option renders exactly 1 figure. However, on a single Aqiqah card with no dua, 'After the blessing' and 'Before the events list' render in the identical visual spot (both at fig top 1093, between card-blessing and card-event-name). On single cards, event after-venue, event end and cover end also still share a spot. REGRESSION PASS: hero top and after-header are blended with no overlap. No frames render before a photo is uploaded. Details order still puts wizard-host-family-input after the blessing buttons and before whatsapp.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "DetailsSection / MessageBlock (single-event cover slots)", "issue": "When the card has no dua (for example Aqiqah English, where DuaBlock returns null), cover 'After the blessing' (in MessageBlock, before DuaBlock) and 'Before the events list' (in DetailsSection, after MessageBlock) land in exactly the same position: between card-blessing and the .gc-panel, at the same y. The order is now correct, but the two options look identical to the host.", "selector": "[data-testid=card-photo-after-blessing], [data-testid=card-photo-before-events]", "priority": "LOW"},
+      {"component": "SinglePage / event page end slots", "issue": "Still unchanged from iteration_19. On a single card, event 'After the venue', event 'At the end' and cover 'At the end' all render after get-directions-button and before card-closing-section. On the multi event page, after-venue and end both sit between get-directions-button and event-nav. The only difference is the figure size (230 vs 300 wide).", "selector": "[data-testid=card-event-photo-after-venue], [data-testid=card-event-photo-end], [data-testid=card-photo-cover-end]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/tests/photo_measure.js"],
+  "action_items": [
+    "Optional: make single-event 'Before the events list' visually distinct from 'After the blessing' when there is no dua. For example, put before-events inside the .gc-panel area or give it extra spacing, or hide one of the two options on single-event cards.",
+    "Optional, carried over: separate event after-venue, event end and cover end, for example by putting the end slots after ClosingSection."
+  ],
+  "critical_code_review_comments": [
+    "pages.css: the has-fit aspect-ratio:auto reset is correct. Figure and img rects now match in every slot.",
+    "hub.css welcome: the img max-height 280 with width auto works, and the figure is centred inside .gc-welcome-inner.",
+    "slotsForPlace always offers all 7 cover slots, even on single cards where some collapse to the same spot. Consider filtering by card shape."
+  ],
+  "updated_files": ["/app/tests/photo_measure.js (new measurement helper only, no app code changed)"],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% of requested fixes pass; 2 LOW distinctness notes"},
+  "seed_data_creation": "None. The wizard drafts were not saved. One photo upload was made via the wizard.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Measurement helper /app/tests/photo_measure.js: load it with open() and pass it to page.evaluate. It returns each .gc-photo with fig/img rects, the nearest testid neighbours, the overlaps (>7px) and the centring. Flow: cookie test_session_host -> /create -> wizard-event-type-aqiqah -> next x2 -> fill wizard-primary-name-input -> next -> fill wizard-event-{i}-date/time/venue-name/venue-address inputs (remove event 1 for single) -> next -> set_input_files wizard-photo-main-input with /tmp/p.jpg, wait 4s, Escape -> use wizard-photo-place-select and wizard-photo-slot-select. Welcome: choose place 'welcome', click wizard-preview-replay-button and wait for welcome-screen."
+}
