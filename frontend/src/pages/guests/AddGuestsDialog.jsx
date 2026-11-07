@@ -52,6 +52,7 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
   const [one, setOne] = useState({ name: "", phone: "" });
   const [paste, setPaste] = useState("");
   const [busy, setBusy] = useState(false);
+  const [contactsFailed, setContactsFailed] = useState(false);
   useEffect(() => {
     if (open) setEventIds(card.events.map((e) => e.event_id));
   }, [open, card.events]);
@@ -98,8 +99,19 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
   };
   const onContacts = async () => {
     try {
-      load(await pickContacts());
-    } catch { /* picker closed */ }
+      const picked = await pickContacts();
+      if (!picked.length) {
+        setContactsFailed(true);
+        toast.error(t("guests.contactsFailed"));
+        return;
+      }
+      setContactsFailed(false);
+      load(picked);
+    } catch (e) {
+      if (e?.name === "AbortError") return; // user closed the picker
+      setContactsFailed(true);
+      toast.error(t("guests.contactsFailed"));
+    }
   };
 
   return (
@@ -136,6 +148,7 @@ export const AddGuestsDialog = ({ open, onOpenChange, card, existing, onAdded, o
           <TabsContent value="contacts">
             <p className="mt-3 text-sm text-muted-foreground">{supportsContacts() ? t("guests.contactsHint") : t("guests.contactsUnsupported")}</p>
             {supportsContacts() && <button type="button" onClick={onContacts} className="btn-outline mt-3 w-full" data-testid="add-guests-contacts-button"><BookUser size={16} /> {t("guests.contactsPick")}</button>}
+            {contactsFailed && <p className="mt-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-2.5 text-xs text-amber-200" data-testid="add-guests-contacts-guide">{t("guests.contactsFailed")}</p>}
           </TabsContent>
         </Tabs>
         {rows.length > 0 && <ReviewList rows={rows} setRows={setRows} onAdd={addRows} busy={busy} existingKeys={existingKeys} merge={merge} setMerge={setMerge} />}

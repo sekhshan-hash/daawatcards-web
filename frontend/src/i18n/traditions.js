@@ -181,12 +181,8 @@ export const welcomeGreetings = (card) => WELCOME[trad(card)].greetings.map((g) 
 export const welcomeSalutationDefault = (card) => (WELCOME[trad(card)].noSalutation ? "" : L(WELCOME[trad(card)].salutations[0], card.language));
 export const welcomeGreetingDefault = (card) => L(WELCOME[trad(card)].greetings[0], card.language);
 
-// Welcome note: keeps {occasion} and {date} as tokens, filled on the card.
-const NOTE = {
-  single: { en: "We cordially invite you to join the\n{occasion}\non {date}.", hi: "हम आपको\n{occasion} में\n{date} को सादर आमंत्रित करते हैं।", ur: "ہم آپ کو\n{occasion} میں\n{date} کو بصد احترام مدعو کرتے ہیں۔" },
-  multi: { en: "We cordially invite you to join the\n{occasion}\nfrom {date}.", hi: "हम आपको\n{occasion} में\n{date} से सादर आमंत्रित करते हैं।", ur: "ہم آپ کو\n{occasion} میں\n{date} سے بصد احترام مدعو کرتے ہیں۔" },
-};
-export const welcomeNoteDefault = (card) => L(NOTE[(card.events || []).length > 1 ? "multi" : "single"], card.language);
+// Date note: defaults to just the scratch-to-reveal date token, shown under the greeting.
+export const welcomeNoteDefault = () => "{date}";
 
 // Invitation message defaults (editable). No "With the blessings of…"; worded to avoid repeating the blessing or welcome note.
 const INVITE_NEUTRAL = { en: "Together with our families, we warmly invite you and your family to this special occasion.", hi: "अपने परिवारों सहित, हम सहर्ष आपको और आपके परिवार को इस विशेष अवसर पर आमंत्रित करते हैं।", ur: "اپنے خاندانوں کے ہمراہ، ہم خوشی سے آپ کو اور آپ کے خاندان کو اس خاص موقع پر مدعو کرتے ہیں۔" };

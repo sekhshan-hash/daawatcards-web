@@ -150,7 +150,13 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - #4 All card text uses theme tokens (var(--text)/--accent/--accent2/--muted); verified across royal/rose/board/hearth/minimal/bday — no hardcoded black/grey; the "On" before the date now matches note colour. Watermark keeps its own neutral colour by design.
 - Tested iteration_18 (85% → fixed: welcome preview now shows welcome phase for focus.place=welcome; welcome photo overflow contained via .gc-welcome-inner width + .gc-photo max-width/height). Cover/event/all-pages slots + theme colours all passed.
 
+## Implemented (Iteration 21 — wizard tweaks + contacts fix) — 2026-06
+- "Welcome note" field renamed to "Date" (i18n welcomeText) and its default is now just `{date}` (traditions.welcomeNoteDefault → "{date}"); placeholder/hint updated. Shows the scratch-to-reveal Date of Occasion under the greeting. Verified on /create: field label "DATE", value "{date}".
+- Contact picker "No names found" bug fixed: lib/guestImport.pickContacts now intersects navigator.contacts.getProperties() and parses name/tel whether returned as array or string (firstValue helper) — robust for Samsung Internet / vendor browsers. AddGuestsDialog surfaces a clear amber guide (guests.contactsFailed) pointing to Paste list / Upload file when nothing is read; AbortError (picker closed) is ignored silently. NOTE: Contact Picker is Chrome/Android-only — full verification needs a real Android phone (user to confirm).
+- Mobile live preview: on screens <1024px (steps 1–6) a floating "Live preview" button opens a Sheet with the same GuestCard preview so hosts can see changes live. Desktop keeps the sticky side preview. (Wizard.jsx)
+
 ## Backlog (remaining)
+- Batch 3 (DEFERRED per user — Arabic calligraphy already looks good): Bismillah SVG artwork + Arabic font selector
 - Batch 3: Bismillah SVG artwork (live calligraphic webfont) in 4 styles + Arabic/multi-script calligraphy font selector (#5); apply non-Latin fonts to WhatsApp/OG image
 - Minor: non-hero photo slots keep uploaded "blended" style (could use framed) — low priority
 - Round 2: admin password login + 2FA, design-preference charts; Gmail app password

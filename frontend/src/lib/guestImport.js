@@ -95,7 +95,21 @@ export const parseFile = async (file) => {
 
 export const supportsContacts = () => "contacts" in navigator && "ContactsManager" in window;
 
+// Contact Picker results vary by browser: a property may be an array, a single string, or missing.
+const firstValue = (v) => {
+  if (Array.isArray(v)) return (v.find((x) => x && String(x).trim()) || "").toString();
+  return v ? String(v) : "";
+};
+
 export const pickContacts = async () => {
-  const list = await navigator.contacts.select(["name", "tel"], { multiple: true });
-  return list.map((c) => row(c.name?.[0] || c.tel?.[0], c.tel?.[0])).filter(Boolean);
+  let props = ["name", "tel"];
+  try {
+    const supported = await navigator.contacts.getProperties();
+    const want = props.filter((p) => supported.includes(p));
+    if (want.length) props = want;
+  } catch { /* fall back to requesting both */ }
+  const list = await navigator.contacts.select(props, { multiple: true });
+  return list
+    .map((c) => row(firstValue(c.name) || firstValue(c.tel), firstValue(c.tel)))
+    .filter(Boolean);
 };

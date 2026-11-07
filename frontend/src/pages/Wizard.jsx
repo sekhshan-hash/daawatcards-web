@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCcw, Eye } from "lucide-react";
 import { api, errMsg } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMedia";
 import { HostShell, FullLoader, PhoneFrame } from "@/components/host/HostShell";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { GuestCard } from "@/card/GuestCard";
 import { TEMPLATES, TEMPLATE_LIST } from "@/templates/registry";
 import { StepDetails, StepEventType, StepMusic, StepTemplate, StepTitle } from "./wizard/Steps";
@@ -109,6 +110,7 @@ export default function Wizard() {
   const [eventId, setEventId] = useState("");
   const [focus, setFocus] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const steps = t("wizard.steps");
 
   useEffect(() => {
@@ -246,6 +248,26 @@ export default function Wizard() {
         </div>
         {desktop && <aside className="sticky top-24 self-start"><Preview card={card} eventId={previewEventId} focus={focus} setEventId={setEventId} /></aside>}
       </div>
+
+      {!desktop && step < steps.length - 1 && (
+        <>
+          <button type="button" onClick={() => setPreviewOpen(true)} data-testid="wizard-live-preview-button"
+            className="btn-gold fixed right-4 z-30 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm shadow-lg"
+            style={{ bottom: "calc(80px + env(safe-area-inset-bottom))" }}>
+            <Eye size={16} /> {t("wizard.livePreview")}
+          </button>
+          <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
+            <SheetContent side="right" className="w-full overflow-y-auto border-border bg-background sm:max-w-md" data-testid="wizard-live-preview-sheet">
+              <SheetHeader>
+                <SheetTitle className="font-display text-xl">{t("wizard.livePreviewTitle")}</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                <Preview card={card} eventId={previewEventId} focus={focus} setEventId={setEventId} />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </>
+      )}
     </HostShell>
   );
 }
