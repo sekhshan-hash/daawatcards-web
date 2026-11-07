@@ -145,8 +145,13 @@ Mobile-first web app where hosts create cinematic, shareable digital invitation 
 - #6 Any-language paste/render: lib/script.js detectScript + useScriptFont lazy-loads Noto fonts (Devanagari/Arabic/Gurmukhi/Gujarati/Bengali/Tamil/Telugu); applied to names, salutation, greeting, note, invitation, blessing, closing, event name, venue, host; RTL per-line; "You can type or paste text in any language." helper under key fields. NOTE: WhatsApp/OG preview IMAGE (backend PIL) does NOT yet carry non-Latin fonts — deferred.
 - Tested iteration_17 (frontend 95% → fixed mixed-script RTL order, token all-caps, reveal-link contrast).
 
-## Backlog (remaining batches)
-- Batch 2: photo exact position per page (#1); all card text colours from theme tokens, remove hardcoded black/white/grey (#4)
+## Implemented (Iteration 19 — Batch 2 of card rework: photo position + theme colours) — 2026-06
+- #1 Exact photo position: CardPhoto adds photo_slot; PlacedPhoto renders only when page+slot match. Page dropdown now has Cover, "Cover and all event pages", Welcome screen, Intro, each event, Wishes; a second "Position on that page" dropdown lists cover slots (top/after-header/after-names/after-invitation/after-blessing/before-events/end), event slots (top/after-name/after-datetime/after-venue/end), welcome (above/below greeting). Injected across CardSections, Hub, CardPages, WelcomeScreen. Backend CardIn photo_place pattern now allows all|welcome + new photo_slot field. (StepPhotos.jsx, Wizard FIELDS+default)
+- #4 All card text uses theme tokens (var(--text)/--accent/--accent2/--muted); verified across royal/rose/board/hearth/minimal/bday — no hardcoded black/grey; the "On" before the date now matches note colour. Watermark keeps its own neutral colour by design.
+- Tested iteration_18 (85% → fixed: welcome preview now shows welcome phase for focus.place=welcome; welcome photo overflow contained via .gc-welcome-inner width + .gc-photo max-width/height). Cover/event/all-pages slots + theme colours all passed.
+
+## Backlog (remaining)
 - Batch 3: Bismillah SVG artwork (live calligraphic webfont) in 4 styles + Arabic/multi-script calligraphy font selector (#5); apply non-Latin fonts to WhatsApp/OG image
+- Minor: non-hero photo slots keep uploaded "blended" style (could use framed) — low priority
 - Round 2: admin password login + 2FA, design-preference charts; Gmail app password
 - Go-live: switch PAYMENT_MODE to live + add live Razorpay keys; optional Razorpay webhook secret

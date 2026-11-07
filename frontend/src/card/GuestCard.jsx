@@ -169,6 +169,12 @@ export const GuestCard = ({ card: fullCard, eventId = null, onNavigate, focus, g
       replay();
       return;
     }
+    if (focus.place === "welcome") {
+      coverScroll.current = 0;
+      scroller.current?.scrollTo({ top: 0 });
+      setPhase("welcome");
+      return;
+    }
     setPhase("card");
     if (focus.place === "wishes") goWishes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
