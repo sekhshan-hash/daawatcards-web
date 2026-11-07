@@ -76,7 +76,8 @@
   background: radial-gradient(120% 80% at 50% 20%, var(--bg2, var(--bg)), var(--bg)); }
 .gc-welcome-inner { animation: gc-fade-in .28s ease both; }
 .gc-welcome-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 16px; width: 100%; max-width: 360px; }
-.gc-welcome .gc-photo { width: 100%; max-width: 230px; max-height: 300px; margin: 2px auto; }
+.gc-root .gc-welcome .gc-photo.has-fit { width: 100%; max-width: 230px; margin: 10px auto; }
+.gc-root .gc-welcome .gc-photo.has-fit .gc-photo-clip img { max-height: 280px; width: auto; max-width: 100%; margin: 0 auto; display: block; }
 .gc-welcome-title { font-family: var(--font-title); font-size: 15px; letter-spacing: .12em; line-height: 1.6; text-transform: uppercase; color: var(--accent); }
 .gc-welcome-name { font-family: var(--font-display); font-size: clamp(40px, 13cqw, 60px); line-height: 1.1; color: var(--accent2); overflow-wrap: anywhere; }
 .gc-welcome-salutation { font-family: var(--font-display); font-size: clamp(30px, 10cqw, 46px); line-height: 1.4; color: var(--accent2); width: 100%; min-width: 0; max-width: 100%; overflow-wrap: anywhere; padding: 4px 0; }

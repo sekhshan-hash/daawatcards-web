@@ -8,7 +8,6 @@ const wishEvent = (card) => ({ ...card.events[0], name: displayTitle(card) });
 export const SinglePage = ({ card, event, t, tpl, preview, guestName, guestId, onReplay }) => (
   <>
     <TitleSection card={card} event={event} t={t} tpl={tpl} single />
-    <PlacedPhoto card={card} place="cover" slot="before-events" variant="event" testId="card-photo-before-events" />
     <DetailsSection card={card} event={event} t={t} />
     <CountdownSection card={card} event={event} t={t} />
     <VenueSection card={card} event={event} t={t} preview={preview} />

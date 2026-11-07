@@ -5,7 +5,7 @@
 .gc-title-screen > :where(*:not(.royal-frame):not(.bday-frame):not(.gc-frame):not(.gc-scroll-cue)) { max-width: calc(100% - 8px); }
 
 /* Photos: shape, position, zoom and framed/blended style. */
-.gc-root .gc-photo.has-fit { width: 100%; height: auto; max-width: var(--pmax, 320px); overflow: visible; }
+.gc-root .gc-photo.has-fit { width: 100%; height: auto; max-width: var(--pmax, 320px); overflow: visible; aspect-ratio: auto; }
 .gc-root .gc-photo-hero.has-fit { --pmax: 240px; }
 .gc-root .gc-photo-feature.has-fit { --pmax: 320px; }
 .gc-root .gc-photo-event.has-fit { --pmax: 300px; margin: 20px auto; }

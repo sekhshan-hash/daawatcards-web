@@ -87,6 +87,7 @@ export const DetailsSection = ({ card, event, t }) => {
   return (
     <section className="gc-section" data-testid="card-details-section">
       <MessageBlock card={card} t={t} />
+      <PlacedPhoto card={card} place="cover" slot="before-events" variant="event" testId="card-photo-before-events" />
       <Reveal>
         <div className="gc-panel">
           <PlacedPhoto card={card} place={`event:${event.event_id}`} slot="top" variant="event" testId="card-event-photo" />
