@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Crop, ImagePlus, Trash2 } from "lucide-react";
 import { errMsg } from "@/lib/api";
 import { photoUrl, uploadPhoto } from "@/lib/upload";
-import { mainPhoto, photoFit } from "@/card/CardPhoto";
+import { mainPhoto, photoFit, slotsForPlace } from "@/card/CardPhoto";
 import { PhotoAdjust, faceFocus } from "./PhotoAdjust";
 import { Field, StepTitle } from "./Steps";
 import { t } from "@/i18n";
@@ -60,13 +60,19 @@ const VARIANT = { cover: "hero", intro: "intro", wishes: "wishes" };
 
 export const StepPhotos = ({ card, update, onPlace, onSkip }) => {
   const path = card.photos?.[0] || "";
-  const place = mainPhoto({ ...card, photo_place: card.photo_place || "cover" })?.place || "cover";
+  const m = mainPhoto({ ...card, photo_place: card.photo_place || "cover" });
+  const place = m?.place || "cover";
   const variant = VARIANT[place] || "event";
+  const slotOpts = slotsForPlace(place);
   const setPhoto = (v, f) => update({ photos: [v, card.photos?.[1] || ""], photo_place: card.photo_place || "cover", ...(f ? { photo_fit: { ...(card.photo_fit || {}), hero: f } } : {}) });
   const setFit = (f) => update({ photo_fit: { ...(card.photo_fit || {}), hero: f } });
   const choose = (p) => {
-    update({ photo_place: p });
+    update({ photo_place: p, photo_slot: "" });
     onPlace(p);
+  };
+  const chooseSlot = (s) => {
+    update({ photo_slot: s });
+    onPlace(place === "all" ? "cover" : place);
   };
   return (
     <>
@@ -75,14 +81,25 @@ export const StepPhotos = ({ card, update, onPlace, onSkip }) => {
         <PhotoSlot card={card} tall variant={variant} fit={card.photo_fit?.hero} onFit={setFit} label={t("wizard.photoSingle")} hint={t("wizard.photoSingleHint")}
           value={path} onChange={setPhoto} testId="wizard-photo-main" />
         {path ? (
-          <Field label={t("wizard.showOn")}>
-            <select value={place} onChange={(e) => choose(e.target.value)} className="field-select" data-testid="wizard-photo-place-select">
-              <option value="cover">{t("wizard.placeCover")}</option>
-              <option value="intro">{t("wizard.placeIntro")}</option>
-              {card.events.map((ev) => <option key={ev.event_id} value={`event:${ev.event_id}`}>{ev.name || ev.event_id}</option>)}
-              <option value="wishes">{t("wizard.placeWishes")}</option>
-            </select>
-          </Field>
+          <>
+            <Field label={t("wizard.showOn")}>
+              <select value={place} onChange={(e) => choose(e.target.value)} className="field-select" data-testid="wizard-photo-place-select">
+                <option value="cover">{t("wizard.placeCover")}</option>
+                <option value="all">{t("wizard.placeAll")}</option>
+                <option value="welcome">{t("wizard.placeWelcome")}</option>
+                <option value="intro">{t("wizard.placeIntro")}</option>
+                {card.events.map((ev) => <option key={ev.event_id} value={`event:${ev.event_id}`}>{ev.name || ev.event_id}</option>)}
+                <option value="wishes">{t("wizard.placeWishes")}</option>
+              </select>
+            </Field>
+            {slotOpts.length > 0 && (
+              <Field label={t("wizard.photoPosition")}>
+                <select value={m?.slot || slotOpts[0]} onChange={(e) => chooseSlot(e.target.value)} className="field-select" data-testid="wizard-photo-slot-select">
+                  {slotOpts.map((s) => <option key={s} value={s}>{t(`wizard.slot.${s}`)}</option>)}
+                </select>
+              </Field>
+            )}
+          </>
         ) : (
           <div className="rounded-2xl border border-dashed border-border p-4" data-testid="wizard-photo-empty">
             <p className="text-sm text-muted-foreground">{t("wizard.photoSkipped")}</p>

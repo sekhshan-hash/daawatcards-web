@@ -62,14 +62,14 @@ export const defaultCard = (type, lang = "en", tradition = "neutral", tplId = nu
     event_type: type, template, language: lang, photos: ["", ""], wishes_photo: "", heading_font: "default", primary_name: "", secondary_name: "", host_family: "",
     title: "", invitation_text: "", blessing_key: d.blessing, blessing_text: "",
     music_track: TEMPLATES[template].defaultMusic, host_whatsapp: "", timezone: "+05:30", status: "draft",
-    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", hub_heading: "",
+    tradition, header_key: "", family: BLANK_FAMILY, custom_header: BLANK_HEADER, header_per_event: false, intro_title: "", photo_fit: {}, photo_place: "cover", photo_slot: "", hub_heading: "",
     effects: DEFAULT_EFFECTS, welcome_text: "", welcome_salutation: "", welcome_greeting: "", scratch_date: true, timeline_art: true,
     events: names.map((name, i) => blankEvent(name, `e${i + 1}`)),
   };
   return { ...base, ...textDefaults(base) };
 };
 
-const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit", "photo_place", "hub_heading", "effects", "welcome_text", "welcome_salutation", "welcome_greeting", "scratch_date", "timeline_art"];
+const FIELDS = ["event_type", "template", "language", "primary_name", "secondary_name", "host_family", "title", "invitation_text", "blessing_key", "blessing_text", "music_track", "host_whatsapp", "timezone", "events", "photos", "wishes_photo", "heading_font", "tradition", "header_key", "family", "custom_header", "header_per_event", "intro_title", "photo_fit", "photo_place", "photo_slot", "hub_heading", "effects", "welcome_text", "welcome_salutation", "welcome_greeting", "scratch_date", "timeline_art"];
 
 const validate = (card, step) => {
   if (step >= 2 && !card.primary_name.trim()) return t("wizard.errors.primary");

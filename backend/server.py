@@ -205,7 +205,8 @@ class CardIn(BaseModel):
     header_per_event: bool = False
     intro_title: str = Field(default="", max_length=80)
     photo_fit: Dict[Literal["hero", "feature", "wishes"], PhotoFit] = Field(default_factory=dict)
-    photo_place: str = Field(default="", pattern=r"^(|cover|intro|wishes|event:[A-Za-z0-9_-]{1,20})$")
+    photo_place: str = Field(default="", pattern=r"^(|cover|all|welcome|intro|wishes|event:[A-Za-z0-9_-]{1,20})$")
+    photo_slot: str = Field(default="", max_length=24)
     hub_heading: str = Field(default="", max_length=80)
     welcome_text: str = Field(default="", max_length=400)
     welcome_salutation: str = Field(default="", max_length=120)

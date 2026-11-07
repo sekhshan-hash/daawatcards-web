@@ -45,11 +45,13 @@ export const TitleSection = ({ card, event, t, tpl, single }) => {
   return (
     <section className={`gc-title-screen ${single ? "is-single" : ""} ${mainPhoto(card)?.place === "cover" ? "has-photo" : ""}`} data-testid="card-title-section">
       <Frame />
+      <PlacedPhoto card={card} place="cover" slot="top" variant="hero" testId="card-hero-photo-top" />
       <HeaderLine card={card} testId="card-cover-header-line" />
-      <PlacedPhoto card={card} place="cover" variant="hero" testId="card-hero-photo" />
+      <PlacedPhoto card={card} place="cover" slot="after-header" variant="hero" testId="card-hero-photo" />
       <FamilyBlock card={card} />
       {!familyText(card) && !(couple && cardHeader(card)?.id === "together") && <p className="gc-eyebrow">{t(`guest.eyebrow.${card.event_type}`)}</p>}
       <CoupleNames card={card} tpl={tpl} />
+      <PlacedPhoto card={card} place="cover" slot="after-names" variant="event" testId="card-hero-photo-names" />
       <Divider />
       <p className="gc-title" data-testid="card-event-title">{displayTitle(card)}</p>
       <div className="gc-scroll-cue"><span>{t("guest.scroll")}</span><ChevronDown size={18} /></div>
@@ -64,7 +66,9 @@ export const MessageBlock = ({ card, t }) => {
   return (
     <>
       {text && <Reveal><ScriptText as="p" className="gc-invite" text={text} testId="card-invitation-text" /></Reveal>}
+      <PlacedPhoto card={card} place="cover" slot="after-invitation" variant="event" testId="card-photo-after-invitation" />
       {blessing && <Reveal><ScriptText as="blockquote" className="gc-blessing" text={blessing} testId="card-blessing" /></Reveal>}
+      <PlacedPhoto card={card} place="cover" slot="after-blessing" variant="event" testId="card-photo-after-blessing" />
       <Reveal><DuaBlock dua={cardDua(card)} /></Reveal>
     </>
   );
@@ -85,15 +89,17 @@ export const DetailsSection = ({ card, event, t }) => {
       <MessageBlock card={card} t={t} />
       <Reveal>
         <div className="gc-panel">
-          <PlacedPhoto card={card} place={`event:${event.event_id}`} variant="event" testId="card-event-photo" />
+          <PlacedPhoto card={card} place={`event:${event.event_id}`} slot="top" variant="event" testId="card-event-photo" />
           <p className="gc-eyebrow">{t("guest.eventLabel")}</p>
           <h2 className="gc-heading" data-testid="card-event-name"><ScriptText as="span" preserveLines={false} text={occasionName(card)} /></h2>
+          <PlacedPhoto card={card} place={`event:${event.event_id}`} slot="after-name" variant="event" testId="card-event-photo-after-name" />
           <div className="gc-rows">
             <Row icon={CalendarDays} label={t("guest.date")} value={formatLongDate(event.date, card.language) || "—"} testId="card-event-date" />
             <Row icon={Clock} label={t("guest.time")} value={time || "—"} testId="card-event-time" />
             {mealLine(event, t) && <Row icon={UtensilsCrossed} label={t("guest.meal")} value={mealLine(event, t)} testId="card-event-meal" />}
             {event.dress_code && <Row icon={Shirt} label={t("guest.dressCode")} value={event.dress_code} testId="card-event-dress-code" />}
           </div>
+          <PlacedPhoto card={card} place={`event:${event.event_id}`} slot="after-datetime" variant="event" testId="card-event-photo-after-datetime" />
           {event.custom_text && <ScriptText as="p" className="gc-note" text={event.custom_text} testId="card-event-custom-text" />}
         </div>
       </Reveal>
@@ -179,6 +185,7 @@ export const VenueSection = ({ card, event, t, preview }) => {
               <a className="gc-link" href={gcal || undefined} target="_blank" rel="noreferrer" data-testid="calendar-google-link">{t("guest.googleCalendar")}</a>
             </div>
           )}
+          <PlacedPhoto card={card} place={`event:${event.event_id}`} slot="after-venue" variant="event" testId="card-event-photo-after-venue" />
         </div>
       </Reveal>
     </section>

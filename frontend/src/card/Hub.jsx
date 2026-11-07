@@ -62,10 +62,12 @@ export const CoverPage = ({ card, fullCard, events, t, tpl, guestName, guestId, 
     <div className="gc-hub-page" data-testid="hub-cover">
       <section className={`gc-title-screen is-hub ${mainPhoto(card)?.place === "cover" ? "has-photo" : ""}`} data-testid="card-title-section">
         <Frame />
+        <PlacedPhoto card={card} place="cover" slot="top" variant="hero" testId="card-hero-photo-top" />
         <HeaderLine card={card} testId="card-cover-header-line" />
-        <PlacedPhoto card={card} place="cover" variant="hero" testId="card-hero-photo" />
+        <PlacedPhoto card={card} place="cover" slot="after-header" variant="hero" testId="card-hero-photo" />
         <p className="gc-cover-title" dir="auto" data-testid="card-cover-invitation-title">{displayTitle(card)}</p>
         <CoupleNames card={card} tpl={tpl} />
+        <PlacedPhoto card={card} place="cover" slot="after-names" variant="event" testId="card-hero-photo-names" />
         <Divider />
       </section>
       <section className="gc-section gc-center gc-hub-message">
@@ -73,9 +75,11 @@ export const CoverPage = ({ card, fullCard, events, t, tpl, guestName, guestId, 
         <MessageBlock card={card} t={t} />
       </section>
       <section className="gc-section gc-hub" data-testid="hub-events">
+        <PlacedPhoto card={card} place="cover" slot="before-events" variant="event" testId="card-photo-before-events" />
         <h2 className="gc-hub-heading" dir="auto" data-testid="hub-heading">{hubHeading(card, t)}</h2>
         <Timeline card={card} fullCard={fullCard} tpl={tpl} events={events} t={t} onOpen={onOpen} />
       </section>
+      <PlacedPhoto card={card} place="cover" slot="end" variant="event" testId="card-photo-cover-end" />
       <ClosingSection card={card} />
       {wishesEnabled(card) && <WishesSection card={card} event={wishEvent(card)} guestName={guestName} guestId={guestId} t={t} preview={preview} />}
       <FooterSection card={card} t={t} tpl={tpl} onReplay={onReplay} />
@@ -113,18 +117,21 @@ export const EventPage = ({ card, ev, events, t, preview, onOpen, onWishes }) =>
         <Reveal><EventOwnText ev={ev} /></Reveal>
         <Reveal>
           <div className="gc-panel">
-            <PlacedPhoto card={card} place={`event:${ev.event_id}`} variant="event" testId="card-event-photo" />
+            <PlacedPhoto card={card} place={`event:${ev.event_id}`} slot="top" variant="event" testId="card-event-photo" />
             <h2 className="gc-heading gc-event-title" data-testid="card-event-name">{ev.name}</h2>
+            <PlacedPhoto card={card} place={`event:${ev.event_id}`} slot="after-name" variant="event" testId="card-event-photo-after-name" />
             <p className="gc-event-when" data-testid="card-event-date">{formatLongDate(ev.date, card.language) || "—"}</p>
             <p className="gc-muted" data-testid="card-event-time">{timeRange(ev, card.language) || "—"}</p>
             {meal && <p className="gc-event-meal" data-testid="card-event-meal"><UtensilsCrossed size={15} /> {meal}</p>}
             {ev.dress_code && <div className="gc-rows gc-event-extra"><Row icon={Shirt} label={t("guest.dressCode")} value={ev.dress_code} testId="card-event-dress-code" /></div>}
+            <PlacedPhoto card={card} place={`event:${ev.event_id}`} slot="after-datetime" variant="event" testId="card-event-photo-after-datetime" />
             {ev.custom_text && <p className="gc-note" data-testid="card-event-custom-text">{ev.custom_text}</p>}
           </div>
         </Reveal>
       </section>
       <CountdownSection card={card} event={ev} t={t} />
       <VenueSection card={card} event={ev} t={t} preview={preview} />
+      <PlacedPhoto card={card} place={`event:${ev.event_id}`} slot="end" variant="event" testId="card-event-photo-end" />
       <EventNav card={card} events={events} index={index} t={t} onOpen={onOpen} onWishes={onWishes} />
     </div>
   );
