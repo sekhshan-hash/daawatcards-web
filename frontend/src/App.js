@@ -11,6 +11,7 @@ import Wizard from "@/pages/Wizard";
 import CardDetail from "@/pages/CardDetail";
 import GuestsPage from "@/pages/GuestsPage";
 import GuestCardPage from "@/pages/GuestCardPage";
+import ContactsTest from "@/pages/ContactsTest";
 import LegalPage from "@/pages/LegalPage";
 import Contact from "@/pages/Contact";
 import Admin from "@/pages/Admin";
@@ -39,6 +40,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/i/:slug/:eventId?" element={<GuestCardPage />} />
+        <Route path="/contacts-test" element={<ContactsTest />} />
         <Route element={<AuthLayout />}>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
